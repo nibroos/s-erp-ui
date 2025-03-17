@@ -438,6 +438,7 @@ onMounted(async () => {
                 rounded="lg"
                 density="compact"
                 color="#898F99"
+                class="!text-primary1"
               ></v-list-item>
             </template>
           </v-list-group>
@@ -449,6 +450,8 @@ onMounted(async () => {
                 title="Sales"
                 density="compact"
                 rounded="lg"
+                color="#898F99"
+                class="!text-primary1"
               ></v-list-item>
             </template>
             <template v-for="(item, i) in itemSales" :key="i">
@@ -460,6 +463,7 @@ onMounted(async () => {
                 rounded="lg"
                 density="compact"
                 color="#898F99"
+                class="!text-primary1"
               ></v-list-item>
             </template>
           </v-list-group>
