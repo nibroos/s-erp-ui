@@ -3,9 +3,12 @@ import type { FormQuoDtProductListType, FormQuoDtRefType, QuoDtBomType, QuoDtIte
 
 export const generateBoms = (bom: QuoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: QuoDtBomType | ProductBomListType) => {
+    const randomUuid = randomId()
+
     if (type === 'bom') {
       return {
         ...bomItem,
+        uid: randomUuid,
         product_uuid: productUuid,
         item_id: bomItem.product_item_id ?? bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
         name: bomItem.item_name ?? bomItem.name,
@@ -25,6 +28,7 @@ export const generateBoms = (bom: QuoDtBomType[] | ProductBomListType[], product
     } else {
       return {
         ...bomItem,
+        uid: randomUuid,
         product_uuid: productUuid,
         item_id: bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
         name: bomItem.name ?? bomItem.item_name,
@@ -63,6 +67,7 @@ export function convertItemRefProduct(
 
   const data: QuoDtType = {
     ...item,
+    uid: randomId(),
     id: item.quo_dt_id ?? null,
     quotation_id: item.quotation_id,
     item_unit_id: item.item_unit_id,
@@ -198,6 +203,21 @@ export function updateRefsModalFromMain(
       updatedList[iMainItem] = mainItem
     }
 
+  })
+
+  return updatedList
+}
+
+export function initCheckedQuoDt(
+  checkMain: QuoDtType[],
+): QuoDtType[] {
+  let updatedList: QuoDtType[] = []
+
+  checkMain.forEach((mainItem: QuoDtType, iMainItem: number) => {
+    updatedList[iMainItem] = {
+      ...mainItem,
+      uid: randomId(),
+    }
   })
 
   return updatedList

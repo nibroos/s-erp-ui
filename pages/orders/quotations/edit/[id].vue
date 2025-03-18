@@ -1030,7 +1030,7 @@ watchEffect(() => {
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
             :headers="headers"
-            item-value="id"
+            item-value="uid"
             density="compact"
             height="500"
             fixed-header

@@ -88,6 +88,7 @@ export type FormQuotationType = {
 }
 
 export type QuoDtType = {
+  uid?: string
   id?: number | null | undefined | string | string[]
   quotation_id?: number | null
   item_unit_id?: number | null
@@ -127,6 +128,7 @@ export type QuoDtType = {
 }
 
 export type QuoDtBomType = {
+  uid?: string
   id?: number | null | undefined | string | string[]
   product_uuid: string
   quotation_id?: number | null
