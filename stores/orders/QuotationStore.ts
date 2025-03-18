@@ -1,4 +1,4 @@
-import { generateBoms } from '~/composables/maps/quotation'
+import { generateBoms, initCheckedQuoDt } from '~/composables/maps/quotation'
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
@@ -125,7 +125,7 @@ const useQuotationStore = defineStore('QuotationStore', {
           }
         )
         this.form = response.data.data[0]
-        this.itemsCheck.checkMain = this.form.quo_dts
+        this.itemsCheck.checkMain = initCheckedQuoDt(this.form.quo_dts)
 
         return response
       } catch (error: any) {

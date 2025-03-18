@@ -85,6 +85,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Qty Stock",
+    key: "qty_stock",
+    value: "qty_stock",
+    align: "end",
+    sortable: true,
+  },
+  {
     title: "Tpb Code",
     key: "tpb_code",
     value: "tpb_code",
