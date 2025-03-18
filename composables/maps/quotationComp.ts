@@ -1,7 +1,7 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
 import type { FormQuoDtProductListType, FormQuoDtRefType, QuoDtBomType, QuoDtItemType, QuoDtRefType, QuoDtType } from "~/types/quotations/QuotationType"
 
-export const generateBoms = (bom: QuoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
+export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: QuoDtBomType | ProductBomListType) => {
     const randomUuid = randomId()
 
@@ -48,21 +48,21 @@ export const generateBoms = (bom: QuoDtBomType[] | ProductBomListType[], product
   })
 }
 
-export function convertItemRefProduct(
+export function convertQuoItemRefProduct(
   item: FormQuoDtProductListType,
 ): QuoDtType {
-  console.log('convertItemRefProduct-item', item);
+  console.log('convertQuoItemRefProduct-item', item);
 
   let itemType: QuoDtItemType = item.boms && item.boms.length > 0 ? 'product' : 'item'
   let productUuid = randomId()
   let productId = item.product_id ?? item.ref_id
 
   if (!!item.boms) {
-    item.boms = generateBoms(item.boms, productUuid, 'bom', productId)
+    item.boms = generateQuoBoms(item.boms, productUuid, 'bom', productId)
   }
 
   if (!!item.quo_dts_boms) {
-    item.quo_dts_boms = generateBoms(item.quo_dts_boms, productUuid, 'bom', productId)
+    item.quo_dts_boms = generateQuoBoms(item.quo_dts_boms, productUuid, 'bom', productId)
   }
 
   const data: QuoDtType = {
@@ -124,7 +124,7 @@ export function generateQuoDt(
 
   //   if (checkOpened == 'products') {
 
-  //     return convertItemRefProduct(dt)
+  //     return convertQuoItemRefProduct(dt)
   //   } else {
   //     return dt as unknown as QuoDtType
   //   }
@@ -136,7 +136,7 @@ export function generateQuoDt(
 
   if (checkOpened == 'products') {
     newRefItems = data.map((dt: FormQuoDtRefType): QuoDtType => {
-      return convertItemRefProduct(dt)
+      return convertQuoItemRefProduct(dt)
     })
 
     removedRefItems = checkMain.filter((rmItem: QuoDtType) => {
@@ -167,13 +167,13 @@ export function generateQuoDt(
   return updatedList
 }
 
-export function defineItemTypeQuotation(
+export function defineQuoItemTypeQuotation(
   item: QuoDtType
 ): QuoDtItemType {
   return (item.boms && item.boms.length > 0) || (item.quo_dts_boms && item.quo_dts_boms.length > 0) ? 'product' : 'item'
 }
 
-export function updateRefsModalFromMain(
+export function updateQuoRefsModalFromMain(
   checkMain: QuoDtType[],
   checkOpened: QuoDtRefType,
   checkProducts: FormQuoDtProductListType[]
@@ -187,9 +187,9 @@ export function updateRefsModalFromMain(
 
     if (checkProducts.length > 0) {
       checkProducts.forEach((prodItem: FormQuoDtProductListType, iProdItem: number) => {
-        console.log('updateRefsModalFromMain-mainItem-base', iProdItem, mainItem);
+        console.log('updateQuoRefsModalFromMain-mainItem-base', iProdItem, mainItem);
         if (mainItem.ref_id == prodItem.ref_id) {
-          console.log('updateRefsModalFromMain-mainItem-found', iProdItem, mainItem);
+          console.log('updateQuoRefsModalFromMain-mainItem-found', iProdItem, mainItem);
 
           const combined = {
             ...prodItem,

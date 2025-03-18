@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useQuotationStore from "~/stores/orders/QuotationStore";
+import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
 import type {
   OptionRefBtnType,
   RefBtnType,
@@ -14,20 +14,22 @@ import type { FormVatType } from "~/types/masters/VatType";
 import type { FormPph23Type } from "~/types/masters/Pph23Type";
 import type { FormCurrencyType } from "~/types/masters/CurrencyType";
 import type {
-  FormQuoDtProductListType,
+  FormSoDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
+  ModalIndexQuotationFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
-  QuoDtDiscType,
-  QuoDtType,
+  ModalIndexQuotationFilterTextType,
+  SoDtDiscType,
+  SoDtType,
   VatModeType,
-} from "~/types/quotations/QuotationType";
-import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
+} from "~/types/sales-orders/SalesOrderType";
+import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
 
 const router = useRouter();
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
-const quotationStore = useQuotationStore();
+const salesOrderStore = useSalesOrderStore();
 const {
   tabFormIndex,
   form,
@@ -39,7 +41,7 @@ const {
   optionRefBtnRef,
   loading,
   openedModal,
-} = storeToRefs(quotationStore);
+} = storeToRefs(salesOrderStore);
 
 definePageMeta({
   layout: "auth",
@@ -47,7 +49,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Edit Quotation",
+  title: "Edit Sales Order",
 });
 
 const id = ref(router.currentRoute.value.params.id);
@@ -298,7 +300,177 @@ const headersModalProducts = ref<FieldSelectableType[]>([
   },
 ]);
 
+const headersModalQuotations = ref<FieldSelectableType[]>([
+  {
+    title: "Quotation No",
+    key: "quo_no",
+    value: "quo_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Group",
+    key: "item_group_name",
+    value: "item_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Sub Group",
+    key: "item_sub_group_name",
+    value: "item_sub_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Item Type",
+    key: "item_type",
+    value: "item_type",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Code",
+    key: "code",
+    value: "code",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Name",
+    key: "name",
+    value: "name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "SKU",
+    key: "sku",
+    value: "sku",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Qty SO",
+    key: "qty_so",
+    value: "qty_so",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Price",
+    key: "price_sell",
+    value: "price_sell",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Subtotal",
+    key: "subtotal_sell",
+    value: "subtotal_sell",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Disc (%)",
+    key: "disc_perc",
+    value: "disc_perc",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Disc (Am)",
+    key: "disc_am",
+    value: "disc_am",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "VAT (%)",
+    key: "vat_perc",
+    value: "vat_perc",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Total Amount",
+    key: "total_am",
+    value: "total_am",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Remark",
+    key: "remark",
+    value: "remark",
+    align: "start",
+    sortable: true,
+  },
+]);
+
 const filtersOptionsProducts = ref([
+  {
+    title: "Group",
+    key: "item_group_ids",
+    type: "autocomplete",
+    methodApi: "post",
+    api: "/v1/item-groups/index-item-group",
+    singleApi: "/v1/item-groups/index-item-group",
+    pageEndProp: "meta.next_page_url",
+    innerSearchKey: "global",
+    multiple: true,
+    returnObject: false,
+    itemColor: "brown-lighten-2",
+    itemValue: "id",
+    itemTitle: "name",
+  },
+  {
+    title: "Sub Group",
+    key: "item_sub_group_ids",
+    type: "autocomplete",
+    methodApi: "post",
+    api: "/v1/item-sub-groups/index-item-sub-group",
+    singleApi: "/v1/item-sub-groups/index-item-sub-group",
+    pageEndProp: "meta.next_page_url",
+    innerSearchKey: "global",
+    multiple: true,
+    returnObject: false,
+    itemColor: "brown-lighten-2",
+    itemValue: "id",
+    itemTitle: "name",
+  },
+]);
+
+const filtersOptionsQuotations = ref([
+  {
+    title: "Customer",
+    key: "customer_ids",
+    type: "autocomplete",
+    methodApi: "post",
+    api: "/v1/customers/index-customer",
+    singleApi: "/v1/customers/index-customer",
+    pageEndProp: "meta.next_page_url",
+    innerSearchKey: "global",
+    multiple: true,
+    returnObject: false,
+    itemColor: "brown-lighten-2",
+    itemValue: "id",
+    itemTitle: "name",
+  },
   {
     title: "Group",
     key: "item_group_ids",
@@ -355,6 +527,21 @@ const filtersTextProducts = ref([
   {
     title: "TPB Code",
     key: "tpb_code",
+  },
+  {
+    title: "Global",
+    key: "global",
+  },
+]);
+
+const filtersTextQuotations = ref([
+  {
+    title: "Quo No",
+    key: "quo_no",
+  },
+  {
+    title: "Product Name",
+    key: "name",
   },
   {
     title: "Global",
@@ -424,13 +611,13 @@ const summaryLayout = ref({
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/orders/quotations",
+  parentPath: "/orders/sales-orders",
   currentTab: tabFormIndex.value,
   tabs: ["Items", "Payments", "Remark"],
   mode: "edit",
   button: {
     create: {
-      path: "/orders/quotations/create",
+      path: "/orders/sales-orders/create",
     },
     save: {
       show: true,
@@ -470,15 +657,20 @@ const handleSubmit = async () => {
   //   return;
   // }
 
-  form.value.quo_dts = itemsCheck.value.checkMain;
+  form.value.so_dts = itemsCheck.value.checkMain;
 
-  await quotationStore.update();
+  await salesOrderStore.update();
 };
 
 const autocompleteCustomer = (data: any) => {
   form.value.email = data.email;
   form.value.phone = data.phone;
   form.value.address = data.address;
+
+  if (!!data.id) {
+    queryModal.value.qIndexQuotations.customer_id = data.id;
+    queryModal.value.qIndexQuotations.customer_ids = [data.id];
+  }
 };
 
 const autocompleteVat = (data: FormVatType) => {
@@ -487,7 +679,7 @@ const autocompleteVat = (data: FormVatType) => {
   // vatMode.value = null;
 
   // if (!!form.value.vat_id) {
-  //   itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
+  //   itemsCheck.value.checkMain.forEach((item: SoDtType) => {
   //     item.vat_id = null;
   //     item.vat_perc = 0;
   //   });
@@ -498,13 +690,13 @@ const autocompleteVat = (data: FormVatType) => {
   calculateTotalAmount();
 };
 
-const autocompleteVatDt = (data: FormVatType, quoDtType: QuoDtType) => {
-  quoDtType.vat_perc = Number(data.num);
+const autocompleteVatDt = (data: FormVatType, soDtType: SoDtType) => {
+  soDtType.vat_perc = Number(data.num);
 
   // form.value.vat_id = null;
   // form.value.vat_perc = 0;
 
-  vatMode.value = "detail";
+  // vatMode.value = "detail";
 
   calculateTotalAmount();
 };
@@ -516,15 +708,15 @@ const removeVat = () => {
   calculateTotalAmount();
 };
 
-const removeVatDt = (quoDtType: QuoDtType) => {
-  if (!quoDtType.vat_id) {
-    quoDtType.vat_perc = 0;
-    quoDtType.vat_perc_am = 0;
+const removeVatDt = (soDtType: SoDtType) => {
+  if (!soDtType.vat_id) {
+    soDtType.vat_perc = 0;
+    soDtType.vat_perc_am = 0;
   }
 
   // if all items vat_id is null, then change vatmode to null
   const isAllVatNull = itemsCheck.value.checkMain.every(
-    (item: QuoDtType) => !item.vat_id
+    (item: SoDtType) => !item.vat_id
   );
 
   if (isAllVatNull) {
@@ -556,28 +748,38 @@ const autocompleteCurrency = (data: FormCurrencyType) => {
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
   if (ref.key == "products") {
-    itemsCheck.value.checkProducts = updateQuoRefsModalFromMain(
+    itemsCheck.value.checkProducts = updateSoRefsModalFromMain(
       itemsCheck.value.checkMain,
       "products",
       itemsCheck.value.checkProducts
     );
 
-    quotationStore.countSelectedReferences();
+    salesOrderStore.countSelectedReferences();
     isOpenModal.value.products = true;
+  } else if (ref.key == "quotations") {
+    itemsCheck.value.checkQuotations = updateSoRefsModalFromMain(
+      itemsCheck.value.checkMain,
+      "quotations",
+      itemsCheck.value.checkQuotations
+    );
+
+    salesOrderStore.countSelectedReferences();
+    isOpenModal.value.quotations = true;
   }
 
-  await quotationStore.indexProduct();
+  await salesOrderStore.indexProduct();
 };
 
 const fetchModalFilter = async () => {
   if (isOpenModal.value.products || isOpenModal.value.boms) {
-    await quotationStore.indexProduct();
+    await salesOrderStore.indexProduct();
+  } else if (isOpenModal.value.quotations) {
+    if (!!form.value.customer_id) {
+      queryModal.value.qIndexQuotations.customer_id = form.value.customer_id;
+      queryModal.value.qIndexQuotations.customer_ids = [form.value.customer_id];
+    }
+    await salesOrderStore.indexQuotation();
   }
-  // else if (showModal.value.listPO) {
-  //   queryModal.value.qListPO.customer_id = form.value.customer_id
-  //   await useInventoryIn.getPurchaseOrderData(
-  //     qs.stringify(queryModal.value.qListPO)
-  //   )
   // } else if (showModal.value.listWip) {
   //   // queryModal.value.qListWip.customer_id = form.value.customer_id
   //   // queryModal.value.qListWip.mode = 'OUT'
@@ -588,10 +790,15 @@ const fetchModalFilter = async () => {
 
 const fetchInitialData = async () => {
   form.value.id = Number(id.value);
-  await Promise.all([quotationStore.show(), quotationStore.indexProduct()]);
+  await Promise.all([
+    salesOrderStore.show(),
+    salesOrderStore.indexProduct(),
+    salesOrderStore.indexQuotation(),
+  ]);
 };
 
 const closeAllModal = () => {
+  isOpenModal.value.quotations = false;
   isOpenModal.value.products = false;
   isOpenModal.value.boms = false;
 };
@@ -623,30 +830,44 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
     }
   }
 
+  if (isOpenModal.value.quotations) {
+    queryModal.value.qIndexQuotations.page = options.page;
+    queryModal.value.qIndexQuotations.per_page = options.itemsPerPage;
+
+    if (options.sortBy.length > 0) {
+      queryModal.value.qIndexQuotations.order_column = options.sortBy[0].key;
+      queryModal.value.qIndexQuotations.order_direction =
+        options.sortBy[0].order;
+    } else {
+      queryModal.value.qIndexQuotations.order_column = "";
+      queryModal.value.qIndexQuotations.order_direction = "";
+    }
+  }
+
   fetchModalFilter();
 };
 
 const onClickUpdateProductsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
+  salesOrderStore.selectItemRefModal();
+  salesOrderStore.countSelectedReferences();
   closeAllModal();
 };
 
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMain.splice(index, 1);
 
-  quotationStore.countSelectedReferences();
+  salesOrderStore.countSelectedReferences();
 };
 
 const onClickUpdateBomsModal = () => {
   // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
+  salesOrderStore.selectItemRefModal();
+  salesOrderStore.countSelectedReferences();
   closeAllModal();
 };
 
 const onClickOpenModalBOM = async (
-  item: FormQuoDtProductListType,
+  item: FormSoDtProductListType,
   index: number
 ) => {
   openedModal.value.boms.index = index;
@@ -654,9 +875,9 @@ const onClickOpenModalBOM = async (
   openedModal.value.boms.product_id = item.item_id as number;
   openedModal.value.boms.product_uuid = item.product_uuid as string;
 
-  itemsCheck.value.checkBoms = item.quo_dts_boms;
+  itemsCheck.value.checkBoms = item.so_dts_boms;
   isOpenModal.value.boms = true;
-  await quotationStore.indexProduct();
+  await salesOrderStore.indexProduct();
 };
 
 const onClickDeleteBom = (
@@ -665,15 +886,15 @@ const onClickDeleteBom = (
   internalItem: any
 ) => {
   const item = itemsCheck.value.checkMain[index];
-  if (item && item.quo_dts_boms) {
-    item.quo_dts_boms.splice(indexBom, 1);
+  if (item && item.so_dts_boms) {
+    item.so_dts_boms.splice(indexBom, 1);
   }
 
   calculateTotalAmount();
 };
 
 const calculateTotalAmount = () => {
-  itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
+  itemsCheck.value.checkMain.forEach((item: SoDtType) => {
     const discPercentage = Number((item.disc_perc ?? 0) / 100);
     const discAmount = Number(item.disc_am);
     const priceSell = Number(item.price_sell);
@@ -691,7 +912,7 @@ const calculateTotalAmount = () => {
     item.subtotal_sell = subtotalSell;
     item.subtotal_buy = subtotalBuy;
 
-    let discType: QuoDtDiscType = null;
+    let discType: SoDtDiscType = null;
 
     let discFinal = 0;
     if (!!discAmount && discAmount > 0) {
@@ -737,18 +958,18 @@ const calculateTotalAmount = () => {
 
   // header calculation
   form.value.subtotal = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.total_am,
+    (acc: number, item: SoDtType) => acc + item.total_am,
     0
   );
 
   form.value.total_qty = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.qty,
+    (acc: number, item: SoDtType) => acc + item.qty,
     0
   );
 
   // form.value.total_discount = item.disc_perc_am + item.disc_am + form.value.disc_am + form.value.disc_perc_am;
   let itemsDiscount = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am,
+    (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
     0
   );
 
@@ -768,7 +989,7 @@ const calculateTotalAmount = () => {
     form.value.total_discount = discPercPriceSellHead + discAmountHead;
   }
 
-  let discType: QuoDtDiscType = null;
+  let discType: SoDtDiscType = null;
 
   let discFinal = 0;
   if (!!discAmountHead && discAmountHead > 0) {
@@ -845,7 +1066,7 @@ const calculateTotalAmount = () => {
 //   () => itemsCheck.value.checkMain.length,
 //   (oldValue, newVal) => {
 //     if (oldValue !== newVal) {
-//       quotationStore.countSelectedReferences();
+//       salesOrderStore.countSelectedReferences();
 //     }
 //   }
 // );
@@ -853,14 +1074,14 @@ const calculateTotalAmount = () => {
 const vatMode = ref<VatModeType>(null);
 
 onMounted(async () => {
-  quotationStore.handleClickClear();
+  salesOrderStore.handleClickClear();
   await fetchInitialData();
-  // quotationStore.updateRefsModal();
+  // salesOrderStore.updateRefsModal();
 });
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "Quotations";
+  topTitle.value = "SalesOrders";
 });
 </script>
 
@@ -869,7 +1090,7 @@ watchEffect(() => {
     <d-form-layout
       :config="formLayout"
       @click:save="handleSubmit()"
-      @click:clear="quotationStore.handleClickClear()"
+      @click:clear="salesOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
       <template #header>
@@ -884,19 +1105,19 @@ watchEffect(() => {
         >
           <div class="sm:col-span-1 flex flex-col">
             <d-text-input
-              v-model="form.quo_no"
-              :label="`Quotation No`"
-              :placeholder="`Quotation No`"
+              v-model="form.sales_order_no"
+              :label="`Order No`"
+              :placeholder="`Order No`"
               :errors="errors.name"
             >
             </d-text-input>
           </div>
           <div class="sm:col-span-1">
             <d-text-input
-              v-model="form.title"
-              :label="`Title`"
-              :placeholder="`Title`"
-              :errors="errors.title"
+              v-model="form.po_buyer_no"
+              :label="`PO Buyer No`"
+              :placeholder="`PO Buyer No`"
+              :errors="errors.po_buyer_no"
             />
           </div>
           <div class="sm:col-span-1">
@@ -963,6 +1184,24 @@ watchEffect(() => {
           </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
+              v-model="form.order_at"
+              label="Order Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.shipping_at"
+              label="Shipping Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.agree_at"
+              label="Agreement Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
               v-model="form.due_at"
               label="Due Date"
             ></d-date-picker-light>
@@ -976,22 +1215,19 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete-client
               v-model="form.status"
-              :items="useStatics.formStatusQuotation"
+              :items="useStatics.formStatusSalesOrder"
               label="Status"
               item-value="id"
               item-title="name"
               :clearable="false"
             />
           </div>
-          <div class="sm:col-span-1">
-            <d-switch-status v-model="form.is_approved" :label="`Approve`" />
-          </div>
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
       </template>
       <template #content>
         <div
-          v-if="tabFormIndex == useStatics.formTabQuotation.items"
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.items"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <d-option-ref-btn
@@ -1018,7 +1254,7 @@ watchEffect(() => {
             :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
             icon="mdi-refresh"
             type="button"
-            @click="quotationStore.clickClearRefs"
+            @click="salesOrderStore.clickClearRefs"
           />
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
@@ -1158,7 +1394,7 @@ watchEffect(() => {
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.quo_dts_boms.length > 0"
+                v-if="internalItem.raw.so_dts_boms.length > 0"
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1183,18 +1419,18 @@ watchEffect(() => {
             index: number
           }"
             >
-              <tr v-if="item.quo_dts_boms.length > 0">
+              <tr v-if="item.so_dts_boms.length > 0">
                 <td :colspan="columns.length" class="!p-0">
                   <div class="">
                     <v-data-table-virtual
                       :headers="headersBOM"
-                      :items="item.quo_dts_boms || []"
+                      :items="item.so_dts_boms || []"
                       item-value="uid"
                       density="compact"
                       return-object
                       fixed-header
                       class="table-hover"
-                      :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
+                      :height="item.so_dts_boms.length > 1 ? '170' : '100'"
                       :header-props="{
                         class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                       }"
@@ -1246,7 +1482,7 @@ watchEffect(() => {
           </v-data-table-virtual>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabQuotation.payments"
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.payments"
           class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
         >
           <div class="sm:col-span-1">
@@ -1395,7 +1631,7 @@ watchEffect(() => {
             />
           </div>
         </div>
-        <div v-if="tabFormIndex == useStatics.formTabQuotation.remarks">
+        <div v-if="tabFormIndex == useStatics.formTabSalesOrder.remarks">
           <div class="sm:col-span-1">
             <d-text-area-input
               v-model="form.remark"
@@ -1407,6 +1643,7 @@ watchEffect(() => {
         </div>
       </template>
     </d-form-layout>
+
     <modals-final-modal
       :is-open="isOpenModal.products"
       size="xl"
@@ -1446,7 +1683,7 @@ watchEffect(() => {
 
           <d-submit-button
             @click:submit="fetchModalFilter"
-            @click:clear="quotationStore.handleClearQuery()"
+            @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
@@ -1478,9 +1715,7 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
-          </span>
+          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1505,6 +1740,104 @@ watchEffect(() => {
         </div>
       </template>
     </modals-final-modal>
+
+    <modals-final-modal
+      :is-open="isOpenModal.quotations"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Quotations"
+      @update:is-open="isOpenModal.quotations = $event"
+    >
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="fetchModalFilter"
+        >
+          <d-autocomplete
+            v-for="filter in filtersOptionsQuotations"
+            :key="filter.key"
+            v-model="queryModal.qIndexQuotations[filter.key as ModalIndexQuotationFilterAutoCompleteType]"
+            :api="filter.api"
+            :single-api="filter.singleApi"
+            :method-api="filter.methodApi"
+            inner-search-key="global"
+            :page-end-prop="filter.pageEndProp"
+            :label="filter.title"
+            :item-value="filter.itemValue"
+            :item-title="filter.itemTitle"
+            multiple
+            :placeholder="`Type ${filter.title} ...`"
+          ></d-autocomplete>
+
+          <d-text-input
+            v-for="filter in filtersTextQuotations"
+            :key="filter.key"
+            v-model="queryModal.qIndexQuotations[filter.key as ModalIndexQuotationFilterTextType]"
+            :label="filter.title"
+            :placeholder="filter.title"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="fetchModalFilter"
+            @click:clear="salesOrderStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="itemsCheck.checkQuotations"
+        :items="metaModal.indexQuotations.data ?? []"
+        :headers="headersModalQuotations"
+        :items-per-page="queryModal.qIndexQuotations.per_page"
+        :items-length="metaModal.indexQuotations.meta.total ?? 0"
+        :items-per-page-options="useInitials.perPageOptions"
+        :loading="metaModal.indexQuotations.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="ref_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="fetchDataServerFetch"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+        </template>
+        <template #item.price_sell="{ item }">
+          <d-num-layout :value="item.price_sell" />
+        </template>
+        <template #item.price_buy="{ item }">
+          <d-num-layout :value="item.price_buy" />
+        </template>
+        <template #item.status="{ item }">
+          <d-active-status :value="item.status" />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="onClickUpdateProductsModal"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Products ({{ itemsCheck.checkProducts.length }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
+
     <modals-final-modal
       :is-open="isOpenModal.boms"
       size="xl"
@@ -1544,7 +1877,7 @@ watchEffect(() => {
 
           <d-submit-button
             @click:submit="fetchModalFilter"
-            @click:clear="quotationStore.handleClearQuery()"
+            @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
@@ -1576,9 +1909,7 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
-          </span>
+          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

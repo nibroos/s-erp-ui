@@ -38,7 +38,7 @@ const itemOrders = [
   {
     title: "Sales Order",
     icon: "mdi-cart-outline",
-    link: "/orders/sales-order",
+    link: "/orders/sales-orders",
     permissions: ["r_sos"],
   },
 ];

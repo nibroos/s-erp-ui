@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useQuotationStore from "~/stores/orders/QuotationStore";
+import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
 import type {
   OptionRefBtnType,
   RefBtnType,
@@ -14,20 +14,19 @@ import type { FormVatType } from "~/types/masters/VatType";
 import type { FormPph23Type } from "~/types/masters/Pph23Type";
 import type { FormCurrencyType } from "~/types/masters/CurrencyType";
 import type {
-  FormQuoDtProductListType,
+  FormSoDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
-  QuoDtDiscType,
-  QuoDtType,
+  SoDtDiscType,
+  SoDtType,
   VatModeType,
-} from "~/types/quotations/QuotationType";
-import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
+} from "~/types/sales-orders/SalesOrderType";
+import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
 
-const router = useRouter();
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
-const quotationStore = useQuotationStore();
+const salesOrderStore = useSalesOrderStore();
 const {
   tabFormIndex,
   form,
@@ -37,9 +36,8 @@ const {
   queryModal,
   metaModal,
   optionRefBtnRef,
-  loading,
   openedModal,
-} = storeToRefs(quotationStore);
+} = storeToRefs(salesOrderStore);
 
 definePageMeta({
   layout: "auth",
@@ -47,10 +45,8 @@ definePageMeta({
 });
 
 useHead({
-  title: "Edit Quotation",
+  title: "Create Sales Order",
 });
-
-const id = ref(router.currentRoute.value.params.id);
 
 const headers = ref([
   // { key: "ref_type", title: "Ref Type", sortable: true },
@@ -80,9 +76,9 @@ const headers = ref([
 ]);
 
 const headersBOM = ref([
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_code", title: "Item Code", sortable: true },
+  { key: "item_name", title: "Item Name", sortable: true },
+  { key: "item_unit_name", title: "Unit", sortable: true },
   { key: "qty", title: "Qty", sortable: true },
   { key: "remark", title: "Remark", sortable: true },
   {
@@ -283,6 +279,13 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Price Buy",
+    key: "price_buy",
+    value: "price_buy",
+    align: "end",
+    sortable: true,
+  },
+  {
     title: "Tpb Code",
     key: "tpb_code",
     value: "tpb_code",
@@ -424,19 +427,10 @@ const summaryLayout = ref({
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/orders/quotations",
+  parentPath: "/orders/sales-orders",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark"],
-  mode: "edit",
+  tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
   button: {
-    create: {
-      path: "/orders/quotations/create",
-    },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
     clear: {
       show: true,
     },
@@ -470,9 +464,9 @@ const handleSubmit = async () => {
   //   return;
   // }
 
-  form.value.quo_dts = itemsCheck.value.checkMain;
+  form.value.so_dts = itemsCheck.value.checkMain;
 
-  await quotationStore.update();
+  await salesOrderStore.store();
 };
 
 const autocompleteCustomer = (data: any) => {
@@ -484,25 +478,25 @@ const autocompleteCustomer = (data: any) => {
 const autocompleteVat = (data: FormVatType) => {
   form.value.vat_perc = Number(data.num);
 
-  // vatMode.value = null;
+  vatMode.value = null;
 
-  // if (!!form.value.vat_id) {
-  //   itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-  //     item.vat_id = null;
-  //     item.vat_perc = 0;
-  //   });
+  if (!!form.value.vat_id) {
+    itemsCheck.value.checkMain.forEach((item: SoDtType) => {
+      item.vat_id = null;
+      item.vat_perc = 0;
+    });
 
-  //   vatMode.value = "header";
-  // }
+    vatMode.value = "header";
+  }
 
   calculateTotalAmount();
 };
 
-const autocompleteVatDt = (data: FormVatType, quoDtType: QuoDtType) => {
-  quoDtType.vat_perc = Number(data.num);
+const autocompleteVatDt = (data: FormVatType, soDtType: SoDtType) => {
+  soDtType.vat_perc = Number(data.num);
 
-  // form.value.vat_id = null;
-  // form.value.vat_perc = 0;
+  form.value.vat_id = null;
+  form.value.vat_perc = 0;
 
   vatMode.value = "detail";
 
@@ -516,15 +510,15 @@ const removeVat = () => {
   calculateTotalAmount();
 };
 
-const removeVatDt = (quoDtType: QuoDtType) => {
-  if (!quoDtType.vat_id) {
-    quoDtType.vat_perc = 0;
-    quoDtType.vat_perc_am = 0;
+const removeVatDt = (soDtType: SoDtType) => {
+  if (!soDtType.vat_id) {
+    soDtType.vat_perc = 0;
+    soDtType.vat_perc_am = 0;
   }
 
   // if all items vat_id is null, then change vatmode to null
   const isAllVatNull = itemsCheck.value.checkMain.every(
-    (item: QuoDtType) => !item.vat_id
+    (item: SoDtType) => !item.vat_id
   );
 
   if (isAllVatNull) {
@@ -556,22 +550,30 @@ const autocompleteCurrency = (data: FormCurrencyType) => {
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
   if (ref.key == "products") {
-    itemsCheck.value.checkProducts = updateQuoRefsModalFromMain(
+    itemsCheck.value.checkProducts = updateSoRefsModalFromMain(
       itemsCheck.value.checkMain,
       "products",
       itemsCheck.value.checkProducts
     );
 
-    quotationStore.countSelectedReferences();
+    salesOrderStore.countSelectedReferences();
     isOpenModal.value.products = true;
-  }
+    await salesOrderStore.indexProduct();
+  } else if (ref.key == "quotations") {
+    itemsCheck.value.checkQuotations = updateSoRefsModalFromMain(
+      itemsCheck.value.checkMain,
+      "quotations",
+      itemsCheck.value.checkQuotations
+    );
 
-  await quotationStore.indexProduct();
+    salesOrderStore.countSelectedReferences();
+    isOpenModal.value.quotations = true;
+  }
 };
 
 const fetchModalFilter = async () => {
   if (isOpenModal.value.products || isOpenModal.value.boms) {
-    await quotationStore.indexProduct();
+    await salesOrderStore.indexProduct();
   }
   // else if (showModal.value.listPO) {
   //   queryModal.value.qListPO.customer_id = form.value.customer_id
@@ -587,8 +589,7 @@ const fetchModalFilter = async () => {
 };
 
 const fetchInitialData = async () => {
-  form.value.id = Number(id.value);
-  await Promise.all([quotationStore.show(), quotationStore.indexProduct()]);
+  await salesOrderStore.indexProduct();
 };
 
 const closeAllModal = () => {
@@ -608,9 +609,7 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
       queryModal.value.qIndexProducts.order_column = "";
       queryModal.value.qIndexProducts.order_direction = "";
     }
-  }
-
-  if (isOpenModal.value.boms) {
+  } else if (isOpenModal.value.boms) {
     queryModal.value.qIndexBoms.page = options.page;
     queryModal.value.qIndexBoms.per_page = options.itemsPerPage;
 
@@ -626,37 +625,38 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   fetchModalFilter();
 };
 
-const onClickUpdateProductsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
+const onClickAddProductsModal = () => {
+  salesOrderStore.selectItemRefModal();
+  salesOrderStore.countSelectedReferences();
   closeAllModal();
 };
 
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMain.splice(index, 1);
 
-  quotationStore.countSelectedReferences();
+  salesOrderStore.countSelectedReferences();
 };
 
 const onClickUpdateBomsModal = () => {
-  // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
+  console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
+  salesOrderStore.selectItemRefModal();
+  salesOrderStore.countSelectedReferences();
   closeAllModal();
 };
 
 const onClickOpenModalBOM = async (
-  item: FormQuoDtProductListType,
+  item: FormSoDtProductListType,
   index: number
 ) => {
+  console.log("item, onClickOpenModalBOM", item);
   openedModal.value.boms.index = index;
   openedModal.value.boms.id = item.ref_id;
   openedModal.value.boms.product_id = item.item_id as number;
   openedModal.value.boms.product_uuid = item.product_uuid as string;
 
-  itemsCheck.value.checkBoms = item.quo_dts_boms;
+  itemsCheck.value.checkBoms = item.so_dts_boms;
   isOpenModal.value.boms = true;
-  await quotationStore.indexProduct();
+  await salesOrderStore.indexProduct();
 };
 
 const onClickDeleteBom = (
@@ -665,15 +665,15 @@ const onClickDeleteBom = (
   internalItem: any
 ) => {
   const item = itemsCheck.value.checkMain[index];
-  if (item && item.quo_dts_boms) {
-    item.quo_dts_boms.splice(indexBom, 1);
+  if (item && item.so_dts_boms) {
+    item.so_dts_boms.splice(indexBom, 1);
   }
 
   calculateTotalAmount();
 };
 
 const calculateTotalAmount = () => {
-  itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
+  itemsCheck.value.checkMain.forEach((item: SoDtType) => {
     const discPercentage = Number((item.disc_perc ?? 0) / 100);
     const discAmount = Number(item.disc_am);
     const priceSell = Number(item.price_sell);
@@ -691,7 +691,7 @@ const calculateTotalAmount = () => {
     item.subtotal_sell = subtotalSell;
     item.subtotal_buy = subtotalBuy;
 
-    let discType: QuoDtDiscType = null;
+    let discType: SoDtDiscType = null;
 
     let discFinal = 0;
     if (!!discAmount && discAmount > 0) {
@@ -737,20 +737,22 @@ const calculateTotalAmount = () => {
 
   // header calculation
   form.value.subtotal = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.total_am,
+    (acc: number, item: SoDtType) => acc + item.total_am,
     0
   );
 
   form.value.total_qty = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.qty,
+    (acc: number, item: SoDtType) => acc + item.qty,
     0
   );
 
   // form.value.total_discount = item.disc_perc_am + item.disc_am + form.value.disc_am + form.value.disc_perc_am;
   let itemsDiscount = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am,
+    (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
     0
   );
+
+  console.log("form.value.subtotal", form.value.subtotal);
 
   const discPercentageHead = Number((form.value.disc_perc ?? 0) / 100);
   const discAmountHead = Number(form.value.disc_am ?? 0);
@@ -768,7 +770,7 @@ const calculateTotalAmount = () => {
     form.value.total_discount = discPercPriceSellHead + discAmountHead;
   }
 
-  let discType: QuoDtDiscType = null;
+  let discType: SoDtDiscType = null;
 
   let discFinal = 0;
   if (!!discAmountHead && discAmountHead > 0) {
@@ -845,22 +847,26 @@ const calculateTotalAmount = () => {
 //   () => itemsCheck.value.checkMain.length,
 //   (oldValue, newVal) => {
 //     if (oldValue !== newVal) {
-//       quotationStore.countSelectedReferences();
+//       salesOrderStore.countSelectedReferences();
 //     }
 //   }
 // );
 
 const vatMode = ref<VatModeType>(null);
 
+const clickClearForm = () => {
+  salesOrderStore.handleClickClear();
+  calculateTotalAmount();
+};
+
 onMounted(async () => {
-  quotationStore.handleClickClear();
   await fetchInitialData();
-  // quotationStore.updateRefsModal();
+  clickClearForm();
 });
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "Quotations";
+  topTitle.value = "SalesOrders";
 });
 </script>
 
@@ -869,7 +875,7 @@ watchEffect(() => {
     <d-form-layout
       :config="formLayout"
       @click:save="handleSubmit()"
-      @click:clear="quotationStore.handleClickClear()"
+      @click:clear="salesOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
       <template #header>
@@ -884,19 +890,19 @@ watchEffect(() => {
         >
           <div class="sm:col-span-1 flex flex-col">
             <d-text-input
-              v-model="form.quo_no"
-              :label="`Quotation No`"
-              :placeholder="`Quotation No`"
+              v-model="form.sales_order_no"
+              :label="`Order No`"
+              :placeholder="`Order No`"
               :errors="errors.name"
             >
             </d-text-input>
           </div>
           <div class="sm:col-span-1">
             <d-text-input
-              v-model="form.title"
-              :label="`Title`"
-              :placeholder="`Title`"
-              :errors="errors.title"
+              v-model="form.po_buyer_no"
+              :label="`PO Buyer No`"
+              :placeholder="`PO Buyer No`"
+              :errors="errors.po_buyer_no"
             />
           </div>
           <div class="sm:col-span-1">
@@ -963,6 +969,24 @@ watchEffect(() => {
           </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
+              v-model="form.order_at"
+              label="Order Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.shipping_at"
+              label="Shipping Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.agree_at"
+              label="Agreement Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
               v-model="form.due_at"
               label="Due Date"
             ></d-date-picker-light>
@@ -974,24 +998,35 @@ watchEffect(() => {
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.warehouse_id"
+              api="/v1/warehouses/index-warehouse"
+              single-api="/v1/warehouses/show-warehouse"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Warehouse"
+              :errors="errors.warehouse_id"
+            ></d-autocomplete>
+          </div>
+          <div class="sm:col-span-1">
             <d-autocomplete-client
               v-model="form.status"
-              :items="useStatics.formStatusQuotation"
+              :items="useStatics.formStatusSalesOrder"
               label="Status"
               item-value="id"
               item-title="name"
               :clearable="false"
             />
           </div>
-          <div class="sm:col-span-1">
-            <d-switch-status v-model="form.is_approved" :label="`Approve`" />
-          </div>
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
       </template>
       <template #content>
         <div
-          v-if="tabFormIndex == useStatics.formTabQuotation.items"
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.items"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <d-option-ref-btn
@@ -1018,7 +1053,7 @@ watchEffect(() => {
             :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
             icon="mdi-refresh"
             type="button"
-            @click="quotationStore.clickClearRefs"
+            @click="salesOrderStore.clickClearRefs"
           />
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
@@ -1034,6 +1069,7 @@ watchEffect(() => {
             :row-props="{
               class: 'whitespace-nowrap',
             }"
+            hover
           >
             <template #item.vat_id="{ item }">
               <lazy-d-select-table
@@ -1151,14 +1187,14 @@ watchEffect(() => {
                   cta="delete"
                   icon-size="16"
                   :is-notif="true"
-                  :notif-text="`${item.name ?? item.item_name} deleted`"
+                  :notif-text="`${item.name} deleted`"
                 ></d-bt>
               </div>
             </template>
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.quo_dts_boms.length > 0"
+                v-if="internalItem.raw.so_dts_boms.length > 0"
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1183,24 +1219,25 @@ watchEffect(() => {
             index: number
           }"
             >
-              <tr v-if="item.quo_dts_boms.length > 0">
+              <tr v-if="item.so_dts_boms.length > 0">
                 <td :colspan="columns.length" class="!p-0">
                   <div class="">
                     <v-data-table-virtual
                       :headers="headersBOM"
-                      :items="item.quo_dts_boms || []"
+                      :items="item.so_dts_boms || []"
                       item-value="uid"
                       density="compact"
                       return-object
                       fixed-header
                       class="table-hover"
-                      :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
+                      :height="item.so_dts_boms.length > 1 ? '170' : '100'"
                       :header-props="{
                         class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                       }"
                       :row-props="{
                         class: 'whitespace-nowrap',
                       }"
+                      hover
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
@@ -1246,7 +1283,7 @@ watchEffect(() => {
           </v-data-table-virtual>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabQuotation.payments"
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.payments"
           class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
         >
           <div class="sm:col-span-1">
@@ -1395,7 +1432,7 @@ watchEffect(() => {
             />
           </div>
         </div>
-        <div v-if="tabFormIndex == useStatics.formTabQuotation.remarks">
+        <div v-if="tabFormIndex == useStatics.formTabSalesOrder.remarks">
           <div class="sm:col-span-1">
             <d-text-area-input
               v-model="form.remark"
@@ -1446,7 +1483,7 @@ watchEffect(() => {
 
           <d-submit-button
             @click:submit="fetchModalFilter"
-            @click:clear="quotationStore.handleClearQuery()"
+            @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
@@ -1478,9 +1515,7 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
-          </span>
+          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1497,7 +1532,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateProductsModal"
+            @click="onClickAddProductsModal"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1544,7 +1579,7 @@ watchEffect(() => {
 
           <d-submit-button
             @click:submit="fetchModalFilter"
-            @click:clear="quotationStore.handleClearQuery()"
+            @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
@@ -1576,9 +1611,7 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
-          </span>
+          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

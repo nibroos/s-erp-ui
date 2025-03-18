@@ -5,6 +5,7 @@ import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
 import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
+import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
 
 const pagination = {
   current_page: 1,
@@ -106,6 +107,47 @@ const formQuotationCreateEdit = {
   address: "",
 } as FormQuotationType
 
+const formSalesOrderCreateEdit = {
+  id: null,
+  customer_id: null,
+  order_type_id: null,
+  currency_id: null,
+  vat_id: null,
+  payment_id: null,
+  pph23_id: null,
+  branch_id: null,
+  sales_order_no: "",
+  po_buyer_no: "",
+  remark: "",
+  status: "WAITING",
+  exchange_rate: null,
+  vat_perc: 0,
+  vat_perc_am: 0,
+  disc_am: 0,
+  disc_perc: 0,
+  disc_perc_am: 0,
+  disc_final: 0,
+  disc_type: null,
+  pph23_perc: 0,
+  total_qty: 0,
+  subtotal: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  order_at: "",
+  shipping_at: "",
+  agree_at: "",
+  due_at: "",
+  expired_at: "",
+
+  so_dts: [],
+
+  email: "",
+  phone: "",
+  address: "",
+} as FormSalesOrderType
+
 export const useInitials = {
   pagination,
   perPageOptions,
@@ -113,5 +155,6 @@ export const useInitials = {
   formItemGroupCreateEdit,
   formCurrencyCreateEdit,
   formProductCreateEdit,
-  formQuotationCreateEdit
+  formQuotationCreateEdit,
+  formSalesOrderCreateEdit,
 }
