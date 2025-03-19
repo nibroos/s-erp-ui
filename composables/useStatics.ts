@@ -162,6 +162,15 @@ export const topMenuCustomizationTab = [
     link2: "/masters/customizations/shipping-methods/create",
     permissions: ["r_ms"],
   },
+  {
+    title: "Purchase Type",
+    number: 'purchase-types',
+    icon: "mdi-tag-outline",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/purchase-types",
+    link2: "/masters/customizations/purchase-types/create",
+    permissions: ["r_ms"],
+  },
 ]
 
 const QuoIndexStatus = [
