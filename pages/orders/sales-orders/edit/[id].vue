@@ -22,8 +22,14 @@ import type {
   SoDtDiscType,
   SoDtType,
   VatModeType,
+  SoDtBomType,
 } from "~/types/sales-orders/SalesOrderType";
 import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
+import type {
+  FormQuoDtBomListType,
+  QuoDtType,
+} from "~/types/quotations/QuotationType";
+import type { ProductBomListType } from "~/types/masters/ProductType";
 
 const router = useRouter();
 const layoutStore = useLayoutsStore();
@@ -57,6 +63,15 @@ const id = ref(router.currentRoute.value.params.id);
 const headers = ref([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
+  {
+    key: "ref_type",
+    title: "Ref Type",
+    sortable: true,
+
+    cellProps: {
+      class: "capitalize",
+    },
+  },
   { key: "item_type", title: "Item Type", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
@@ -85,7 +100,7 @@ const headersBOM = ref([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
+  { key: "qty", title: "Qty", align: "end", sortable: true },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -96,7 +111,23 @@ const headersBOM = ref([
       class: "action-table sticky-right",
     },
   },
-]);
+]) as Ref<FieldSelectableType[]>;
+
+const headersBOMModal = ref([
+  { key: "item_code", title: "Product Code", sortable: true },
+  { key: "item_name", title: "Product Name", sortable: true },
+  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_sku", title: "SKU", align: "end", sortable: true },
+  { key: "item_barcode", title: "Barcode", align: "end", sortable: true },
+  {
+    key: "item_specification",
+    title: "Specification",
+    align: "end",
+    sortable: true,
+  },
+  { key: "qty", title: "Qty", align: "end", sortable: true },
+  { key: "remark", title: "Remark", sortable: true },
+]) as Ref<FieldSelectableType[]>;
 
 const headersVAT = ref<FieldSelectableType[]>([
   {
@@ -214,6 +245,7 @@ const filtersCustomer = ref<FilterSelectableType[]>([
 ]);
 
 const headersModalProducts = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "Group",
     key: "item_group_name",
@@ -301,6 +333,7 @@ const headersModalProducts = ref<FieldSelectableType[]>([
 ]);
 
 const headersModalQuotations = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "Quotation No",
     key: "quo_no",
@@ -338,22 +371,22 @@ const headersModalQuotations = ref<FieldSelectableType[]>([
   },
   {
     title: "Code",
-    key: "code",
-    value: "code",
+    key: "item_code",
+    value: "item_code",
     align: "start",
     sortable: true,
   },
   {
     title: "Name",
-    key: "name",
-    value: "name",
+    key: "item_name",
+    value: "item_name",
     align: "start",
     sortable: true,
   },
   {
     title: "SKU",
-    key: "sku",
-    value: "sku",
+    key: "item_sku",
+    value: "item_sku",
     align: "start",
     sortable: true,
   },
@@ -456,21 +489,6 @@ const filtersOptionsProducts = ref([
 ]);
 
 const filtersOptionsQuotations = ref([
-  {
-    title: "Customer",
-    key: "customer_ids",
-    type: "autocomplete",
-    methodApi: "post",
-    api: "/v1/customers/index-customer",
-    singleApi: "/v1/customers/index-customer",
-    pageEndProp: "meta.next_page_url",
-    innerSearchKey: "global",
-    multiple: true,
-    returnObject: false,
-    itemColor: "brown-lighten-2",
-    itemValue: "id",
-    itemTitle: "name",
-  },
   {
     title: "Group",
     key: "item_group_ids",
@@ -747,6 +765,9 @@ const autocompleteCurrency = (data: FormCurrencyType) => {
 
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
+
+  console.log("abc", ref.key);
+
   if (ref.key == "products") {
     itemsCheck.value.checkProducts = updateSoRefsModalFromMain(
       itemsCheck.value.checkMain,
@@ -767,10 +788,12 @@ const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
     isOpenModal.value.quotations = true;
   }
 
-  await salesOrderStore.indexProduct();
+  await fetchModalFilter();
 };
 
 const fetchModalFilter = async () => {
+  console.log("fetchModalFilter", queryModal.value.qIndexQuotations);
+
   if (isOpenModal.value.products || isOpenModal.value.boms) {
     await salesOrderStore.indexProduct();
   } else if (isOpenModal.value.quotations) {
@@ -792,8 +815,8 @@ const fetchInitialData = async () => {
   form.value.id = Number(id.value);
   await Promise.all([
     salesOrderStore.show(),
-    salesOrderStore.indexProduct(),
-    salesOrderStore.indexQuotation(),
+    // salesOrderStore.indexProduct(),
+    // salesOrderStore.indexQuotation(),
   ]);
 };
 
@@ -844,7 +867,7 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
     }
   }
 
-  fetchModalFilter();
+  await fetchModalFilter();
 };
 
 const onClickUpdateProductsModal = () => {
@@ -1369,7 +1392,7 @@ watchEffect(() => {
               <div class="action-button flex gap-2">
                 <d-bt
                   v-if="item.item_type == 'product'"
-                  @click="onClickOpenModalBOM(item, index)"
+                  @click="onClickOpenModalBOM((item as unknown as FormSoDtProductListType), index)"
                   class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
                   text-class="text-primary1 dark:text-white"
                   rounded="xl"
@@ -1394,7 +1417,10 @@ watchEffect(() => {
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.so_dts_boms.length > 0"
+                v-if="
+                  !!internalItem.raw.so_dts_boms &&
+                  internalItem.raw.so_dts_boms.length > 0
+                "
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1440,7 +1466,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="item.remark"
+                          v-model="(item as SoDtType).remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1448,7 +1474,7 @@ watchEffect(() => {
                       </template>
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="item.qty"
+                          v-model="(item as SoDtType).qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1470,7 +1496,7 @@ watchEffect(() => {
                             cta="delete"
                             icon-size="16"
                             :is-notif="true"
-                            :notif-text="`${itemBom.item_name} deleted`"
+                            :notif-text="`${(itemBom as SoDtBomType).item_name} deleted`"
                           ></d-bt>
                         </div>
                       </template>
@@ -1691,6 +1717,7 @@ watchEffect(() => {
 
       <v-data-table-server
         v-model="itemsCheck.checkProducts"
+        v-model:page="queryModal.qIndexProducts.page"
         :items="metaModal.indexProducts.data ?? []"
         :headers="headersModalProducts"
         :items-per-page="queryModal.qIndexProducts.per_page"
@@ -1715,7 +1742,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+          <span class="capitalize"
+            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1725,6 +1754,60 @@ watchEffect(() => {
         </template>
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="internalItem.raw.boms.length > 0"
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
+          >
+            <v-icon
+              icon="mdi-chevron-down"
+              class="transition-transform"
+              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+            />
+          </button>
+        </template>
+        <template
+          #expanded-row="{
+            columns,
+            item,
+            internalItem,
+            index
+          }: {
+            columns: any
+            item: any
+            internalItem: any
+            index: number
+          }"
+        >
+          <tr v-if="item.boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.qty="{ item }">
+                    <d-num-layout :value="(item as ProductBomListType).qty" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
         </template>
       </v-data-table-server>
 
@@ -1753,6 +1836,39 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="fetchModalFilter"
         >
+          <d-select-table
+            api="/v1/customers/index-customer"
+            detail-api="/v1/customers/index-customer"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Customer"
+            v-model="form.customer_id"
+            class=""
+            is-quick-select
+            @click:selected="autocompleteCustomer"
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="headersCustomer"
+            :filters="filtersCustomer"
+          />
+          <d-select-table
+            api="/v1/products/index-product"
+            detail-api="/v1/products/index-product"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Product"
+            v-model="queryModal.qIndexQuotations.product_id"
+            class=""
+            is-quick-select
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="useInitials.productFieldsFilterConfig.fields"
+            :filters="useInitials.productFieldsFilterConfig.filters"
+          />
           <d-autocomplete
             v-for="filter in filtersOptionsQuotations"
             :key="filter.key"
@@ -1788,6 +1904,7 @@ watchEffect(() => {
 
       <v-data-table-server
         v-model="itemsCheck.checkQuotations"
+        v-model:page="queryModal.qIndexQuotations.page"
         :items="metaModal.indexQuotations.data ?? []"
         :headers="headersModalQuotations"
         :items-per-page="queryModal.qIndexQuotations.per_page"
@@ -1801,7 +1918,7 @@ watchEffect(() => {
         :row-props="{
           class: 'cursor-pointer',
         }"
-        item-value="ref_id"
+        item-value="quo_dt_id"
         show-current-page
         return-object
         multiple
@@ -1812,16 +1929,90 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+          <span class="capitalize"
+            >{{ defineItemTypeSalesOrder(item as QuoDtType) }}
+          </span>
+        </template>
+        <template #item.qty_so="{ item }">
+          <d-num-layout :value="item.qty_so" />
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
         </template>
-        <template #item.price_buy="{ item }">
-          <d-num-layout :value="item.price_buy" />
+        <template #item.subtotal_sell="{ item }">
+          <d-num-layout :value="item.subtotal_sell" />
+        </template>
+        <template #item.disc_perc="{ item }">
+          <d-num-layout :value="item.disc_perc" />
+        </template>
+        <template #item.disc_am="{ item }">
+          <d-num-layout :value="item.disc_am" />
+        </template>
+        <template #item.vat_perc="{ item }">
+          <d-num-layout :value="item.vat_perc" />
+        </template>
+        <template #item.total_am="{ item }">
+          <d-num-layout :value="item.total_am" />
         </template>
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="internalItem.raw.quo_dts_boms.length > 0"
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
+          >
+            <v-icon
+              icon="mdi-chevron-down"
+              class="transition-transform"
+              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+            />
+          </button>
+        </template>
+        <template
+          #expanded-row="{
+            columns,
+            item,
+            internalItem,
+            index
+          }: {
+            columns: any
+            item: any
+            internalItem: any
+            index: number
+          }"
+        >
+          <tr v-if="item.quo_dts_boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.quo_dts_boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.qty="{ item }">
+                    <d-num-layout :value="(item as FormQuoDtBomListType).qty" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
         </template>
       </v-data-table-server>
 
@@ -1832,7 +2023,7 @@ watchEffect(() => {
             @click="onClickUpdateProductsModal"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected Products ({{ itemsCheck.checkProducts.length }})
+            Add Selected Quotation ({{ itemsCheck.checkQuotations.length }})
           </button>
         </div>
       </template>
@@ -1885,6 +2076,7 @@ watchEffect(() => {
 
       <v-data-table-server
         v-model="itemsCheck.checkBoms"
+        v-model:page="queryModal.qIndexBoms.page"
         :items="metaModal.indexBoms.data ?? []"
         :headers="headersModalProducts"
         :items-per-page="queryModal.qIndexBoms.per_page"
@@ -1909,7 +2101,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+          <span class="capitalize"
+            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

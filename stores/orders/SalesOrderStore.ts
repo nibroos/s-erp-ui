@@ -322,7 +322,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
               (this.metaModal.indexProducts.data as FormSoDtProductListType[]).forEach((resProduct: FormSoDtProductListType, iResProduct: number) => {
                 // console.log('checkProduct', iCheckProduct, checkProduct);
 
-                if (resProduct.ref_id === checkProduct.ref_id) {
+                if (resProduct.ref_id === checkProduct.ref_id && checkProduct.ref_type === 'products') {
                   // console.log('resProduct', iResProduct, resProduct);
 
                   const combined = {
@@ -385,7 +385,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
       try {
         const response = await useMyFetch().post(
-          '/v1/quotations/index-quotation',
+          '/v1/sales-orders/index-ref-quo-dt',
           params
         )
 
@@ -397,7 +397,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
               (this.metaModal.indexQuotations.data as FormSoDtProductListType[]).forEach((resQuotation: FormSoDtProductListType, iResQuotation: number) => {
                 console.log('checkQuotation', iCheckQuotation, checkQuotation);
 
-                if (resQuotation.ref_id === checkQuotation.ref_id) {
+                if (resQuotation.quo_dt_id === checkQuotation.ref_id && checkQuotation.ref_type === 'quotations') {
                   console.log('resQuotation', iResQuotation, resQuotation);
 
                   const combined = {
@@ -453,6 +453,10 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       if (this.isOpenModal.products) {
         this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain)
         this.isOpenModal.products = false
+      }
+      if (this.isOpenModal.quotations) {
+        this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkQuotations, 'quotations', this.itemsCheck.checkMain)
+        this.isOpenModal.quotations = false
       }
       if (this.isOpenModal.boms) {
         // this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkProducts, 'boms', this.itemsCheck.checkMain)

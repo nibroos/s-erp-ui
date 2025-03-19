@@ -165,6 +165,7 @@ export type QuoDtBomType = {
 
 export type QuoDtsType = {
   id?: number | null | undefined | string | string[]
+  quo_dt_id?: number | null
   item_unit_id: number
   vat_id: number
   ref_id: number

@@ -245,7 +245,9 @@ export type QIndexQuotationsType = {
   item_group_ids?: number[] | null
   item_sub_group_ids?: number[] | null
   customer_ids?: number[] | null
+  product_ids?: number[] | null
   customer_id?: number | null
+  product_id?: number[] | null
   code?: string
   name?: string
   sku?: string
@@ -258,7 +260,7 @@ export type VatModeType = 'header' | 'detail' | null
 
 
 export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType & {
-  ref_type: 'products'
+  ref_type: 'products' | 'quotations'
   sales_order_id?: number | null
   so_dt_id?: number | null
   vat_id?: number

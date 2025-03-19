@@ -5,51 +5,31 @@ export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], produc
   return bom.map((bomItem: SoDtBomType | ProductBomListType) => {
     const randomUuid = randomId()
 
-    if (type === 'bom') {
-      return {
-        ...bomItem,
-        uid: randomUuid,
-        product_uuid: productUuid,
-        item_id: bomItem.product_item_id ?? bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
-        name: bomItem.item_name ?? bomItem.name,
-        code: bomItem.item_code ?? bomItem.code,
-        sku: bomItem.item_sku ?? bomItem.sku,
-        barcode: bomItem.item_barcode ?? bomItem.barcode,
-        factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
-        specification: bomItem.item_specification ?? bomItem.specification,
-        item_name: bomItem.item_name ?? bomItem.name,
-        item_code: bomItem.item_code ?? bomItem.code,
-        item_sku: bomItem.item_sku ?? bomItem.sku,
-        item_barcode: bomItem.item_barcode ?? bomItem.barcode,
-        item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
-        item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
-        product_id: productId,
-      }
-    } else {
-      return {
-        ...bomItem,
-        uid: randomUuid,
-        product_uuid: productUuid,
-        item_id: bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
-        name: bomItem.name ?? bomItem.item_name,
-        code: bomItem.code ?? bomItem.item_code,
-        sku: bomItem.sku ?? bomItem.item_sku,
-        barcode: bomItem.barcode ?? bomItem.item_barcode,
-        factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
-        specification: bomItem.item_specification,
-        item_name: bomItem.name ?? bomItem.item_name,
-        item_code: bomItem.code ?? bomItem.item_code,
-        item_sku: bomItem.sku ?? bomItem.item_sku,
-        item_barcode: bomItem.barcode ?? bomItem.item_barcode,
-        item_factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
-        product_id: productId,
-      }
+    return {
+      ...bomItem,
+      uid: randomUuid,
+      product_uuid: productUuid,
+      item_id: bomItem.product_item_id ?? bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
+      name: bomItem.item_name ?? bomItem.name,
+      code: bomItem.item_code ?? bomItem.code,
+      sku: bomItem.item_sku ?? bomItem.sku,
+      barcode: bomItem.item_barcode ?? bomItem.barcode,
+      factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
+      specification: bomItem.item_specification ?? bomItem.specification,
+      item_name: bomItem.item_name ?? bomItem.name,
+      item_code: bomItem.item_code ?? bomItem.code,
+      item_sku: bomItem.item_sku ?? bomItem.sku,
+      item_barcode: bomItem.item_barcode ?? bomItem.barcode,
+      item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
+      item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
+      product_id: productId,
     }
   })
 }
 
 export function convertSoItemRefProduct(
   item: FormSoDtProductListType,
+  refType: SoDtRefType
 ): SoDtType {
   console.log('convertSoItemRefProduct-item', item);
 
@@ -65,6 +45,26 @@ export function convertSoItemRefProduct(
     item.so_dts_boms = generateSoBoms(item.so_dts_boms, productUuid, 'bom', productId)
   }
 
+  if (!!item.quo_dts_boms) {
+    item.quo_dts_boms = generateSoBoms(item.quo_dts_boms, productUuid, 'bom', productId)
+  }
+
+  let refId
+  if (refType == 'products') {
+    refId = item.product_id
+  } else if (refType == 'quotations') {
+    refId = item.quo_dt_id
+  }
+
+  let soDtsBoms
+  if (item.boms) {
+    soDtsBoms = item.boms
+  } else if (item.so_dts_boms) {
+    soDtsBoms = item.so_dts_boms
+  } else if (item.quo_dts_boms) {
+    soDtsBoms = item.quo_dts_boms
+  }
+
   const data: SoDtType = {
     ...item,
     uid: randomId(),
@@ -72,10 +72,10 @@ export function convertSoItemRefProduct(
     sales_order_id: item.sales_order_id,
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
-    ref_id: item.product_id as number,
+    ref_id: refId as number,
     item_id: item.product_id as number,
     product_uuid: productUuid,
-    ref_type: 'products',
+    ref_type: refType,
     remark: item.remark,
     vat_perc: item.vat_perc || 0,
     vat_perc_am: item.vat_perc_am || 0,
@@ -92,7 +92,7 @@ export function convertSoItemRefProduct(
     disc_final: item.disc_final || 0,
     disc_type: item.disc_type || null,
     total_am: item.total_am || 0,
-    so_dts_boms: item.so_dts_boms ?? item.boms,
+    so_dts_boms: soDtsBoms,
 
     item_name: item.name ?? item.item_name ?? item.product_name,
     item_code: item.code ?? item.item_code ?? item.product_code,
@@ -114,54 +114,33 @@ export function generateSoDt(
     | SoDtRefType,
   checkMain: SoDtType[],
 ): SoDtType[] {
-  // let generatedList: SoDtType[] = []
-
-  // const generatedList = data.map((dt: FormSoDtRefType): SoDtType => {
-  //   // if (useInventoryInStore().showModal.listPO) {
-  //   //   return convertPoRefToListItem(dt as PoTableCheck, invType)
-  //   // }
-  //   console.log('generateSoDt-checkMain', checkMain);
-
-  //   if (checkOpened == 'products') {
-
-  //     return convertSoItemRefProduct(dt)
-  //   } else {
-  //     return dt as unknown as SoDtType
-  //   }
-  // })
-
   let newRefItems: SoDtType[]
-  let removedRefItems: SoDtType[]
-  let updatedList: SoDtType[]
+  let updatedList: SoDtType[] = []
 
+  let selectedRefList = {
+    products: [] as SoDtType[],
+    quotations: [] as SoDtType[],
+  }
+
+  selectedRefList.products = checkMain.filter((item: SoDtType) => {
+    return item.ref_type == 'products'
+  })
+
+  selectedRefList.quotations = checkMain.filter((item: SoDtType) => {
+    return item.ref_type == 'quotations'
+  })
+
+  // filter new ref items
+  newRefItems = data.map((dt: FormSoDtRefType): SoDtType => {
+    return convertSoItemRefProduct(dt, checkOpened)
+  })
   if (checkOpened == 'products') {
-    newRefItems = data.map((dt: FormSoDtRefType): SoDtType => {
-      return convertSoItemRefProduct(dt)
-    })
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList.quotations, ...selectedRefList[checkOpened]]
+  } else if (checkOpened == 'quotations') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
 
-    removedRefItems = checkMain.filter((rmItem: SoDtType) => {
-      return !newRefItems.some((newItem: SoDtType) => {
-        return newItem.ref_id == rmItem.ref_id
-      })
-    })
-    updatedList = [...newRefItems]
-
-    console.log('generateSoDt-prod-newRefItems', newRefItems);
-    console.log('generateSoDt-prod-removedRefItems', removedRefItems);
-    console.log('generateSoDt-prod-updatedList', updatedList);
-
-  } else {
-    newRefItems = data as unknown as SoDtType[]
-    removedRefItems = checkMain.filter((item: SoDtType) => {
-      return !newRefItems.some((newItem: SoDtType) => {
-        return newItem.ref_id == item.ref_id
-      })
-    })
-    updatedList = [...newRefItems]
-
-    console.log('generateSoDt-else-newRefItems', newRefItems);
-    console.log('generateSoDt-else-removedRefItems', removedRefItems);
-    console.log('generateSoDt-else-updatedList', updatedList);
   }
 
   return updatedList
@@ -178,6 +157,7 @@ export function updateSoRefsModalFromMain(
   checkOpened: SoDtRefType,
   checkProducts: FormSoDtProductListType[]
 ): any[] {
+  console.log('abc2', checkOpened);
 
   let updatedList: any[] = []
   checkMain.forEach((mainItem: SoDtType, iMainItem: number) => {
@@ -187,8 +167,8 @@ export function updateSoRefsModalFromMain(
 
     if (checkProducts.length > 0) {
       checkProducts.forEach((prodItem: FormSoDtProductListType, iProdItem: number) => {
-        console.log('updateSoRefsModalFromMain-mainItem-base', iProdItem, mainItem);
-        if (mainItem.ref_id == prodItem.ref_id) {
+        console.log('updateSoRefsModalFromMain-mainItem-base', iProdItem, mainItem.ref_type, mainItem.ref_id, prodItem.ref_type, prodItem.ref_id);
+        if (mainItem.ref_id == prodItem.ref_id && mainItem.ref_type == checkOpened) {
           console.log('updateSoRefsModalFromMain-mainItem-found', iProdItem, mainItem);
 
           const combined = {

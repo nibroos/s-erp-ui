@@ -191,7 +191,10 @@ const openModal = (event: boolean) => {
   emits("openModal", showModal.value);
 };
 
-const filters = ref<Record<string, any>>(props.queryModal);
+const filters = ref<Record<string, any>>({
+  page: 1,
+  ...props.queryModal,
+});
 
 const metaModal = ref<Pagination<any[]>>({
   data: [],
@@ -625,6 +628,7 @@ onMounted(async () => {
     <div class="flex h-max w-full flex-col">
       <v-data-table-server
         v-model="itemsCheck"
+        v-model:page="filters.page"
         :items="metaModal.data ?? []"
         :headers="headersModal"
         :items-per-page="filters.per_page"

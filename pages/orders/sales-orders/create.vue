@@ -17,6 +17,7 @@ import type {
   FormSoDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
+  SoDtBomType,
   SoDtDiscType,
   SoDtType,
   VatModeType,
@@ -1169,7 +1170,7 @@ watchEffect(() => {
               <div class="action-button flex gap-2">
                 <d-bt
                   v-if="item.item_type == 'product'"
-                  @click="onClickOpenModalBOM(item, index)"
+                  @click="onClickOpenModalBOM(item as unknown as FormSoDtProductListType, index)"
                   class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
                   text-class="text-primary1 dark:text-white"
                   rounded="xl"
@@ -1194,7 +1195,10 @@ watchEffect(() => {
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.so_dts_boms.length > 0"
+                v-if="
+                  !!internalItem.raw.so_dts_boms &&
+                  internalItem.raw.so_dts_boms.length > 0
+                "
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1241,7 +1245,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="item.remark"
+                          v-model="(item as SoDtType).remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1249,7 +1253,7 @@ watchEffect(() => {
                       </template>
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="item.qty"
+                          v-model="(item as SoDtType).qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1271,7 +1275,7 @@ watchEffect(() => {
                             cta="delete"
                             icon-size="16"
                             :is-notif="true"
-                            :notif-text="`${itemBom.item_name} deleted`"
+                            :notif-text="`${(itemBom as SoDtBomType).item_name} deleted`"
                           ></d-bt>
                         </div>
                       </template>
@@ -1515,7 +1519,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+          <span class="capitalize"
+            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1611,7 +1617,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeSalesOrder(item) }} </span>
+          <span class="capitalize"
+            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

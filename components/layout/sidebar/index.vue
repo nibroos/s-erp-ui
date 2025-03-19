@@ -326,9 +326,9 @@ watch(isCloseSidebar, (newValue) => {
 });
 
 onMounted(async () => {
-  if (token) {
-    await Promise.all([AuthStore().getAbilities()]);
-  }
+  // if (token) {
+  //   await Promise.all([AuthStore().getAbilities()]);
+  // }
 });
 </script>
 

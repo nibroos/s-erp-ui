@@ -6,6 +6,7 @@ import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
 import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
+import type { FieldSelectableType, FilterSelectableType } from '~/types/SelectTableType'
 
 const pagination = {
   current_page: 1,
@@ -148,6 +149,146 @@ const formSalesOrderCreateEdit = {
   address: "",
 } as FormSalesOrderType
 
+const productFieldsFilterConfig = {
+  fields: [
+    {
+      title: "Group",
+      key: "item_group_name",
+      value: "item_group_name",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Sub Group",
+      key: "item_sub_group_name",
+      value: "item_sub_group_name",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Code",
+      key: "code",
+      value: "code",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Name",
+      key: "name",
+      value: "name",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "SKU",
+      key: "sku",
+      value: "sku",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Factory Code",
+      key: "factory_code",
+      value: "factory_code",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Specification",
+      key: "specification",
+      value: "specification",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Price Sell",
+      key: "price_sell",
+      value: "price_sell",
+      align: "end",
+      sortable: true,
+    },
+    {
+      title: "Price Buy",
+      key: "price_buy",
+      value: "price_buy",
+      align: "end",
+      sortable: true,
+    },
+    {
+      title: "Tpb Code",
+      key: "tpb_code",
+      value: "tpb_code",
+      align: "start",
+      sortable: true,
+    },
+    {
+      title: "Barcode",
+      key: "barcode",
+      value: "barcode",
+      align: "start",
+      sortable: true,
+    },
+  ] as FieldSelectableType[],
+  filters: [
+    {
+      title: "Group",
+      key: "item_group_ids",
+      type: "autocomplete",
+      others: {
+        methodApi: "post",
+        api: "/v1/item-groups/index-item-group",
+        singleApi: "/v1/item-groups/index-item-group",
+        mappingDetail: "data",
+        itemsProp: "data",
+        pageEndProp: "meta.next_page_url",
+        itemTitle: "name",
+        itemValue: "id",
+        label: "Roles",
+        innerSearchKey: "global",
+        multiple: true,
+        returnObject: false,
+        itemColor: "brown-lighten-2",
+      },
+    },
+    {
+      title: "Sub Group",
+      key: "item_sub_group_ids",
+      type: "autocomplete",
+      others: {
+        methodApi: "post",
+        api: "/v1/item-sub-groups/index-item-sub-group",
+        singleApi: "/v1/item-sub-groups/index-item-sub-group",
+        mappingDetail: "data",
+        itemsProp: "data",
+        pageEndProp: "meta.next_page_url",
+        itemTitle: "name",
+        itemValue: "id",
+        label: "Roles",
+        innerSearchKey: "global",
+        multiple: true,
+        returnObject: false,
+        itemColor: "brown-lighten-2",
+      },
+    },
+    {
+      title: "Code",
+      key: "code",
+    },
+    {
+      title: "Name",
+      key: "name",
+    },
+    {
+      title: "SKU",
+      key: "sku",
+    },
+    {
+      title: "Factory Code",
+      key: "factory_code",
+    },
+  ] as FilterSelectableType[],
+}
+
 export const useInitials = {
   pagination,
   perPageOptions,
@@ -157,4 +298,5 @@ export const useInitials = {
   formProductCreateEdit,
   formQuotationCreateEdit,
   formSalesOrderCreateEdit,
+  productFieldsFilterConfig,
 }

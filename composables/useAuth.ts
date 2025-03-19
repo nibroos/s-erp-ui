@@ -1,5 +1,7 @@
 import DateFnsAdapter from '@date-io/date-fns'
+// import jwt from 'jsonwebtoken'
 import type { AuthUserType } from '~/types/AuthType'
+import { jwtDecode } from 'jwt-decode';
 
 const { getDiff, isAfter } = new DateFnsAdapter()
 const route = useRoute()
@@ -15,6 +17,30 @@ const isTokenExpired = (): boolean => {
 
 const getExpired = () => {
   return localStorage.getItem('expired')
+}
+
+const jwtVerify = (token: string): boolean => {
+  let isValid = false
+  if (!token) {
+    return isValid
+  }
+
+  try {
+    const decoded: any = jwtDecode(token); // Decode JWT token
+    const currentTime = Math.floor(Date.now() / 1000)
+    console.log('decoded', decoded, currentTime, decoded.exp < currentTime);
+
+
+    if (decoded.exp < currentTime) {
+      // localStorage.removeItem('auth_token')
+      return isValid
+    }
+  } catch (error) {
+    console.error('Invalid token', error)
+    return isValid
+  }
+
+  return true
 }
 
 const getAuth = () => {
@@ -127,5 +153,6 @@ export const useAuth = {
   getAuth,
   isTokenExpired,
   permit,
-  handlePermission
+  handlePermission,
+  jwtVerify
 }
