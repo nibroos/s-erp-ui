@@ -46,7 +46,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         name: '',
         sku: '',
         factory_code: '',
-        order_column: 'name',
+        order_column: 'due_date',
         order_direction: 'desc'
       } as QIndexQuotationsType,
       qIndexBoms: {
@@ -632,10 +632,24 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
     autocompleteVat(data: FormVatType) {
       this.form.vat_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        if (!item.vat_id) {
+          item.vat_id = data.id as number;
+          item.vat_perc = Number(data.num);
+        }
+      });
+
       this.calculateTotalAmount();
     },
 
     autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
+      soDtType.vat_perc = Number(data.num);
+      this.calculateTotalAmount();
+    },
+
+    autocompletePph23Dt(data: FormPph23Type, soDtType: SoDtType) {
       soDtType.vat_perc = Number(data.num);
       this.calculateTotalAmount();
     },
@@ -655,14 +669,38 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
+    removePph23Dt(soDtType: SoDtType) {
+      if (!soDtType.pph23_id) {
+        soDtType.pph23_perc = 0;
+        soDtType.pph23_perc_am = 0;
+      }
+
+      this.calculateTotalAmount();
+    },
+
     removePph() {
       this.form.pph23_perc = 0;
+
+      // remove all childs
+      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        item.pph23_id = null;
+        item.pph23_perc = 0;
+        item.pph23_perc_am = 0;
+      });
 
       this.calculateTotalAmount();
     },
 
     autocompletePph(data: FormPph23Type) {
       this.form.pph23_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        if (!item.pph23_id) {
+          item.pph23_id = data.id as number;
+          item.pph23_perc = Number(data.num);
+        }
+      });
 
       this.calculateTotalAmount();
     },
@@ -874,7 +912,13 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
         }
 
-        item.total_am = discFinal + item.vat_perc_am;
+        item.pph23_perc_am = 0;
+
+        if (!!item.pph23_id) {
+          item.pph23_perc_am = discFinal * ((item.pph23_perc ?? 0) / 100);
+        }
+
+        item.total_am = discFinal + item.vat_perc_am - item.pph23_perc_am;
       });
 
       // header calculation
@@ -885,6 +929,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SoDtType) => acc + item.qty,
+        0
+      );
+
+      this.form.total_vat = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + (item.vat_perc_am as number),
+        0
+      );
+
+      this.form.total_pph23 = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + (item.pph23_perc_am as number),
         0
       );
 
@@ -941,16 +995,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.disc_final = discFinal;
       }
 
-      if (!!this.form.vat_id) {
-        this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
-      }
+      // if (!!this.form.vat_id) {
+      //   this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
+      // }
 
-      if (!!this.form.pph23_id) {
-        this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
-      }
+      // if (!!this.form.pph23_id) {
+      // this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
+      // }
 
       this.form.grand_total =
-        discFinal + this.form.total_vat + this.form.total_pph23;
+        discFinal + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
         this.formLayout.summary.total_amount.value = this.form.subtotal;

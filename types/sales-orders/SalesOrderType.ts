@@ -112,6 +112,7 @@ export type SoDtType = {
   sales_order_id?: number | null
   item_unit_id?: number | null
   vat_id?: number | null
+  pph23_id?: number | null
   ref_id: number
   item_id: number
   product_uuid: string
@@ -121,6 +122,8 @@ export type SoDtType = {
   remark?: string
   vat_perc?: number
   vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
   qty_so?: number
   qty: number
   price_sell: number

@@ -86,6 +86,7 @@ const headers = ref([
   { key: "disc_perc", title: "Disc (%)", sortable: true },
   { key: "disc_am", title: "Disc (Am)", sortable: true },
   { key: "vat_id", title: "VAT", sortable: true },
+  { key: "pph23_id", title: "PPH", sortable: true },
   { key: "total_am", title: "Total Amount", sortable: true },
   {
     key: "action",
@@ -887,6 +888,35 @@ watchEffect(() => {
                   (data) => salesOrderStore.autocompleteVatDt(data, item)
                 "
                 @click:clear="salesOrderStore.removeVatDt(item)"
+                :fields="headersVAT"
+                :filters="[
+                  {
+                    title: 'Name',
+                    key: 'name',
+                  },
+                ]"
+              />
+            </template>
+            <template #item.pph23_id="{ item }">
+              <lazy-d-select-table
+                api="/v1/pph23s/index-pph23"
+                detail-api="/v1/pph23s/index-pph23"
+                method-api="post"
+                detail-method-api="post"
+                mapping-detail="data[0]"
+                total-prop="meta.total"
+                label="PPH"
+                v-model="item.pph23_id"
+                class="col-span-2 lg:col-span-1 w-[9rem]"
+                is-quick-select
+                modal-parent-class="!z-[2500]"
+                modal-custom-class="!w-4/5"
+                :display-single-multiple-keys="['name', 'num']"
+                is-display-multiple-key
+                @click:selected="
+                  (data) => salesOrderStore.autocompletePph23Dt(data, item)
+                "
+                @click:clear="salesOrderStore.removePph23Dt(item)"
                 :fields="headersVAT"
                 :filters="[
                   {
