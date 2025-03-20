@@ -76,6 +76,40 @@ const formPurchaseTypeCreateEdit = {
   status: 1,
 }
 
+const formIOTypeCreateEdit = {
+  id: null,
+  name: '',
+  code: '',
+  type: '',
+  io_type: '',
+  description: '',
+  remark: '',
+  status: 1,
+}
+
+const formWarehouseCreateEdit = {
+  id: null,
+  name: '',
+  code: '',
+  description: '',
+  remark: '',
+  status: 1,
+}
+
+const formAccountSettingEdit = {
+  id: null,
+  name: '',
+  username: '',
+  phone_number: '',
+  address: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
+  profile_image: null,
+  profile_image_url: null,
+  roles: [],
+}
+
 const formProductCreateEdit = {
   id: null,
   item_sub_group_id: null,
@@ -141,5 +175,8 @@ export const useInitials = {
   formQuotationCreateEdit,
   formPaymentTermCreateEdit,
   formShippingTermCreateEdit,
-  formPurchaseTypeCreateEdit
+  formPurchaseTypeCreateEdit,
+  formIOTypeCreateEdit,
+  formWarehouseCreateEdit,
+  formAccountSettingEdit
 }
