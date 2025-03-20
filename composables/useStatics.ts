@@ -8,6 +8,13 @@ export const topMenuMasterTab = [
     permissions: ["r_users"],
   },
   {
+    title: "Account Setting",
+    number: 'account-settings',
+    icon: "mdi-account-cog",
+    link: "/masters/account-settings",
+    permissions: ["r_roles"],
+  },
+  {
     title: "Company Profile",
     number: 'company-profiles',
     icon: "mdi-domain",
@@ -115,6 +122,15 @@ export const topMenuCustomizationTab = [
     parent_link: "/masters/customizations",
     link: "/masters/customizations/pph23s",
     link2: "/masters/customizations/pph23s/create",
+    permissions: ["r_ms"],
+  },
+  {
+    title: "In/Out Type",
+    number: 'io-types',
+    icon: "mdi-transfer",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/io-types",
+    link2: "/masters/customizations/io-types/create",
     permissions: ["r_ms"],
   },
   {
