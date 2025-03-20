@@ -162,6 +162,10 @@ const generateHeadersObj = () => {
     align: "center",
     sortable: false,
     show: true,
+    headerProps: { class: "cursor-pointer action-table sticky-right" },
+    cellProps: {
+      class: "action-table sticky-right",
+    },
   };
 
   props.fields.forEach((field) => {

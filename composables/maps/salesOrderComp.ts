@@ -1,5 +1,5 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
-import type { FormSoDtProductListType, FormSoDtRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType } from "~/types/sales-orders/SalesOrderType"
+import type { FormSoDtProductListType, FormSoDtRefType, OptionalRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType } from "~/types/sales-orders/SalesOrderType"
 
 export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: SoDtBomType | ProductBomListType) => {
@@ -27,13 +27,18 @@ export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], produc
   })
 }
 
+const isItemTypeProduct = (item: FormSoDtProductListType): boolean => {
+  return (item.boms && item.boms.length > 0) ||
+    (item.so_dts_boms && item.so_dts_boms.length > 0) ||
+    (item.quo_dts_boms && item.quo_dts_boms.length > 0)
+}
+
 export function convertSoItemRefProduct(
   item: FormSoDtProductListType,
   refType: SoDtRefType
 ): SoDtType {
   console.log('convertSoItemRefProduct-item', item);
 
-  let itemType: SoDtItemType = item.boms && item.boms.length > 0 ? 'product' : 'item'
   let productUuid = randomId()
   let productId = item.product_id ?? item.ref_id
 
@@ -49,11 +54,19 @@ export function convertSoItemRefProduct(
     item.quo_dts_boms = generateSoBoms(item.quo_dts_boms, productUuid, 'bom', productId)
   }
 
-  let refId
+  let optional: OptionalRefType = {
+    ref_id: null,
+    item_id: null,
+    product_id: null,
+    item_type: isItemTypeProduct(item) ? 'product' : 'item'
+  }
+
   if (refType == 'products') {
-    refId = item.product_id
+    optional.ref_id = item.product_id
+    optional.item_id = item.product_id
   } else if (refType == 'quotations') {
-    refId = item.quo_dt_id
+    optional.ref_id = item.quo_dt_id
+    optional.item_id = item.item_id
   }
 
   let soDtsBoms
@@ -72,14 +85,14 @@ export function convertSoItemRefProduct(
     sales_order_id: item.sales_order_id,
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
-    ref_id: refId as number,
-    item_id: item.product_id as number,
+    ref_id: optional.ref_id as number,
+    item_id: optional.item_id as number,
     product_uuid: productUuid,
     ref_type: refType,
     remark: item.remark,
     vat_perc: item.vat_perc || 0,
     vat_perc_am: item.vat_perc_am || 0,
-    item_type: itemType,
+    item_type: optional.item_type,
     qty: item.qty || 0,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
@@ -157,33 +170,36 @@ export function updateSoRefsModalFromMain(
   checkOpened: SoDtRefType,
   checkProducts: FormSoDtProductListType[]
 ): any[] {
-  console.log('abc2', checkOpened);
-
   let updatedList: any[] = []
-  checkMain.forEach((mainItem: SoDtType, iMainItem: number) => {
-    if (mainItem.ref_type != checkOpened) {
-      return
-    }
 
-    if (checkProducts.length > 0) {
-      checkProducts.forEach((prodItem: FormSoDtProductListType, iProdItem: number) => {
-        console.log('updateSoRefsModalFromMain-mainItem-base', iProdItem, mainItem.ref_type, mainItem.ref_id, prodItem.ref_type, prodItem.ref_id);
-        if (mainItem.ref_id == prodItem.ref_id && mainItem.ref_type == checkOpened) {
-          console.log('updateSoRefsModalFromMain-mainItem-found', iProdItem, mainItem);
+  let selectedRefList: SoDtType[]
 
-          const combined = {
+  // if (checkOpened == 'products') {
+  selectedRefList = checkMain.filter((item: SoDtType) => {
+    return (item.ref_type == checkOpened) && (item.ref_type == 'products' || item.ref_type == 'quotations')
+  })
+
+  if (checkProducts.length > 0) {
+    selectedRefList.forEach((item: SoDtType) => {
+      checkProducts.forEach((prodItem: FormSoDtProductListType) => {
+        if (
+          (item.ref_type == 'quotations' && item.ref_id == prodItem.quo_dt_id) ||
+          (item.ref_type == 'products' && item.ref_id == prodItem.ref_id)
+        ) {
+          let combined: any = {
             ...prodItem,
-            ...mainItem,
+            ...item,
           }
 
-          updatedList[iMainItem] = combined
+          combined = convertSoItemRefProduct(combined, checkOpened)
+
+          updatedList.push(combined)
         }
       })
-    } else {
-      updatedList[iMainItem] = mainItem
-    }
-
-  })
+    })
+  } else {
+    updatedList = selectedRefList
+  }
 
   return updatedList
 }

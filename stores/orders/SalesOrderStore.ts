@@ -3,7 +3,11 @@ import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { RefBtnType } from '~/types/components/OptionRefBtnType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QIndexProductsType, QIndexType, SoDtBomType, SoDtType, QIndexQuotationsType } from '~/types/sales-orders/SalesOrderType'
+import type { FormLayoutType } from '~/types/FormLayoutType'
+import type { FormCurrencyType } from '~/types/masters/CurrencyType'
+import type { FormPph23Type } from '~/types/masters/Pph23Type'
+import type { FormVatType } from '~/types/masters/VatType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QIndexProductsType, QIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType } from '~/types/sales-orders/SalesOrderType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -105,6 +109,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         icon: "mdi-alpha-m-box-outline",
         count: 0,
         type: "button",
+        // textClass: 'text-grey1'
       },
       {
         cta: "Quotation",
@@ -112,6 +117,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         icon: "mdi-offer",
         count: 0,
         type: "button",
+        // textClass: 'text-grey1'
       },
     ] as RefBtnType[],
     openedModal: {
@@ -121,7 +127,80 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         product_id: null as number | null,
         product_uuid: '' as string
       }
-    }
+    },
+    currencySymbolLabel: '' as string | null,
+    formLayout: {
+      title: "Basic Information",
+      parentPath: "/orders/sales-orders",
+      currentTab: 0,
+      tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+      button: {
+        clear: {
+          show: true,
+        },
+      },
+      // permission: {
+      //   name: ["c_ms"],
+      //   isActive: true,
+      // },
+      summary: {
+        total_amount: {
+          label: "Total Amount",
+          symbol: '',
+          value: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+        total_qty: {
+          label: "Total Qty",
+          value: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+        total_discount: {
+          label: "Total Discount",
+          symbol: '',
+          value: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+        total_vat: {
+          label: "Total VAT",
+          symbol: '',
+          value: 0,
+          percentage: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+        total_pph23: {
+          label: "Total PPH23",
+          symbol: '',
+          value: 0,
+          percentage: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+        grand_total: {
+          label: "Grand Total",
+          symbol: '',
+          value: 0,
+
+          format: {
+            precision: 2,
+          },
+        },
+      },
+    } as FormLayoutType,
   }),
 
   actions: {
@@ -462,7 +541,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         // this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkProducts, 'boms', this.itemsCheck.checkMain)
 
         if (this.itemsCheck.checkBoms.length > 0) {
-          console.log('select-itemcheck-product_id', this.openedModal.boms.product_id);
 
           this.itemsCheck.checkBoms = generateSoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
         } else {
@@ -495,12 +573,24 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    resetSummary() {
+      if (this.formLayout?.summary) {
+        this.formLayout.summary.total_amount.value = 0;
+        this.formLayout.summary.total_qty.value = 0
+        this.formLayout.summary.total_discount.value = 0
+        this.formLayout.summary.total_vat.value = 0
+        this.formLayout.summary.total_pph23.value = 0
+        this.formLayout.summary.grand_total.value = 0
+      }
+    },
+
     handleClickClear() {
       this.form = cloneObject(useInitials.formSalesOrderCreateEdit);
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkProducts = []
       this.errors = {};
 
+      this.resetSummary()
       this.countSelectedReferences()
     },
 
@@ -527,7 +617,366 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // );
 
       this.countSelectedReferences();
-    }
+    },
+
+    autocompleteCustomer(data: any) {
+      this.form.email = data.email;
+      this.form.phone = data.phone;
+      this.form.address = data.address;
+
+      if (!!data.id) {
+        this.queryModal.qIndexQuotations.customer_id = data.id;
+        this.queryModal.qIndexQuotations.customer_ids = [data.id];
+      }
+    },
+
+    autocompleteVat(data: FormVatType) {
+      this.form.vat_perc = Number(data.num);
+      this.calculateTotalAmount();
+    },
+
+    autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
+      soDtType.vat_perc = Number(data.num);
+      this.calculateTotalAmount();
+    },
+
+    removeVat() {
+      this.form.vat_perc = 0;
+
+      this.calculateTotalAmount();
+    },
+
+    removeVatDt(soDtType: SoDtType) {
+      if (!soDtType.vat_id) {
+        soDtType.vat_perc = 0;
+        soDtType.vat_perc_am = 0;
+      }
+
+      this.calculateTotalAmount();
+    },
+
+    removePph() {
+      this.form.pph23_perc = 0;
+
+      this.calculateTotalAmount();
+    },
+
+    autocompletePph(data: FormPph23Type) {
+      this.form.pph23_perc = Number(data.num);
+
+      this.calculateTotalAmount();
+    },
+
+    autocompleteCurrency(data: FormCurrencyType) {
+      this.form.exchange_rate = Number(data.num);
+      this.currencySymbolLabel = data.symbol;
+
+      this.calculateTotalAmount();
+    },
+
+    closeAllModal() {
+      this.isOpenModal.quotations = false;
+      this.isOpenModal.products = false;
+      this.isOpenModal.boms = false;
+    },
+
+    onClickUpdateProductsModal() {
+      this.selectItemRefModal();
+      this.countSelectedReferences();
+      this.closeAllModal();
+    },
+
+    onClickDeleteSelected(item: any, index: number) {
+      this.itemsCheck.checkMain.splice(index, 1);
+
+      this.countSelectedReferences();
+    },
+
+    onClickUpdateBomsModal() {
+      // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
+      this.selectItemRefModal();
+      this.countSelectedReferences();
+      this.closeAllModal();
+    },
+
+    async onClickOpenModalOptionRefBtn(ref: RefBtnType) {
+      this.isOpenModal.products = false;
+
+      if (ref.key == "products") {
+        this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "products",
+          this.itemsCheck.checkProducts
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.products = true;
+      } else if (ref.key == "quotations") {
+        this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "quotations",
+          this.itemsCheck.checkQuotations
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.quotations = true;
+      }
+
+      await this.fetchModalFilter();
+    },
+
+    async fetchModalFilter() {
+      if (this.isOpenModal.products || this.isOpenModal.boms) {
+        await this.indexProduct();
+      } else if (this.isOpenModal.quotations) {
+        if (!!this.form.customer_id) {
+          this.queryModal.qIndexQuotations.customer_id = this.form.customer_id;
+          this.queryModal.qIndexQuotations.customer_ids = [this.form.customer_id];
+        }
+        await this.indexQuotation();
+      }
+      // } else if (showModal.value.listWip) {
+      //   // queryModal.value.qListWip.customer_id = form.value.customer_id
+      //   // queryModal.value.qListWip.mode = 'OUT'
+
+      //   await useInventoryIn.getAllDataRequestWIP()
+      // }
+    },
+
+    async fetchDataServerFetch(options: { [key: string]: any }) {
+      if (this.isOpenModal.products) {
+        this.queryModal.qIndexProducts.page = options.page;
+        this.queryModal.qIndexProducts.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexProducts.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexProducts.order_direction = options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexProducts.order_column = "";
+          this.queryModal.qIndexProducts.order_direction = "";
+        }
+      }
+
+      if (this.isOpenModal.boms) {
+        this.queryModal.qIndexBoms.page = options.page;
+        this.queryModal.qIndexBoms.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexBoms.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexBoms.order_direction = options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexBoms.order_column = "";
+          this.queryModal.qIndexBoms.order_direction = "";
+        }
+      }
+
+      if (this.isOpenModal.quotations) {
+        this.queryModal.qIndexQuotations.page = options.page;
+        this.queryModal.qIndexQuotations.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexQuotations.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexQuotations.order_direction =
+            options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexQuotations.order_column = "";
+          this.queryModal.qIndexQuotations.order_direction = "";
+        }
+      }
+
+      await this.fetchModalFilter();
+    },
+
+    async onClickOpenModalBOM(
+      item: FormSoDtProductListType,
+      index: number
+    ) {
+      this.openedModal.boms.index = index;
+      this.openedModal.boms.id = item.ref_id;
+      this.openedModal.boms.product_id = item.item_id as number;
+      this.openedModal.boms.product_uuid = item.product_uuid as string;
+
+      this.itemsCheck.checkBoms = item.so_dts_boms;
+      this.isOpenModal.boms = true;
+      await this.indexProduct();
+    },
+
+    onClickDeleteBom(
+      index: number,
+      indexBom: number,
+      internalItem: any
+    ) {
+      const item = this.itemsCheck.checkMain[index];
+      if (item && item.so_dts_boms) {
+        item.so_dts_boms.splice(indexBom, 1);
+      }
+
+      this.calculateTotalAmount();
+    },
+
+    calculateTotalAmount() {
+      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        const discPercentage = Number((item.disc_perc ?? 0) / 100);
+        const discAmount = Number(item.disc_am);
+        const priceSell = Number(item.price_sell);
+        const priceBuy = Number(item.price_buy);
+        const qty = Number(item.qty);
+        const subtotalSell = Number(priceSell * qty);
+        const subtotalBuy = Number(priceBuy * qty);
+
+        const discPercPriceSell = Number(priceSell * discPercentage);
+        const discPercNum = Number(priceSell - discPercPriceSell);
+        // const subDiscPercAm = Number(qty * discPercNum);
+        const discPercAm = Number(subtotalSell * discPercentage);
+        const subDiscPercAm = Number(subtotalSell - discPercAm);
+
+        item.subtotal_sell = subtotalSell;
+        item.subtotal_buy = subtotalBuy;
+
+        let discType: SoDtDiscType = null;
+
+        let discFinal = 0;
+        if (!!discAmount && discAmount > 0) {
+          discType = "a";
+          //   discFinal = subtotalSell - discAmount;
+        } else if (!!discPercentage && discPercentage > 0) {
+          discType = "p";
+          //   discFinal = subDiscPercAm;
+        } else if (
+          !!discAmount &&
+          discAmount > 0 &&
+          !!discPercentage &&
+          discPercentage > 0
+        ) {
+          discType = "all";
+          // discFinal = subDiscPercAm - discAmount;
+        }
+
+        // discFinal = subDiscPercAm;
+        discFinal = subDiscPercAm - discAmount;
+        if (discFinal <= 0) {
+          discFinal = subtotalSell;
+        }
+
+        item.disc_perc_num = 0;
+        item.disc_perc_am = 0;
+        item.disc_final = 0;
+        if (discPercentage || discAmount) {
+          item.disc_perc_num = discPercNum;
+          item.disc_perc_am = discPercAm;
+          item.disc_final = discFinal;
+          item.disc_type = discType;
+        }
+
+        item.vat_perc_am = 0;
+
+        if (!!item.vat_id) {
+          item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
+        }
+
+        item.total_am = discFinal + item.vat_perc_am;
+      });
+
+      // header calculation
+      this.form.subtotal = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + item.total_am,
+        0
+      );
+
+      this.form.total_qty = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + item.qty,
+        0
+      );
+
+      // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
+      let itemsDiscount = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
+        0
+      );
+
+      const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
+      const discAmountHead = Number(this.form.disc_am ?? 0);
+
+      let discPercPriceSellHead = Number(this.form.subtotal * discPercentageHead);
+      let discPercAmHead = Number(
+        this.form.subtotal - (discPercPriceSellHead ?? 0)
+      );
+
+      this.form.disc_type = null;
+      this.form.disc_perc_am = 0;
+
+      this.form.total_discount = discAmountHead + itemsDiscount;
+      if (!!discPercPriceSellHead) {
+        this.form.total_discount = discPercPriceSellHead + discAmountHead;
+      }
+
+      let discType: SoDtDiscType = null;
+
+      let discFinal = 0;
+      if (!!discAmountHead && discAmountHead > 0) {
+        discType = "a";
+      } else if (!!discPercentageHead && discPercentageHead > 0) {
+        discType = "p";
+      } else if (
+        !!discAmountHead &&
+        discAmountHead > 0 &&
+        !!discPercentageHead &&
+        discPercentageHead > 0
+      ) {
+        discType = "all";
+      }
+
+      discFinal = discPercAmHead - discAmountHead;
+      if (discFinal <= 0) {
+        discFinal = this.form.subtotal;
+      }
+
+      if (this.form.disc_perc) {
+        this.form.disc_perc_am = discPercPriceSellHead;
+      }
+
+      this.form.disc_final = 0;
+      if (discAmountHead || discPercentageHead) {
+        this.form.disc_type = discType;
+        this.form.disc_final = discFinal;
+      }
+
+      if (!!this.form.vat_id) {
+        this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
+      }
+
+      if (!!this.form.pph23_id) {
+        this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
+      }
+
+      this.form.grand_total =
+        discFinal + this.form.total_vat + this.form.total_pph23;
+
+      if (this.formLayout.summary) {
+        this.formLayout.summary.total_amount.value = this.form.subtotal;
+        this.formLayout.summary.total_qty.value = this.form.total_qty;
+        this.formLayout.summary.total_discount.value = this.form.total_discount;
+        this.formLayout.summary.total_vat.value = this.form.total_vat;
+        this.formLayout.summary.total_pph23.value = this.form.total_pph23;
+        this.formLayout.summary.grand_total.value = this.form.grand_total;
+
+        // TODO foreach currency symbol
+      }
+
+      let response = {
+        summary: {
+          total_amount: this.form.subtotal,
+          total_qty: this.form.total_qty,
+          total_discount: this.form.total_discount,
+          total_vat: this.form.total_vat,
+          total_pph23: this.form.total_pph23,
+          grand_total: this.form.grand_total,
+        },
+      }
+
+      return response
+    },
+
 
   },
   persist: [

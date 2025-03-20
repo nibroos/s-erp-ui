@@ -278,8 +278,10 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   disc_final?: number
   disc_type?: SoDtDiscType | null
   total_am?: number
+  subtotal?: number
 
   so_dts_boms?: ProductBomListType[]
+  quo_dts_boms?: ProductBomListType[]
 
   item_name?: string
   item_code?: string
@@ -289,3 +291,10 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
 }
 
 export type FormSoDtBomListType = ProductListType & SoDtBomType
+
+export type OptionalRefType = {
+  ref_id?: number | null
+  item_type: SoDtItemType
+  item_id?: number | null
+  product_id?: number | null
+}

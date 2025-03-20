@@ -47,6 +47,8 @@ const {
   optionRefBtnRef,
   loading,
   openedModal,
+  formLayout: summaryLayout,
+  currencySymbolLabel,
 } = storeToRefs(salesOrderStore);
 
 definePageMeta({
@@ -391,6 +393,13 @@ const headersModalQuotations = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Unit",
+    key: "unit_name",
+    value: "unit_name",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "Qty SO",
     key: "qty_so",
     value: "qty_so",
@@ -567,100 +576,6 @@ const filtersTextQuotations = ref([
   },
 ]);
 
-const currencySymbolLabel = ref<string | null>("");
-
-const summaryLayout = ref({
-  total_amount: {
-    label: "Total Amount",
-    symbol: currencySymbolLabel.value,
-    value: form.value.subtotal,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_qty: {
-    label: "Total Qty",
-    value: form.value.total_qty,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_discount: {
-    label: "Total Discount",
-    symbol: currencySymbolLabel.value,
-    value: form.value.total_discount,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_vat: {
-    label: "Total VAT",
-    symbol: currencySymbolLabel.value,
-    value: form.value.total_vat,
-    percentage: form.value.vat_perc,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_pph23: {
-    label: "Total PPH23",
-    symbol: currencySymbolLabel.value,
-    value: form.value.total_pph23,
-    percentage: form.value.pph23_perc,
-
-    format: {
-      precision: 2,
-    },
-  },
-  grand_total: {
-    label: "Grand Total",
-    symbol: currencySymbolLabel.value,
-    value: form.value.grand_total,
-
-    format: {
-      precision: 2,
-    },
-  },
-});
-
-const formLayout = ref({
-  title: "Basic Information",
-  parentPath: "/orders/sales-orders",
-  currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark"],
-  mode: "edit",
-  button: {
-    create: {
-      path: "/orders/sales-orders/create",
-    },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
-    clear: {
-      show: true,
-    },
-  },
-  // permission: {
-  //   name: ["c_ms"],
-  //   isActive: true,
-  // },
-  summary: summaryLayout.value,
-} as FormLayoutType);
-
-// const formSchema = z.object({
-//   name: customRules.required("name", form.value.name),
-//   item_group_id: customRules.required(
-//     "item_group_id",
-//     form.value.item_group_id
-//   ),
-// });
-
 const handleSubmit = async () => {
   // const validatedForm = formSchema.safeParse(form.value);
 
@@ -680,137 +595,6 @@ const handleSubmit = async () => {
   await salesOrderStore.update();
 };
 
-const autocompleteCustomer = (data: any) => {
-  form.value.email = data.email;
-  form.value.phone = data.phone;
-  form.value.address = data.address;
-
-  if (!!data.id) {
-    queryModal.value.qIndexQuotations.customer_id = data.id;
-    queryModal.value.qIndexQuotations.customer_ids = [data.id];
-  }
-};
-
-const autocompleteVat = (data: FormVatType) => {
-  form.value.vat_perc = Number(data.num);
-
-  // vatMode.value = null;
-
-  // if (!!form.value.vat_id) {
-  //   itemsCheck.value.checkMain.forEach((item: SoDtType) => {
-  //     item.vat_id = null;
-  //     item.vat_perc = 0;
-  //   });
-
-  //   vatMode.value = "header";
-  // }
-
-  calculateTotalAmount();
-};
-
-const autocompleteVatDt = (data: FormVatType, soDtType: SoDtType) => {
-  soDtType.vat_perc = Number(data.num);
-
-  // form.value.vat_id = null;
-  // form.value.vat_perc = 0;
-
-  // vatMode.value = "detail";
-
-  calculateTotalAmount();
-};
-
-const removeVat = () => {
-  form.value.vat_perc = 0;
-  vatMode.value = null;
-
-  calculateTotalAmount();
-};
-
-const removeVatDt = (soDtType: SoDtType) => {
-  if (!soDtType.vat_id) {
-    soDtType.vat_perc = 0;
-    soDtType.vat_perc_am = 0;
-  }
-
-  // if all items vat_id is null, then change vatmode to null
-  const isAllVatNull = itemsCheck.value.checkMain.every(
-    (item: SoDtType) => !item.vat_id
-  );
-
-  if (isAllVatNull) {
-    form.value.vat_id = null;
-    form.value.vat_perc = 0;
-    vatMode.value = null;
-  }
-
-  calculateTotalAmount();
-};
-
-const removePph = () => {
-  form.value.pph23_perc = 0;
-};
-
-const autocompletePph = (data: FormPph23Type) => {
-  form.value.pph23_perc = Number(data.num);
-
-  calculateTotalAmount();
-};
-
-const autocompleteCurrency = (data: FormCurrencyType) => {
-  form.value.exchange_rate = Number(data.num);
-  currencySymbolLabel.value = data.symbol;
-
-  calculateTotalAmount();
-};
-
-const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
-  isOpenModal.value.products = false;
-
-  console.log("abc", ref.key);
-
-  if (ref.key == "products") {
-    itemsCheck.value.checkProducts = updateSoRefsModalFromMain(
-      itemsCheck.value.checkMain,
-      "products",
-      itemsCheck.value.checkProducts
-    );
-
-    salesOrderStore.countSelectedReferences();
-    isOpenModal.value.products = true;
-  } else if (ref.key == "quotations") {
-    itemsCheck.value.checkQuotations = updateSoRefsModalFromMain(
-      itemsCheck.value.checkMain,
-      "quotations",
-      itemsCheck.value.checkQuotations
-    );
-
-    salesOrderStore.countSelectedReferences();
-    isOpenModal.value.quotations = true;
-  }
-
-  await fetchModalFilter();
-};
-
-const fetchModalFilter = async () => {
-  console.log("fetchModalFilter", queryModal.value.qIndexQuotations);
-
-  if (isOpenModal.value.products || isOpenModal.value.boms) {
-    await salesOrderStore.indexProduct();
-  } else if (isOpenModal.value.quotations) {
-    if (!!form.value.customer_id) {
-      queryModal.value.qIndexQuotations.customer_id = form.value.customer_id;
-      queryModal.value.qIndexQuotations.customer_ids = [form.value.customer_id];
-    }
-    await salesOrderStore.indexQuotation();
-  }
-  // } else if (showModal.value.listWip) {
-  //   // queryModal.value.qListWip.customer_id = form.value.customer_id
-  //   // queryModal.value.qListWip.mode = 'OUT'
-
-  //   await useInventoryIn.getAllDataRequestWIP()
-  // }
-};
-
 const fetchInitialData = async () => {
   form.value.id = Number(id.value);
   await Promise.all([
@@ -820,239 +604,34 @@ const fetchInitialData = async () => {
   ]);
 };
 
-const closeAllModal = () => {
-  isOpenModal.value.quotations = false;
-  isOpenModal.value.products = false;
-  isOpenModal.value.boms = false;
-};
+const formLayout = ref({
+  title: "Basic Information",
+  parentPath: "/orders/sales-orders",
+  currentTab: tabFormIndex.value,
+  tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+  mode: "edit",
+  button: {
+    create: {
+      path: "/orders/sales-orders/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
+    clear: {
+      show: true,
+    },
+  },
+  // permission: {
+  //   name: ["c_ms"],
+  //   isActive: true,
+  // },
+  summary: summaryLayout.value.summary,
+} as FormLayoutType);
 
-const fetchDataServerFetch = async (options: { [key: string]: any }) => {
-  if (isOpenModal.value.products) {
-    queryModal.value.qIndexProducts.page = options.page;
-    queryModal.value.qIndexProducts.per_page = options.itemsPerPage;
-
-    if (options.sortBy.length > 0) {
-      queryModal.value.qIndexProducts.order_column = options.sortBy[0].key;
-      queryModal.value.qIndexProducts.order_direction = options.sortBy[0].order;
-    } else {
-      queryModal.value.qIndexProducts.order_column = "";
-      queryModal.value.qIndexProducts.order_direction = "";
-    }
-  }
-
-  if (isOpenModal.value.boms) {
-    queryModal.value.qIndexBoms.page = options.page;
-    queryModal.value.qIndexBoms.per_page = options.itemsPerPage;
-
-    if (options.sortBy.length > 0) {
-      queryModal.value.qIndexBoms.order_column = options.sortBy[0].key;
-      queryModal.value.qIndexBoms.order_direction = options.sortBy[0].order;
-    } else {
-      queryModal.value.qIndexBoms.order_column = "";
-      queryModal.value.qIndexBoms.order_direction = "";
-    }
-  }
-
-  if (isOpenModal.value.quotations) {
-    queryModal.value.qIndexQuotations.page = options.page;
-    queryModal.value.qIndexQuotations.per_page = options.itemsPerPage;
-
-    if (options.sortBy.length > 0) {
-      queryModal.value.qIndexQuotations.order_column = options.sortBy[0].key;
-      queryModal.value.qIndexQuotations.order_direction =
-        options.sortBy[0].order;
-    } else {
-      queryModal.value.qIndexQuotations.order_column = "";
-      queryModal.value.qIndexQuotations.order_direction = "";
-    }
-  }
-
-  await fetchModalFilter();
-};
-
-const onClickUpdateProductsModal = () => {
-  salesOrderStore.selectItemRefModal();
-  salesOrderStore.countSelectedReferences();
-  closeAllModal();
-};
-
-const onClickDeleteSelected = (item: any, index: number) => {
-  itemsCheck.value.checkMain.splice(index, 1);
-
-  salesOrderStore.countSelectedReferences();
-};
-
-const onClickUpdateBomsModal = () => {
-  // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
-  salesOrderStore.selectItemRefModal();
-  salesOrderStore.countSelectedReferences();
-  closeAllModal();
-};
-
-const onClickOpenModalBOM = async (
-  item: FormSoDtProductListType,
-  index: number
-) => {
-  openedModal.value.boms.index = index;
-  openedModal.value.boms.id = item.ref_id;
-  openedModal.value.boms.product_id = item.item_id as number;
-  openedModal.value.boms.product_uuid = item.product_uuid as string;
-
-  itemsCheck.value.checkBoms = item.so_dts_boms;
-  isOpenModal.value.boms = true;
-  await salesOrderStore.indexProduct();
-};
-
-const onClickDeleteBom = (
-  index: number,
-  indexBom: number,
-  internalItem: any
-) => {
-  const item = itemsCheck.value.checkMain[index];
-  if (item && item.so_dts_boms) {
-    item.so_dts_boms.splice(indexBom, 1);
-  }
-
-  calculateTotalAmount();
-};
-
-const calculateTotalAmount = () => {
-  itemsCheck.value.checkMain.forEach((item: SoDtType) => {
-    const discPercentage = Number((item.disc_perc ?? 0) / 100);
-    const discAmount = Number(item.disc_am);
-    const priceSell = Number(item.price_sell);
-    const priceBuy = Number(item.price_buy);
-    const qty = Number(item.qty);
-    const subtotalSell = Number(priceSell * qty);
-    const subtotalBuy = Number(priceBuy * qty);
-
-    const discPercPriceSell = Number(priceSell * discPercentage);
-    const discPercNum = Number(priceSell - discPercPriceSell);
-    // const subDiscPercAm = Number(qty * discPercNum);
-    const discPercAm = Number(subtotalSell * discPercentage);
-    const subDiscPercAm = Number(subtotalSell - discPercAm);
-
-    item.subtotal_sell = subtotalSell;
-    item.subtotal_buy = subtotalBuy;
-
-    let discType: SoDtDiscType = null;
-
-    let discFinal = 0;
-    if (!!discAmount && discAmount > 0) {
-      discType = "a";
-      //   discFinal = subtotalSell - discAmount;
-    } else if (!!discPercentage && discPercentage > 0) {
-      discType = "p";
-      //   discFinal = subDiscPercAm;
-    } else if (
-      !!discAmount &&
-      discAmount > 0 &&
-      !!discPercentage &&
-      discPercentage > 0
-    ) {
-      discType = "all";
-      // discFinal = subDiscPercAm - discAmount;
-    }
-
-    // discFinal = subDiscPercAm;
-    discFinal = subDiscPercAm - discAmount;
-    if (discFinal <= 0) {
-      discFinal = subtotalSell;
-    }
-
-    item.disc_perc_num = 0;
-    item.disc_perc_am = 0;
-    item.disc_final = 0;
-    if (discPercentage || discAmount) {
-      item.disc_perc_num = discPercNum;
-      item.disc_perc_am = discPercAm;
-      item.disc_final = discFinal;
-      item.disc_type = discType;
-    }
-
-    item.vat_perc_am = 0;
-
-    if (!!item.vat_id) {
-      item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
-    }
-
-    item.total_am = discFinal + item.vat_perc_am;
-  });
-
-  // header calculation
-  form.value.subtotal = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: SoDtType) => acc + item.total_am,
-    0
-  );
-
-  form.value.total_qty = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: SoDtType) => acc + item.qty,
-    0
-  );
-
-  // form.value.total_discount = item.disc_perc_am + item.disc_am + form.value.disc_am + form.value.disc_perc_am;
-  let itemsDiscount = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
-    0
-  );
-
-  const discPercentageHead = Number((form.value.disc_perc ?? 0) / 100);
-  const discAmountHead = Number(form.value.disc_am ?? 0);
-
-  let discPercPriceSellHead = Number(form.value.subtotal * discPercentageHead);
-  let discPercAmHead = Number(
-    form.value.subtotal - (discPercPriceSellHead ?? 0)
-  );
-
-  form.value.disc_type = null;
-  form.value.disc_perc_am = 0;
-
-  form.value.total_discount = discAmountHead + itemsDiscount;
-  if (!!discPercPriceSellHead) {
-    form.value.total_discount = discPercPriceSellHead + discAmountHead;
-  }
-
-  let discType: SoDtDiscType = null;
-
-  let discFinal = 0;
-  if (!!discAmountHead && discAmountHead > 0) {
-    discType = "a";
-  } else if (!!discPercentageHead && discPercentageHead > 0) {
-    discType = "p";
-  } else if (
-    !!discAmountHead &&
-    discAmountHead > 0 &&
-    !!discPercentageHead &&
-    discPercentageHead > 0
-  ) {
-    discType = "all";
-  }
-
-  discFinal = discPercAmHead - discAmountHead;
-  if (discFinal <= 0) {
-    discFinal = form.value.subtotal;
-  }
-
-  if (form.value.disc_perc) {
-    form.value.disc_perc_am = discPercPriceSellHead;
-  }
-
-  form.value.disc_final = 0;
-  if (discAmountHead || discPercentageHead) {
-    form.value.disc_type = discType;
-    form.value.disc_final = discFinal;
-  }
-
-  if (!!form.value.vat_id) {
-    form.value.total_vat = discFinal * ((form.value.vat_perc ?? 0) / 100);
-  }
-
-  if (!!form.value.pph23_id) {
-    form.value.total_pph23 = discFinal * ((form.value.pph23_perc ?? 0) / 100);
-  }
-
-  form.value.grand_total =
-    discFinal + form.value.total_vat + form.value.total_pph23;
+const calculateTotalAmountLocal = () => {
+  salesOrderStore.calculateTotalAmount();
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
@@ -1064,47 +643,37 @@ const calculateTotalAmount = () => {
 
     // TODO foreach currency symbol
   }
-
-  console.log(
-    form.value.subtotal,
-    form.value.grand_total,
-    discFinal,
-    form.value.total_vat,
-    form.value.total_pph23,
-    form.value.total_discount
-  );
 };
 
-// watch(
-//   () => itemsCheck.value.checkMain,
-//   (oldValue, newVal) => {
-//     if (oldValue != newVal) {
-//       calculateTotalAmount();
-//     }
-//   },
-//   { deep: true, immediate: true }
-// );
-
-// watch(
-//   () => itemsCheck.value.checkMain.length,
-//   (oldValue, newVal) => {
-//     if (oldValue !== newVal) {
-//       salesOrderStore.countSelectedReferences();
-//     }
-//   }
-// );
-
-const vatMode = ref<VatModeType>(null);
+const initialFormLayout = () => {
+  formLayout.value.currentTab = tabFormIndex.value;
+  formLayout.value.mode = "edit";
+  formLayout.value.button = {
+    create: {
+      path: "/orders/sales-orders/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
+    clear: {
+      show: true,
+    },
+  };
+};
 
 onMounted(async () => {
   salesOrderStore.handleClickClear();
   await fetchInitialData();
+  formLayout.value.currentTab = tabFormIndex.value;
+  initialFormLayout();
   // salesOrderStore.updateRefsModal();
 });
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "SalesOrders";
+  topTitle.value = "Sales Orders";
 });
 </script>
 
@@ -1155,7 +724,9 @@ watchEffect(() => {
               v-model="form.customer_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompleteCustomer"
+              @click:selected="
+                (data) => salesOrderStore.autocompleteCustomer(data)
+              "
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :fields="headersCustomer"
@@ -1256,7 +827,9 @@ watchEffect(() => {
           <d-option-ref-btn
             :refs="optionRefBtnRef"
             class="col-span-2"
-            @click:ref="onClickOpenModalOptionRefBtn"
+            @click:ref="
+              (ref) => salesOrderStore.onClickOpenModalOptionRefBtn(ref)
+            "
           >
             <!-- <template #append-cta-product>
               <v-icon
@@ -1310,8 +883,10 @@ watchEffect(() => {
                 modal-custom-class="!w-4/5"
                 :display-single-multiple-keys="['name', 'num']"
                 is-display-multiple-key
-                @click:selected="(data) => autocompleteVatDt(data, item)"
-                @click:clear="removeVatDt(item)"
+                @click:selected="
+                  (data) => salesOrderStore.autocompleteVatDt(data, item)
+                "
+                @click:clear="salesOrderStore.removeVatDt(item)"
                 :fields="headersVAT"
                 :filters="[
                   {
@@ -1340,7 +915,7 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
               />
@@ -1355,7 +930,7 @@ watchEffect(() => {
                 hide-currency-display
                 label=""
                 class="w-[9rem]"
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
               />
             </template>
             <template #item.disc_am="{ item }">
@@ -1366,7 +941,7 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
               />
@@ -1379,7 +954,7 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
               />
@@ -1392,7 +967,7 @@ watchEffect(() => {
               <div class="action-button flex gap-2">
                 <d-bt
                   v-if="item.item_type == 'product'"
-                  @click="onClickOpenModalBOM((item as unknown as FormSoDtProductListType), index)"
+                  @click="salesOrderStore.onClickOpenModalBOM((item as unknown as FormSoDtProductListType), index)"
                   class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
                   text-class="text-primary1 dark:text-white"
                   rounded="xl"
@@ -1400,7 +975,7 @@ watchEffect(() => {
                   no-icon
                 ></d-bt>
                 <d-bt
-                  @click="onClickDeleteSelected(item, index)"
+                  @click="salesOrderStore.onClickDeleteSelected(item, index)"
                   icon="mdi-delete"
                   is-no-text
                   class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1487,7 +1062,13 @@ watchEffect(() => {
                       <template #item.action="{ item: itemBom, index: iBom }">
                         <div class="action-button">
                           <d-bt
-                            @click="onClickDeleteBom(index, iBom, internalItem)"
+                            @click="
+                              salesOrderStore.onClickDeleteBom(
+                                index,
+                                iBom,
+                                internalItem
+                              )
+                            "
                             icon="mdi-delete"
                             is-no-text
                             class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1523,7 +1104,9 @@ watchEffect(() => {
               inner-search-key="global"
               label="Currency"
               :errors="errors.currency_id"
-              @click:selected="autocompleteCurrency"
+              @click:selected="
+                (data) => salesOrderStore.autocompleteCurrency(data)
+              "
             ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
@@ -1553,8 +1136,8 @@ watchEffect(() => {
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
               is-display-multiple-key
-              @click:selected="autocompleteVat"
-              @click:clear="removeVat"
+              @click:selected="(data) => salesOrderStore.autocompleteVat(data)"
+              @click:clear="salesOrderStore.removeVat()"
               :fields="headersVAT"
               :filters="[
                 {
@@ -1589,8 +1172,8 @@ watchEffect(() => {
               v-model="form.pph23_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompletePph"
-              @click:clear="removePph"
+              @click:selected="(data) => salesOrderStore.autocompletePph(data)"
+              @click:clear="salesOrderStore.removePph()"
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
@@ -1640,7 +1223,7 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc (%)"
             />
           </div>
@@ -1652,7 +1235,7 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc Amount"
             />
           </div>
@@ -1680,7 +1263,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="fetchModalFilter"
+          @submit.prevent="salesOrderStore.fetchModalFilter()"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsProducts"
@@ -1708,7 +1291,7 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="fetchModalFilter"
+            @click:submit="salesOrderStore.fetchModalFilter()"
             @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
@@ -1736,7 +1319,7 @@ watchEffect(() => {
         return-object
         multiple
         show-select
-        @update:options="fetchDataServerFetch"
+        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
         fixed-header
         height="450"
         hover
@@ -1815,7 +1398,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateProductsModal"
+            @click="salesOrderStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1834,7 +1417,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="fetchModalFilter"
+          @submit.prevent="salesOrderStore.fetchModalFilter()"
         >
           <d-select-table
             api="/v1/customers/index-customer"
@@ -1847,7 +1430,9 @@ watchEffect(() => {
             v-model="form.customer_id"
             class=""
             is-quick-select
-            @click:selected="autocompleteCustomer"
+            @click:selected="
+              (data) => salesOrderStore.autocompleteCustomer(data)
+            "
             modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="headersCustomer"
@@ -1895,7 +1480,7 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="fetchModalFilter"
+            @click:submit="salesOrderStore.fetchModalFilter()"
             @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
@@ -1923,14 +1508,14 @@ watchEffect(() => {
         return-object
         multiple
         show-select
-        @update:options="fetchDataServerFetch"
+        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
         fixed-header
         height="450"
         hover
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineItemTypeSalesOrder(item as QuoDtType) }}
+            >{{ item.item_type ?? defineItemTypeSalesOrder(item as QuoDtType) }}
           </span>
         </template>
         <template #item.qty_so="{ item }">
@@ -2020,7 +1605,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateProductsModal"
+            @click="salesOrderStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Quotation ({{ itemsCheck.checkQuotations.length }})
@@ -2039,7 +1624,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="fetchModalFilter"
+          @submit.prevent="salesOrderStore.fetchModalFilter()"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsProducts"
@@ -2067,7 +1652,7 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="fetchModalFilter"
+            @click:submit="salesOrderStore.fetchModalFilter()"
             @click:clear="salesOrderStore.handleClearQuery()"
             class="grid-cols-1"
           />
@@ -2095,7 +1680,7 @@ watchEffect(() => {
         return-object
         multiple
         show-select
-        @update:options="fetchDataServerFetch"
+        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
         fixed-header
         height="450"
         hover
@@ -2120,7 +1705,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateBomsModal"
+            @click="salesOrderStore.onClickUpdateBomsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Boms ({{ itemsCheck.checkBoms.length }})

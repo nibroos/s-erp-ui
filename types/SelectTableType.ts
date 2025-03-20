@@ -38,6 +38,8 @@ export type FieldSelectableType = {
   class?: string
   cellClass?: string[]
   show?: boolean
+  headerProps?: Record<string, any>,
+  cellProps?: Record<string, any>,
 }
 
 export type GeneratedFieldSelectableType = {
