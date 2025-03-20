@@ -1,4 +1,4 @@
-import { generateBoms, initCheckedQuoDt } from '~/composables/maps/quotation'
+import { generateQuoBoms, initCheckedQuoDt } from '~/composables/maps/quotationComp'
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
@@ -82,7 +82,7 @@ const useQuotationStore = defineStore('QuotationStore', {
       {
         cta: "Ms. Product",
         key: "products",
-        icon: "mdi-magnify",
+        icon: "mdi-alpha-m-box-outline",
         count: 0,
         type: "button",
       },
@@ -315,7 +315,7 @@ const useQuotationStore = defineStore('QuotationStore', {
           this.metaModal.indexBoms = response.data
 
           if (this.itemsCheck.checkBoms.length > 0) {
-            let generatedBoms = generateBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
+            let generatedBoms = generateQuoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
 
             generatedBoms.forEach((checkBom: QuoDtBomType, iCheckBom: number) => {
               (this.metaModal.indexBoms.data as QuoDtBomType[]).forEach((resBom: FormQuoDtBomListType, iResBom: number) => {
@@ -358,7 +358,7 @@ const useQuotationStore = defineStore('QuotationStore', {
         if (this.itemsCheck.checkBoms.length > 0) {
           console.log('select-itemcheck-product_id', this.openedModal.boms.product_id);
 
-          this.itemsCheck.checkBoms = generateBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
+          this.itemsCheck.checkBoms = generateQuoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
         } else {
           this.itemsCheck.checkBoms = []
         }

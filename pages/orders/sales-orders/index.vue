@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useQuotationStore from "~/stores/orders/QuotationStore";
-import type { QIndexType } from "~/types/quotations/QuotationType";
+import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
+import type { QIndexType } from "~/types/sales-orders/SalesOrderType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useQuotationStore();
+const { queryModal } = useSalesOrderStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -18,21 +18,21 @@ definePageMeta({
 });
 
 useHead({
-  title: "Quotations",
+  title: "SalesOrders",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
-    title: "Quotation No",
-    key: "quo_no",
-    value: "quo_no",
+    title: "Order No",
+    key: "sales_order_no",
+    value: "sales_order_no",
     align: "start",
     sortable: true,
   },
   {
-    title: "Title",
-    key: "title",
-    value: "title",
+    title: "PO Buyer No",
+    key: "po_buyer_no",
+    value: "po_buyer_no",
     align: "start",
     sortable: true,
   },
@@ -47,6 +47,27 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Customer",
     key: "customer_name",
     value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Order Date",
+    key: "order_at",
+    value: "order_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Shipping Date",
+    key: "shipping_at",
+    value: "shipping_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Agreement Date",
+    key: "agree_at",
+    value: "agree_at",
     align: "start",
     sortable: true,
   },
@@ -178,6 +199,24 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
+    title: "Date Type",
+    key: "date_type",
+    type: "autocomplete-client",
+    others: {
+      items: useStatics.SoIndexDateType,
+    },
+  },
+  {
+    title: "Start Date",
+    key: "start_date",
+    type: "date",
+  },
+  {
+    title: "End Date",
+    key: "end_date",
+    type: "date",
+  },
+  {
     title: "Currency",
     key: "currency_ids",
     type: "autocomplete",
@@ -202,59 +241,24 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "status",
     type: "autocomplete-client",
     others: {
-      items: useStatics.QuoIndexStatus,
+      items: useStatics.SoIndexStatus,
     },
   },
   {
-    title: "Approve",
-    key: "is_approve",
-    type: "autocomplete-client",
-    others: {
-      items: [
-        {
-          title: "Yes",
-          value: 1,
-        },
-        {
-          title: "No",
-          value: 0,
-        },
-      ],
-    },
+    title: "Order No",
+    key: "sales_order_no",
   },
   {
-    title: "Date Type",
-    key: "date_type",
-    type: "autocomplete-client",
-    others: {
-      items: useStatics.QuoIndexDateType,
-    },
-  },
-  {
-    title: "Start Date",
-    key: "start_date",
-    type: "date",
-  },
-  {
-    title: "End Date",
-    key: "end_date",
-    type: "date",
-  },
-  {
-    title: "Quotation No",
-    key: "quo_no",
-  },
-  {
-    title: "Title",
-    key: "title",
+    title: "PO Buyer No",
+    key: "po_buyer_no",
   },
 ]);
 
 // const changeTitle = () => {
 //   let config = {
-//     topTitle: "Quotation",
+//     topTitle: "SalesOrder",
 //     parentTitle: "Orders",
-//     subTitlePath: "Quotation",
+//     subTitlePath: "SalesOrder",
 //     lastPathSegment: "",
 //   };
 
@@ -281,24 +285,24 @@ const filtersConfig = ref<FilterSelectableType[]>([
       }"
     >
       <d-datatable
-        api="/v1/quotations/index-quotation"
-        detail-link="/orders/quotations"
+        api="/v1/sales-orders/index-sales-order"
+        detail-link="/orders/sales-orders"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
         label="Master Order Type"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to Quotations.."
+        search-placeholder="Search anything related to Order.."
         is-quick-select
         no-title
-        edit-link="/orders/quotations/edit"
-        delete-api="/v1/quotations/delete-quotation"
+        edit-link="/orders/sales-orders/edit"
+        delete-api="/v1/sales-orders/delete-sales-order"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/orders/quotations/create',
+          link: '/orders/sales-orders/create',
           show: true,
           cta: '+ Create',
         }"
@@ -325,12 +329,6 @@ const filtersConfig = ref<FilterSelectableType[]>([
         </template>
         <template #item.status="{ item }">
           {{ item.status }}
-        </template>
-        <template #item.is_approved="{ item }">
-          <d-active-status
-            :value="item.is_approved"
-            :labels="useStatics.formApprovedQuotation"
-          />
         </template>
       </d-datatable>
     </d-index-layout>

@@ -38,7 +38,7 @@ const itemOrders = [
   {
     title: "Sales Order",
     icon: "mdi-cart-outline",
-    link: "/orders/sales-order",
+    link: "/orders/sales-orders",
     permissions: ["r_sos"],
   },
 ];
@@ -326,9 +326,9 @@ watch(isCloseSidebar, (newValue) => {
 });
 
 onMounted(async () => {
-  if (token) {
-    await Promise.all([AuthStore().getAbilities()]);
-  }
+  // if (token) {
+  //   await Promise.all([AuthStore().getAbilities()]);
+  // }
 });
 </script>
 

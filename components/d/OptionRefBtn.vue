@@ -40,13 +40,14 @@ watch(
       :key="index"
       :class="
         classMerge(
-          '!border !border-solid p-2 gap-1 !border-grey3 dark:border-dark1 transition-all ease-in-out dark:bg-dark2 dark:hover:bg-dark1 dark:text-primary1',
+          '!border !border-solid p-2 gap-1 text-dark1 !border-grey3 dark:border-dark1 transition-all ease-in-out dark:bg-dark2 dark:hover:bg-dark1 dark:text-primary1',
           index == 0 ? 'rounded-l-lg' : '',
           index == refs.length - 1 ? 'rounded-r-lg' : '',
           ref.class
         )
       "
       :text-class="classMerge('text-sm font-normal gap-1', ref.textClass)"
+      :icon-class="classMerge('text-dark1', ref.iconClass)"
       :icon="ref.icon"
       :type="ref.type"
       :cta="ref.cta"

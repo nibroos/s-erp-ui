@@ -21,7 +21,7 @@ import type {
   QuoDtType,
   VatModeType,
 } from "~/types/quotations/QuotationType";
-import { updateRefsModalFromMain } from "~/composables/maps/quotation";
+import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
 
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
@@ -279,13 +279,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Price Buy",
-    key: "price_buy",
-    value: "price_buy",
-    align: "end",
-    sortable: true,
-  },
-  {
     title: "Tpb Code",
     key: "tpb_code",
     value: "tpb_code",
@@ -480,14 +473,14 @@ const autocompleteVat = (data: FormVatType) => {
 
   vatMode.value = null;
 
-  if (!!form.value.vat_id) {
-    itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-      item.vat_id = null;
-      item.vat_perc = 0;
-    });
+  // if (!!form.value.vat_id) {
+  //   itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
+  //     item.vat_id = null;
+  //     item.vat_perc = 0;
+  //   });
 
-    vatMode.value = "header";
-  }
+  //   vatMode.value = "header";
+  // }
 
   calculateTotalAmount();
 };
@@ -495,10 +488,10 @@ const autocompleteVat = (data: FormVatType) => {
 const autocompleteVatDt = (data: FormVatType, quoDtType: QuoDtType) => {
   quoDtType.vat_perc = Number(data.num);
 
-  form.value.vat_id = null;
-  form.value.vat_perc = 0;
+  // form.value.vat_id = null;
+  // form.value.vat_perc = 0;
 
-  vatMode.value = "detail";
+  // vatMode.value = "detail";
 
   calculateTotalAmount();
 };
@@ -550,7 +543,7 @@ const autocompleteCurrency = (data: FormCurrencyType) => {
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
   if (ref.key == "products") {
-    itemsCheck.value.checkProducts = updateRefsModalFromMain(
+    itemsCheck.value.checkProducts = updateQuoRefsModalFromMain(
       itemsCheck.value.checkMain,
       "products",
       itemsCheck.value.checkProducts
@@ -630,7 +623,6 @@ const onClickDeleteSelected = (item: any, index: number) => {
 };
 
 const onClickUpdateBomsModal = () => {
-  console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
   quotationStore.selectItemRefModal();
   quotationStore.countSelectedReferences();
   closeAllModal();
@@ -1478,7 +1470,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeQuotation(item) }} </span>
+          <span class="capitalize"
+            >{{ defineQuoItemTypeQuotation(item) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1574,7 +1568,9 @@ watchEffect(() => {
         hover
       >
         <template #item.item_type="{ item }">
-          <span class="capitalize">{{ defineItemTypeQuotation(item) }} </span>
+          <span class="capitalize"
+            >{{ defineQuoItemTypeQuotation(item) }}
+          </span>
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

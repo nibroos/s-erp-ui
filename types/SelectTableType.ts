@@ -33,11 +33,13 @@ export type FieldSelectableType = {
   minWidth?: string
   maxWidth?: string
   sortable?: boolean
-  value: string
+  value?: string
   placeholder?: string
   class?: string
   cellClass?: string[]
   show?: boolean
+  headerProps?: Record<string, any>,
+  cellProps?: Record<string, any>,
 }
 
 export type GeneratedFieldSelectableType = {

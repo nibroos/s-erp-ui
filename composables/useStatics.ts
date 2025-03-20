@@ -231,10 +231,79 @@ const formTabQuotation = {
   remarks: 2,
 }
 
+const SoIndexStatus = [
+  // WAITING, PROCESS, SHIPPED, PENDING, CANCEL, INVOICE, FINISH
+  {
+    value: 'WAITING',
+    title: 'Waiting',
+    color: 'grey',
+  },
+  {
+    value: 'PROCESS',
+    title: 'Process',
+    color: 'blue',
+  },
+  {
+    value: 'SHIPPED',
+    title: 'Approved',
+    color: 'green',
+  },
+  {
+    value: 'PENDING',
+    title: 'Pending',
+    color: 'orange',
+  },
+  {
+    value: 'CANCELED',
+    title: 'Canceled',
+    color: 'red',
+  },
+  {
+    value: 'INVOICE',
+    title: 'Invoice',
+    color: 'purple',
+  },
+  {
+    value: 'FINISH',
+    title: 'Finish',
+    color: 'cyan',
+  },
+]
+
+const SoIndexDateType = [
+  {
+    value: 'expired_at',
+    title: 'Expired Date',
+  },
+  {
+    value: 'due_at',
+    title: 'Due Date',
+  },
+]
+
+const formStatusSalesOrder = [
+  { id: 'WAITING', name: 'WAITING' },
+  { id: 'CONFIRMED', name: 'CONFIRMED' },
+  { id: 'APPROVED', name: 'APPROVED' },
+  { id: 'PENDING', name: 'PENDING' },
+  { id: 'CANCELED', name: 'CANCELED' },
+]
+
+const formTabSalesOrder = {
+  items: 0,
+  payments: 1,
+  remarks: 2,
+  schedules: 3,
+}
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
   formTabQuotation,
   formStatusQuotation,
   formApprovedQuotation,
+  SoIndexStatus,
+  SoIndexDateType,
+  formTabSalesOrder,
+  formStatusSalesOrder,
 }

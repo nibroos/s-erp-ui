@@ -375,7 +375,10 @@ watch(showModal, async (newVal) => {
 
 onMounted(async () => {
   // await filterData()
-  await Promise.all([filterData(), fetchSingle(props.modelValue)]);
+  await Promise.all([
+    // filterData(),
+    fetchSingle(props.modelValue),
+  ]);
 
   generateFiltersObj();
 

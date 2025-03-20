@@ -23,6 +23,7 @@
     "axios": "^1.7.5",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
+    "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "maska": "^2.1.11",
     "nuxt": "^3.11.2",
@@ -39,11 +40,11 @@
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.11.4",
-    "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
+    "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
     "@types/qs": "^6.9.14",
     "autoprefixer": "^10.4.13",
     "vite-plugin-vuetify": "^2.0.3",
-    "vuetify": "^3.5.15",
+    "vuetify": "^3.7.18",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
     "nuxt-lodash": "^2.5.3"
