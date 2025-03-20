@@ -53,6 +53,31 @@ const formCurrencyCreateEdit = {
   item_group_id: null,
 } as FormCurrencyType
 
+const formPaymentTermCreateEdit = {
+  id: null,
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+}
+
+const formShippingTermCreateEdit = {
+  id: null,
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+}
+
+const formPurchaseTypeCreateEdit = {
+  id: null,
+  name: '',
+  code: '',
+  description: '',
+  remark: '',
+  status: 1,
+}
+
 const formProductCreateEdit = {
   id: null,
   item_sub_group_id: null,
@@ -289,7 +314,7 @@ const productFieldsFilterConfig = {
   ] as FilterSelectableType[],
 }
 
-export const useInitials = {
+export const useInitials: any = {
   pagination,
   perPageOptions,
   formItemSubGroupCreateEdit,
@@ -299,4 +324,7 @@ export const useInitials = {
   formQuotationCreateEdit,
   formSalesOrderCreateEdit,
   productFieldsFilterConfig,
+  formPaymentTermCreateEdit,
+  formShippingTermCreateEdit,
+  formPurchaseTypeCreateEdit
 }
