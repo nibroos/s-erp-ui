@@ -173,7 +173,12 @@ export type QuoDtsType = {
   ref_type: string
   product_uuid?: string | null
   remark?: string | null
-  vat_perc: number
+  is_lock_vat?: number
+  vat_perc?: number
+  vat_perc_am?: number
+  is_lock_pph23?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
   qty_so: number
   qty: number
   price_sell: number

@@ -17,6 +17,7 @@ import type {
   FormQuoDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
+  QuoDtBomType,
   QuoDtDiscType,
   QuoDtType,
   VatModeType,
@@ -52,7 +53,7 @@ useHead({
 
 const id = ref(router.currentRoute.value.params.id);
 
-const headers = ref([
+const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
   { key: "item_type", title: "Item Type", sortable: true },
@@ -60,14 +61,15 @@ const headers = ref([
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   // { key: "sku", title: "SKU", sortable: true },
-  { key: "remark", title: "Remark", sortable: true },
   // { key: "qty_so", title: "Qty SO", sortable: true },
   { key: "qty", title: "Qty", sortable: true },
   { key: "price_sell", title: "Price", sortable: true },
   { key: "disc_perc", title: "Disc (%)", sortable: true },
   { key: "disc_am", title: "Disc (Am)", sortable: true },
   { key: "vat_id", title: "VAT", sortable: true },
+  { key: "pph23_id", title: "PPH", sortable: true, align: "end" },
   { key: "total_am", title: "Total Amount", sortable: true },
+  { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
     title: "Action",
@@ -820,15 +822,6 @@ const calculateTotalAmount = () => {
 
     // TODO foreach currency symbol
   }
-
-  console.log(
-    form.value.subtotal,
-    form.value.grand_total,
-    discFinal,
-    form.value.total_vat,
-    form.value.total_pph23,
-    form.value.total_discount
-  );
 };
 
 // watch(
@@ -1133,7 +1126,7 @@ watchEffect(() => {
               <div class="action-button flex gap-2">
                 <d-bt
                   v-if="item.item_type == 'product'"
-                  @click="onClickOpenModalBOM(item, index)"
+                  @click="onClickOpenModalBOM(((item as unknown as FormQuoDtProductListType)), index)"
                   class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
                   text-class="text-primary1 dark:text-white"
                   rounded="xl"
@@ -1158,7 +1151,10 @@ watchEffect(() => {
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.quo_dts_boms.length > 0"
+                v-if="
+                  internalItem.raw.quo_dts_boms &&
+                  internalItem.raw.quo_dts_boms.length > 0
+                "
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1204,7 +1200,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="item.remark"
+                          v-model="(item as QuoDtType).remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1212,7 +1208,7 @@ watchEffect(() => {
                       </template>
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="item.qty"
+                          v-model="(item as QuoDtType).qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1234,7 +1230,7 @@ watchEffect(() => {
                             cta="delete"
                             icon-size="16"
                             :is-notif="true"
-                            :notif-text="`${itemBom.item_name} deleted`"
+                            :notif-text="`${(itemBom as QuoDtBomType).item_name} deleted`"
                           ></d-bt>
                         </div>
                       </template>
@@ -1479,7 +1475,7 @@ watchEffect(() => {
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
+            >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
         </template>
         <template #item.price_sell="{ item }">
@@ -1577,7 +1573,7 @@ watchEffect(() => {
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
+            >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
         </template>
         <template #item.price_sell="{ item }">

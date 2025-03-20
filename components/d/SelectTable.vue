@@ -205,7 +205,7 @@ const fetchDataServerFetch = async (options: {
   await filterData();
 };
 
-const fetchSingle = async (id: number) => {
+const fetchSingle = async (id: number, oldId: number | null) => {
   // return
   if (!id) {
     return;
@@ -237,10 +237,8 @@ const fetchSingle = async (id: number) => {
             property(props.mappingDetail)(res.data)
           )) as any;
 
-          console.log("showMetaModal.value.single", showMetaModal.value.single);
-
           selectedFull.value = showMetaModal.value.single;
-          emits("click:selected", showMetaModal.value.single);
+          emits("click:selected", showMetaModal.value.single, oldId);
 
           selectedText.value = showMetaModal.value.single[props.displayKey];
           if (!!props.isDisplayMultipleKey) {
@@ -327,7 +325,7 @@ watch(
       if (!multiple.value && !!newValue) {
         itemsCheck.value = [newValue];
         // single show
-        await fetchSingle(newValue);
+        await fetchSingle(newValue, oldValue);
       }
 
       console.log("newValue123", newValue);
@@ -342,12 +340,10 @@ watch(
 const onSelectOption = async (event: any, row: any) => {
   if (props.isQuickSelect) {
     itemsCheck.value = [row.item[props.itemValue]];
-
     if (!multiple.value) {
       // single show
-      await fetchSingle(row.item[props.itemValue]);
+      await fetchSingle(row.item[props.itemValue], props.modelValue);
     }
-
     onSelectItems();
   }
 };
@@ -377,7 +373,7 @@ onMounted(async () => {
   // await filterData()
   await Promise.all([
     // filterData(),
-    fetchSingle(props.modelValue),
+    fetchSingle(props.modelValue, null),
   ]);
 
   generateFiltersObj();
@@ -423,7 +419,11 @@ onMounted(async () => {
         :max-length-display="props.maxLengthDisplay"
         :loading="showMetaModal.loading"
         :disabled="props.disabled"
-      ></lazy-d-bt>
+      >
+        <template #append-cta>
+          <slot name="append-cta" />
+        </template>
+      </lazy-d-bt>
 
       <d-bt
         v-if="selectedText"
@@ -589,7 +589,7 @@ onMounted(async () => {
               @click="onSelectItems"
             >
               <Icon name="material-symbols:save-rounded" size="20" />
-              Select {{ props.label }}
+              <span>Select {{ props.label }}</span>
             </button>
           </div>
         </template>

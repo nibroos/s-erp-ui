@@ -57,7 +57,7 @@ useHead({
   title: "Create Sales Order",
 });
 
-const headers = ref([
+const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
   {
@@ -74,14 +74,14 @@ const headers = ref([
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   // { key: "sku", title: "SKU", sortable: true },
-  { key: "remark", title: "Remark", sortable: true },
   // { key: "qty_so", title: "Qty SO", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
-  { key: "price_sell", title: "Price", sortable: true },
-  { key: "disc_perc", title: "Disc (%)", sortable: true },
-  { key: "disc_am", title: "Disc (Am)", sortable: true },
-  { key: "vat_id", title: "VAT", sortable: true },
-  { key: "total_am", title: "Total Amount", sortable: true },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price", sortable: true, align: "end" },
+  { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
+  { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
+  { key: "vat_id", title: "VAT", sortable: true, align: "end" },
+  { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
+  { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
     title: "Action",
@@ -850,7 +850,7 @@ watchEffect(() => {
                 total-prop="meta.total"
                 label="VAT"
                 v-model="item.vat_id"
-                class="col-span-2 lg:col-span-1 w-[9rem]"
+                class="col-span-2 lg:col-span-1"
                 is-quick-select
                 modal-parent-class="!z-[2500]"
                 modal-custom-class="!w-4/5"
@@ -868,6 +868,43 @@ watchEffect(() => {
                   },
                 ]"
               />
+
+              <span>
+                {{ useNumber.formatNumberSeparator(item.vat_perc_am ?? 0) }}
+              </span>
+            </template>
+            <template #item.pph23_id="{ item }">
+              <lazy-d-select-table
+                api="/v1/pph23s/index-pph23"
+                detail-api="/v1/pph23s/index-pph23"
+                method-api="post"
+                detail-method-api="post"
+                mapping-detail="data[0]"
+                total-prop="meta.total"
+                label="PPH"
+                v-model="item.pph23_id"
+                class="col-span-2 lg:col-span-1"
+                is-quick-select
+                modal-parent-class="!z-[2500]"
+                modal-custom-class="!w-4/5"
+                :display-single-multiple-keys="['name', 'num']"
+                is-display-multiple-key
+                @click:selected="
+                  (data) => salesOrderStore.autocompletePph23Dt(data, item)
+                "
+                @click:clear="salesOrderStore.removePph23Dt(item)"
+                :fields="headersVAT"
+                :filters="[
+                  {
+                    title: 'Name',
+                    key: 'name',
+                  },
+                ]"
+              >
+              </lazy-d-select-table>
+              <span>
+                {{ useNumber.formatNumberSeparator(item.pph23_perc_am ?? 0) }}
+              </span>
             </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
@@ -1145,7 +1182,9 @@ watchEffect(() => {
               v-model="form.pph23_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="(data) => salesOrderStore.autocompletePph(data)"
+              @click:selected="
+                (data, oldId) => salesOrderStore.autocompletePph(data, oldId)
+              "
               @click:clear="salesOrderStore.removePph()"
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
