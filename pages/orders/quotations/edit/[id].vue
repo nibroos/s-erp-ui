@@ -23,6 +23,7 @@ import type {
   VatModeType,
 } from "~/types/quotations/QuotationType";
 import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
+import type { ProductBomListType } from "~/types/masters/ProductType";
 
 const router = useRouter();
 const layoutStore = useLayoutsStore();
@@ -60,14 +61,12 @@ const headers = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  // { key: "sku", title: "SKU", sortable: true },
-  // { key: "qty_so", title: "Qty SO", sortable: true },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "price_sell", title: "Price", sortable: true, align: "end" },
+  { key: "markup", title: "Markup (%)", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
   { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
   { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
-  { key: "vat_id", title: "VAT", sortable: true, align: "end" },
-  { key: "pph23_id", title: "PPH", sortable: true, align: "end" },
   { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
@@ -85,7 +84,9 @@ const headersBOM = ref([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -213,7 +214,25 @@ const filtersCustomer = ref<FilterSelectableType[]>([
   },
 ]);
 
+const headersBOMModal = ref<FieldSelectableType[]>([
+  { key: "item_code", title: "Product Code", sortable: true },
+  { key: "item_name", title: "Product Name", sortable: true },
+  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_sku", title: "SKU", align: "end", sortable: true },
+  { key: "item_barcode", title: "Barcode", align: "end", sortable: true },
+  {
+    key: "item_specification",
+    title: "Specification",
+    align: "end",
+    sortable: true,
+  },
+  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
+  { key: "qty", title: "Qty", align: "end", sortable: true },
+  { key: "remark", title: "Remark", sortable: true },
+]) as Ref<FieldSelectableType[]>;
+
 const headersModalProducts = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "Group",
     key: "item_group_name",
@@ -274,6 +293,20 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     title: "Stock",
     key: "qty_stock",
     value: "qty_stock",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Price Buy",
+    key: "price_buy",
+    value: "price_buy",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
     align: "end",
     sortable: true,
   },
@@ -368,17 +401,9 @@ const currencySymbolLabel = ref<string | null>("");
 
 const summaryLayout = ref({
   total_amount: {
-    label: "Total Amount",
+    label: "Sub Amount",
     symbol: currencySymbolLabel.value,
     value: form.value.subtotal,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_qty: {
-    label: "Total Qty",
-    value: form.value.total_qty,
 
     format: {
       precision: 2,
@@ -601,7 +626,6 @@ const calculateTotalAmountLocal = () => {
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
-    formLayout.value.summary.total_qty.value = form.value.total_qty;
     formLayout.value.summary.total_discount.value = form.value.total_discount;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
@@ -801,79 +825,6 @@ watchEffect(() => {
               class: 'whitespace-nowrap',
             }"
           >
-            <template #item.vat_id="{ item }">
-              <lazy-d-select-table
-                api="/v1/vats/index-vat"
-                detail-api="/v1/vats/index-vat"
-                method-api="post"
-                detail-method-api="post"
-                mapping-detail="data[0]"
-                total-prop="meta.total"
-                label="VAT"
-                v-model="item.vat_id"
-                class="col-span-2 lg:col-span-1"
-                is-quick-select
-                modal-parent-class="!z-[2500]"
-                modal-custom-class="!w-4/5"
-                :display-single-multiple-keys="['name', 'num']"
-                is-display-multiple-key
-                @click:selected="
-                  (data) => {
-                    calculateTotalAmountLocal();
-                    return quotationStore.autocompleteVatDt(data, item);
-                  }
-                "
-                @click:clear="quotationStore.removeVatDt(item)"
-                :fields="headersVAT"
-                :filters="[
-                  {
-                    title: 'Name',
-                    key: 'name',
-                  },
-                ]"
-              >
-              </lazy-d-select-table>
-              <span>
-                {{ useNumber.formatNumberSeparator(item.vat_perc_am ?? 0) }}
-              </span>
-            </template>
-
-            <template #item.pph23_id="{ item }">
-              <lazy-d-select-table
-                api="/v1/pph23s/index-pph23"
-                detail-api="/v1/pph23s/index-pph23"
-                method-api="post"
-                detail-method-api="post"
-                mapping-detail="data[0]"
-                total-prop="meta.total"
-                label="PPH"
-                v-model="item.pph23_id"
-                class="col-span-2 lg:col-span-1"
-                is-quick-select
-                modal-parent-class="!z-[2500]"
-                modal-custom-class="!w-4/5"
-                :display-single-multiple-keys="['name', 'num']"
-                is-display-multiple-key
-                @click:selected="
-                  (data) => {
-                    calculateTotalAmountLocal();
-                    return quotationStore.autocompletePph23Dt(data, item);
-                  }
-                "
-                @click:clear="quotationStore.removePph23Dt(item)"
-                :fields="headersVAT"
-                :filters="[
-                  {
-                    title: 'Name',
-                    key: 'name',
-                  },
-                ]"
-              >
-              </lazy-d-select-table>
-              <span>
-                {{ useNumber.formatNumberSeparator(item.pph23_perc_am ?? 0) }}
-              </span>
-            </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
             </template>
@@ -884,6 +835,22 @@ watchEffect(() => {
                 :placeholder="`Remark`"
                 class="w-[9rem]"
               />
+            </template>
+            <template #item.markup="{ item }">
+              <d-num-v-format
+                v-model="item.markup"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="calculateTotalAmountLocal"
+                label=""
+                class="w-[9rem]"
+              />
+            </template>
+            <template #item.price_buy="{ item }">
+              <d-num-layout :value="item.price_buy" />
             </template>
             <template #item.price_sell="{ item }">
               <d-num-v-format
@@ -922,13 +889,8 @@ watchEffect(() => {
                 @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
+                :disabled="!!item.disc_perc"
               />
-              <div class="flex justify-between">
-                <div class="">Head</div>
-                <div class="">
-                  {{ useNumber.formatNumberSeparator(item.head_disc_am ?? 0) }}
-                </div>
-              </div>
             </template>
             <template #item.disc_perc="{ item }">
               <div class="flex flex-col">
@@ -942,18 +904,8 @@ watchEffect(() => {
                   @update:modelValue="calculateTotalAmountLocal"
                   label=""
                   class="w-[9rem]"
+                  :disabled="!!item.disc_am"
                 />
-                <div>
-                  {{ useNumber.formatNumberSeparator(item.disc_perc_am ?? 0) }}
-                </div>
-                <div class="flex justify-between">
-                  <div class="">Head {{ form.disc_perc ?? 0 }} %</div>
-                  <div class="">
-                    {{
-                      useNumber.formatNumberSeparator(item.head_disc_perc ?? 0)
-                    }}
-                  </div>
-                </div>
               </div>
             </template>
 
@@ -1055,6 +1007,21 @@ watchEffect(() => {
                           label=""
                           class="w-full"
                         />
+                      </template>
+                      <template #item.price_buy="{ item }">
+                        <d-num-v-format
+                          v-model="(item as QuoDtType).price_buy"
+                          :precision="{
+                            min: 3,
+                            max: 3,
+                          }"
+                          hide-currency-display
+                          label=""
+                          class="w-full"
+                        />
+                      </template>
+                      <template #item.subtotal_buy="{ item }">
+                        <d-num-layout :value="item.subtotal_buy" />
                       </template>
                       <template #item.action="{ item: itemBom, index: iBom }">
                         <div class="action-button">
@@ -1232,6 +1199,18 @@ watchEffect(() => {
               label="Disc Amount"
             />
           </div>
+          <div class="sm:col-span-1">
+            <d-num-v-format
+              v-model="form.disc_am"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              @update:modelValue="calculateTotalAmountLocal"
+              label="Markup (%)"
+            />
+          </div>
         </div>
         <div v-if="tabFormIndex == useStatics.formTabQuotation.remarks">
           <div class="sm:col-span-1">
@@ -1249,6 +1228,7 @@ watchEffect(() => {
       :is-open="isOpenModal.products"
       size="xl"
       custom-class="overflow-y-auto"
+      parent-class="!z-[1500]"
       label="List of Products"
       @update:is-open="isOpenModal.products = $event"
     >
@@ -1320,14 +1300,133 @@ watchEffect(() => {
             >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
         </template>
-        <template #item.price_sell="{ item }">
-          <d-num-layout :value="item.price_sell" />
-        </template>
         <template #item.price_buy="{ item }">
           <d-num-layout :value="item.price_buy" />
         </template>
+
+        <template #item.qty="{ item }">
+          <d-num-v-format
+            v-model="item.qty"
+            :precision="{
+              min: 3,
+              max: 3,
+            }"
+            hide-currency-display
+            label=""
+            class="w-[9rem]"
+            @update:modelValue="calculateTotalAmountLocal"
+          />
+        </template>
+
+        <template #item.price_sell="{ item }">
+          <d-num-layout :value="item.price_sell" />
+        </template>
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="internalItem.raw.boms.length > 0"
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
+          >
+            <v-icon
+              icon="mdi-chevron-down"
+              class="transition-transform"
+              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+            />
+          </button>
+        </template>
+        <template
+          #expanded-row="{
+            columns,
+            item,
+            internalItem,
+            index
+          }: {
+            columns: any
+            item: any
+            internalItem: any
+            index: number
+          }"
+        >
+          <tr v-if="item.quo_dts_boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.quo_dts_boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.price_buy="{ item }">
+                    <d-num-v-format
+                      v-model="item.price_buy"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="calculateTotalAmountLocal"
+                    />
+                  </template>
+
+                  <template #item.qty="{ item }">
+                    <d-num-v-format
+                      v-model="item.qty"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="calculateTotalAmountLocal"
+                    />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="item.boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.qty="{ item }">
+                    <d-num-layout :value="(item as ProductBomListType).qty" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
         </template>
       </v-data-table-server>
 
@@ -1347,6 +1446,7 @@ watchEffect(() => {
       :is-open="isOpenModal.boms"
       size="xl"
       custom-class="overflow-y-auto"
+      parent-class="!z-[2499]"
       label="List of Boms"
       @update:is-open="isOpenModal.boms = $event"
     >

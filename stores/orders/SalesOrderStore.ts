@@ -145,16 +145,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // },
       summary: {
         total_amount: {
-          label: "Total Amount",
+          label: "Sub Amount",
           symbol: '',
-          value: 0,
-
-          format: {
-            precision: 2,
-          },
-        },
-        total_qty: {
-          label: "Total Qty",
           value: 0,
 
           format: {
