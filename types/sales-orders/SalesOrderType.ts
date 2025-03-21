@@ -138,6 +138,9 @@ export type SoDtType = {
   disc_perc_am: number
   disc_final: number
   disc_type?: SoDtDiscType | null
+  head_disc_am?: number | null
+  head_disc_perc?: number | null
+  disc_end?: number | null
   total_am: number
   so_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
   boms?: SoDtBomType[]
@@ -266,6 +269,7 @@ export type VatModeType = 'header' | 'detail' | null
 
 export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType & {
   ref_type: 'products' | 'quotations'
+  customer_id?: number | null
   sales_order_id?: number | null
   so_dt_id?: number | null
   vat_id?: number
@@ -287,6 +291,16 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
 
   so_dts_boms?: ProductBomListType[]
   quo_dts_boms?: ProductBomListType[]
+
+  order_type_id?: number | null
+  currency_id?: number | null
+  exchange_rate?: number | null
+  head_vat_id?: number | null
+  head_vat_perc?: number | null
+  head_pph23_id?: number | null
+  head_pph23_perc?: number | null
+  head_disc_am?: number | null
+  head_disc_perc?: number | null
 
   item_name?: string
   item_code?: string

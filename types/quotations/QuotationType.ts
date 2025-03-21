@@ -93,6 +93,7 @@ export type QuoDtType = {
   quotation_id?: number | null
   item_unit_id?: number | null
   vat_id?: number | null
+  pph23_id?: number | null
   ref_id: number
   item_id: number
   product_uuid: string
@@ -100,8 +101,12 @@ export type QuoDtType = {
   item_type: QuoDtItemType
   gen_code?: string | null
   remark?: string
+  is_lock_vat?: number
   vat_perc?: number
   vat_perc_am?: number
+  is_lock_pph23?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
   qty_so?: number
   qty: number
   price_sell: number
@@ -114,6 +119,9 @@ export type QuoDtType = {
   disc_perc_am: number
   disc_final: number
   disc_type?: QuoDtDiscType | null
+  head_disc_am?: number | null
+  head_disc_perc?: number | null
+  disc_end?: number | null
   total_am: number
   quo_dts_boms?: (QuoDtBomType | ProductBomListType)[] | null
   boms?: QuoDtBomType[]

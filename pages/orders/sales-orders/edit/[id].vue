@@ -573,10 +573,6 @@ const filtersTextQuotations = ref([
     key: "quo_no",
   },
   {
-    title: "Product Name",
-    key: "name",
-  },
-  {
     title: "Global",
     key: "global",
   },
@@ -668,6 +664,16 @@ const initialFormLayout = () => {
     },
   };
 };
+
+watch(
+  () => itemsCheck.value.checkQuotations,
+  (newVal, oldVal) => {
+    if (newVal.length === 1) {
+      // newVal[0].customer_id = form.value.customer_id;
+      salesOrderStore.autocompleteQuotation(newVal[0]);
+    }
+  }
+);
 
 onMounted(async () => {
   salesOrderStore.handleClickClear();

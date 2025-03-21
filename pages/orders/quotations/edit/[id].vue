@@ -62,13 +62,13 @@ const headers = ref<FieldSelectableType[]>([
   { key: "unit_name", title: "Unit", sortable: true },
   // { key: "sku", title: "SKU", sortable: true },
   // { key: "qty_so", title: "Qty SO", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
-  { key: "price_sell", title: "Price", sortable: true },
-  { key: "disc_perc", title: "Disc (%)", sortable: true },
-  { key: "disc_am", title: "Disc (Am)", sortable: true },
-  { key: "vat_id", title: "VAT", sortable: true },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price", sortable: true, align: "end" },
+  { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
+  { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
+  { key: "vat_id", title: "VAT", sortable: true, align: "end" },
   { key: "pph23_id", title: "PPH", sortable: true, align: "end" },
-  { key: "total_am", title: "Total Amount", sortable: true },
+  { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -477,84 +477,6 @@ const handleSubmit = async () => {
   await quotationStore.update();
 };
 
-const autocompleteCustomer = (data: any) => {
-  form.value.email = data.email;
-  form.value.phone = data.phone;
-  form.value.address = data.address;
-};
-
-const autocompleteVat = (data: FormVatType) => {
-  form.value.vat_perc = Number(data.num);
-
-  // vatMode.value = null;
-
-  // if (!!form.value.vat_id) {
-  //   itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-  //     item.vat_id = null;
-  //     item.vat_perc = 0;
-  //   });
-
-  //   vatMode.value = "header";
-  // }
-
-  calculateTotalAmount();
-};
-
-const autocompleteVatDt = (data: FormVatType, quoDtType: QuoDtType) => {
-  quoDtType.vat_perc = Number(data.num);
-
-  // form.value.vat_id = null;
-  // form.value.vat_perc = 0;
-
-  vatMode.value = "detail";
-
-  calculateTotalAmount();
-};
-
-const removeVat = () => {
-  form.value.vat_perc = 0;
-  vatMode.value = null;
-
-  calculateTotalAmount();
-};
-
-const removeVatDt = (quoDtType: QuoDtType) => {
-  if (!quoDtType.vat_id) {
-    quoDtType.vat_perc = 0;
-    quoDtType.vat_perc_am = 0;
-  }
-
-  // if all items vat_id is null, then change vatmode to null
-  const isAllVatNull = itemsCheck.value.checkMain.every(
-    (item: QuoDtType) => !item.vat_id
-  );
-
-  if (isAllVatNull) {
-    form.value.vat_id = null;
-    form.value.vat_perc = 0;
-    vatMode.value = null;
-  }
-
-  calculateTotalAmount();
-};
-
-const removePph = () => {
-  form.value.pph23_perc = 0;
-};
-
-const autocompletePph = (data: FormPph23Type) => {
-  form.value.pph23_perc = Number(data.num);
-
-  calculateTotalAmount();
-};
-
-const autocompleteCurrency = (data: FormCurrencyType) => {
-  form.value.exchange_rate = Number(data.num);
-  currencySymbolLabel.value = data.symbol;
-
-  calculateTotalAmount();
-};
-
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
   if (ref.key == "products") {
@@ -671,146 +593,11 @@ const onClickDeleteBom = (
     item.quo_dts_boms.splice(indexBom, 1);
   }
 
-  calculateTotalAmount();
+  quotationStore.calculateTotalAmount();
 };
 
-const calculateTotalAmount = () => {
-  itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-    const discPercentage = Number((item.disc_perc ?? 0) / 100);
-    const discAmount = Number(item.disc_am);
-    const priceSell = Number(item.price_sell);
-    const priceBuy = Number(item.price_buy);
-    const qty = Number(item.qty);
-    const subtotalSell = Number(priceSell * qty);
-    const subtotalBuy = Number(priceBuy * qty);
-
-    const discPercPriceSell = Number(priceSell * discPercentage);
-    const discPercNum = Number(priceSell - discPercPriceSell);
-    // const subDiscPercAm = Number(qty * discPercNum);
-    const discPercAm = Number(subtotalSell * discPercentage);
-    const subDiscPercAm = Number(subtotalSell - discPercAm);
-
-    item.subtotal_sell = subtotalSell;
-    item.subtotal_buy = subtotalBuy;
-
-    let discType: QuoDtDiscType = null;
-
-    let discFinal = 0;
-    if (!!discAmount && discAmount > 0) {
-      discType = "a";
-      //   discFinal = subtotalSell - discAmount;
-    } else if (!!discPercentage && discPercentage > 0) {
-      discType = "p";
-      //   discFinal = subDiscPercAm;
-    } else if (
-      !!discAmount &&
-      discAmount > 0 &&
-      !!discPercentage &&
-      discPercentage > 0
-    ) {
-      discType = "all";
-      // discFinal = subDiscPercAm - discAmount;
-    }
-
-    // discFinal = subDiscPercAm;
-    discFinal = subDiscPercAm - discAmount;
-    if (discFinal <= 0) {
-      discFinal = subtotalSell;
-    }
-
-    item.disc_perc_num = 0;
-    item.disc_perc_am = 0;
-    item.disc_final = 0;
-    if (discPercentage || discAmount) {
-      item.disc_perc_num = discPercNum;
-      item.disc_perc_am = discPercAm;
-      item.disc_final = discFinal;
-      item.disc_type = discType;
-    }
-
-    item.vat_perc_am = 0;
-
-    if (!!item.vat_id) {
-      item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
-    }
-
-    item.total_am = discFinal + item.vat_perc_am;
-  });
-
-  // header calculation
-  form.value.subtotal = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.total_am,
-    0
-  );
-
-  form.value.total_qty = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.qty,
-    0
-  );
-
-  // form.value.total_discount = item.disc_perc_am + item.disc_am + form.value.disc_am + form.value.disc_perc_am;
-  let itemsDiscount = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am,
-    0
-  );
-
-  const discPercentageHead = Number((form.value.disc_perc ?? 0) / 100);
-  const discAmountHead = Number(form.value.disc_am ?? 0);
-
-  let discPercPriceSellHead = Number(form.value.subtotal * discPercentageHead);
-  let discPercAmHead = Number(
-    form.value.subtotal - (discPercPriceSellHead ?? 0)
-  );
-
-  form.value.disc_type = null;
-  form.value.disc_perc_am = 0;
-
-  form.value.total_discount = discAmountHead + itemsDiscount;
-  if (!!discPercPriceSellHead) {
-    form.value.total_discount = discPercPriceSellHead + discAmountHead;
-  }
-
-  let discType: QuoDtDiscType = null;
-
-  let discFinal = 0;
-  if (!!discAmountHead && discAmountHead > 0) {
-    discType = "a";
-  } else if (!!discPercentageHead && discPercentageHead > 0) {
-    discType = "p";
-  } else if (
-    !!discAmountHead &&
-    discAmountHead > 0 &&
-    !!discPercentageHead &&
-    discPercentageHead > 0
-  ) {
-    discType = "all";
-  }
-
-  discFinal = discPercAmHead - discAmountHead;
-  if (discFinal <= 0) {
-    discFinal = form.value.subtotal;
-  }
-
-  if (form.value.disc_perc) {
-    form.value.disc_perc_am = discPercPriceSellHead;
-  }
-
-  form.value.disc_final = 0;
-  if (discAmountHead || discPercentageHead) {
-    form.value.disc_type = discType;
-    form.value.disc_final = discFinal;
-  }
-
-  if (!!form.value.vat_id) {
-    form.value.total_vat = discFinal * ((form.value.vat_perc ?? 0) / 100);
-  }
-
-  if (!!form.value.pph23_id) {
-    form.value.total_pph23 = discFinal * ((form.value.pph23_perc ?? 0) / 100);
-  }
-
-  form.value.grand_total =
-    discFinal + form.value.total_vat + form.value.total_pph23;
+const calculateTotalAmountLocal = () => {
+  quotationStore.calculateTotalAmount();
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
@@ -824,29 +611,13 @@ const calculateTotalAmount = () => {
   }
 };
 
-// watch(
-//   () => itemsCheck.value.checkMain,
-//   (oldValue, newVal) => {
-//     if (oldValue != newVal) {
-//       calculateTotalAmount();
-//     }
-//   },
-//   { deep: true, immediate: true }
-// );
-
-// watch(
-//   () => itemsCheck.value.checkMain.length,
-//   (oldValue, newVal) => {
-//     if (oldValue !== newVal) {
-//       quotationStore.countSelectedReferences();
-//     }
-//   }
-// );
-
-const vatMode = ref<VatModeType>(null);
+const clickClearForm = () => {
+  quotationStore.handleClickClear();
+  quotationStore.calculateTotalAmount();
+};
 
 onMounted(async () => {
-  quotationStore.handleClickClear();
+  clickClearForm();
   await fetchInitialData();
   // quotationStore.updateRefsModal();
 });
@@ -904,7 +675,9 @@ watchEffect(() => {
               v-model="form.customer_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompleteCustomer"
+              @click:selected="
+                (data) => quotationStore.autocompleteCustomer(data)
+              "
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :fields="headersCustomer"
@@ -1038,14 +811,19 @@ watchEffect(() => {
                 total-prop="meta.total"
                 label="VAT"
                 v-model="item.vat_id"
-                class="col-span-2 lg:col-span-1 w-[9rem]"
+                class="col-span-2 lg:col-span-1"
                 is-quick-select
                 modal-parent-class="!z-[2500]"
                 modal-custom-class="!w-4/5"
                 :display-single-multiple-keys="['name', 'num']"
                 is-display-multiple-key
-                @click:selected="(data) => autocompleteVatDt(data, item)"
-                @click:clear="removeVatDt(item)"
+                @click:selected="
+                  (data) => {
+                    calculateTotalAmountLocal();
+                    return quotationStore.autocompleteVatDt(data, item);
+                  }
+                "
+                @click:clear="quotationStore.removeVatDt(item)"
                 :fields="headersVAT"
                 :filters="[
                   {
@@ -1053,7 +831,48 @@ watchEffect(() => {
                     key: 'name',
                   },
                 ]"
-              />
+              >
+              </lazy-d-select-table>
+              <span>
+                {{ useNumber.formatNumberSeparator(item.vat_perc_am ?? 0) }}
+              </span>
+            </template>
+
+            <template #item.pph23_id="{ item }">
+              <lazy-d-select-table
+                api="/v1/pph23s/index-pph23"
+                detail-api="/v1/pph23s/index-pph23"
+                method-api="post"
+                detail-method-api="post"
+                mapping-detail="data[0]"
+                total-prop="meta.total"
+                label="PPH"
+                v-model="item.pph23_id"
+                class="col-span-2 lg:col-span-1"
+                is-quick-select
+                modal-parent-class="!z-[2500]"
+                modal-custom-class="!w-4/5"
+                :display-single-multiple-keys="['name', 'num']"
+                is-display-multiple-key
+                @click:selected="
+                  (data) => {
+                    calculateTotalAmountLocal();
+                    return quotationStore.autocompletePph23Dt(data, item);
+                  }
+                "
+                @click:clear="quotationStore.removePph23Dt(item)"
+                :fields="headersVAT"
+                :filters="[
+                  {
+                    title: 'Name',
+                    key: 'name',
+                  },
+                ]"
+              >
+              </lazy-d-select-table>
+              <span>
+                {{ useNumber.formatNumberSeparator(item.pph23_perc_am ?? 0) }}
+              </span>
             </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
@@ -1074,7 +893,7 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
               />
@@ -1089,7 +908,7 @@ watchEffect(() => {
                 hide-currency-display
                 label=""
                 class="w-[9rem]"
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
               />
             </template>
             <template #item.disc_am="{ item }">
@@ -1100,23 +919,42 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
               />
+              <div class="flex justify-between">
+                <div class="">Head</div>
+                <div class="">
+                  {{ useNumber.formatNumberSeparator(item.head_disc_am ?? 0) }}
+                </div>
+              </div>
             </template>
             <template #item.disc_perc="{ item }">
-              <d-num-v-format
-                v-model="item.disc_perc"
-                :precision="{
-                  min: 3,
-                  max: 3,
-                }"
-                hide-currency-display
-                @update:modelValue="calculateTotalAmount"
-                label=""
-                class="w-[9rem]"
-              />
+              <div class="flex flex-col">
+                <d-num-v-format
+                  v-model="item.disc_perc"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                />
+                <div>
+                  {{ useNumber.formatNumberSeparator(item.disc_perc_am ?? 0) }}
+                </div>
+                <div class="flex justify-between">
+                  <div class="">Head {{ form.disc_perc ?? 0 }} %</div>
+                  <div class="">
+                    {{
+                      useNumber.formatNumberSeparator(item.head_disc_perc ?? 0)
+                    }}
+                  </div>
+                </div>
+              </div>
             </template>
 
             <template #item.total_am="{ item }">
@@ -1257,7 +1095,9 @@ watchEffect(() => {
               inner-search-key="global"
               label="Currency"
               :errors="errors.currency_id"
-              @click:selected="autocompleteCurrency"
+              @click:selected="
+                (data) => quotationStore.autocompleteCurrency(data)
+              "
             ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
@@ -1287,8 +1127,8 @@ watchEffect(() => {
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
               is-display-multiple-key
-              @click:selected="autocompleteVat"
-              @click:clear="removeVat"
+              @click:selected="(data) => quotationStore.autocompleteVat(data)"
+              @click:clear="quotationStore.removeVat()"
               :fields="headersVAT"
               :filters="[
                 {
@@ -1323,8 +1163,10 @@ watchEffect(() => {
               v-model="form.pph23_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompletePph"
-              @click:clear="removePph"
+              @click:selected="
+                (data, oldId) => quotationStore.autocompletePph(data, oldId)
+              "
+              @click:clear="quotationStore.removePph()"
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
@@ -1374,7 +1216,7 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc (%)"
             />
           </div>
@@ -1386,7 +1228,7 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc Amount"
             />
           </div>

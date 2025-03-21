@@ -3,7 +3,10 @@ import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { RefBtnType } from '~/types/components/OptionRefBtnType'
-import type { FormQuoDtBomListType, FormQuoDtProductListType, FormQuotationType, IndexQuotationType, QIndexProductsType, QIndexType, QuoDtBomType, QuoDtType } from '~/types/quotations/QuotationType'
+import type { FormCurrencyType } from '~/types/masters/CurrencyType'
+import type { FormPph23Type } from '~/types/masters/Pph23Type'
+import type { FormVatType } from '~/types/masters/VatType'
+import type { FormQuoDtBomListType, FormQuoDtProductListType, FormQuotationType, IndexQuotationType, QIndexProductsType, QIndexType, QuoDtBomType, QuoDtDiscType, QuoDtType } from '~/types/quotations/QuotationType'
 
 const useQuotationStore = defineStore('QuotationStore', {
   state: () => ({
@@ -94,7 +97,8 @@ const useQuotationStore = defineStore('QuotationStore', {
         product_id: null as number | null,
         product_uuid: '' as string
       }
-    }
+    },
+    currencySymbolLabel: '',
   }),
 
   actions: {
@@ -293,10 +297,10 @@ const useQuotationStore = defineStore('QuotationStore', {
           if (this.itemsCheck.checkProducts.length > 0) {
             this.itemsCheck.checkProducts.forEach((checkProduct: FormQuoDtProductListType, iCheckProduct: number) => {
               (this.metaModal.indexProducts.data as FormQuoDtProductListType[]).forEach((resProduct: FormQuoDtProductListType, iResProduct: number) => {
-                console.log('checkProduct', iCheckProduct, checkProduct);
+                // console.log('checkProduct', iCheckProduct, checkProduct);
 
                 if (resProduct.ref_id === checkProduct.ref_id) {
-                  console.log('resProduct', iResProduct, resProduct);
+                  // console.log('resProduct', iResProduct, resProduct);
 
                   const combined = {
                     ...resProduct,
@@ -321,8 +325,8 @@ const useQuotationStore = defineStore('QuotationStore', {
               (this.metaModal.indexBoms.data as QuoDtBomType[]).forEach((resBom: FormQuoDtBomListType, iResBom: number) => {
 
                 if (resBom.ref_id === checkBom.item_id) {
-                  console.log('checkBom', iCheckBom, checkBom);
-                  console.log('checkResBom', iResBom, resBom);
+                  // console.log('checkBom', iCheckBom, checkBom);
+                  // console.log('checkResBom', iResBom, resBom);
                   // console.log('resBom', iResBom, resBom);
 
                   const combined = {
@@ -356,7 +360,7 @@ const useQuotationStore = defineStore('QuotationStore', {
         // this.itemsCheck.checkMain = generateQuoDt(this.itemsCheck.checkProducts, 'boms', this.itemsCheck.checkMain)
 
         if (this.itemsCheck.checkBoms.length > 0) {
-          console.log('select-itemcheck-product_id', this.openedModal.boms.product_id);
+          // console.log('select-itemcheck-product_id', this.openedModal.boms.product_id);
 
           this.itemsCheck.checkBoms = generateQuoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
         } else {
@@ -419,7 +423,319 @@ const useQuotationStore = defineStore('QuotationStore', {
       // );
 
       this.countSelectedReferences();
-    }
+    },
+
+    autocompleteVat(data: FormVatType) {
+      this.form.vat_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        // if (!item.vat_id) {
+        if (!item.is_lock_vat) {
+          item.vat_id = data.id as number;
+          item.vat_perc = Number(data.num);
+        }
+        // }
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    autocompleteVatDt(data: FormVatType, soDtType: QuoDtType) {
+      soDtType.vat_perc = Number(data.num);
+      soDtType.is_lock_vat = 1
+      this.calculateTotalAmount();
+    },
+
+    autocompletePph23Dt(data: FormPph23Type, soDtType: QuoDtType) {
+      soDtType.pph23_perc = Number(data.num);
+      soDtType.is_lock_pph23 = 1
+      this.calculateTotalAmount();
+    },
+
+    removeVat() {
+      this.form.vat_perc = 0;
+
+      this.calculateTotalAmount();
+    },
+
+    removeAllVat() {
+      this.form.vat_id = null;
+      this.form.vat_perc = 0;
+      this.form.total_vat = 0;
+
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        item.vat_id = null;
+        item.vat_perc = 0;
+        item.vat_perc_am = 0;
+        item.is_lock_vat = 0;
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    removeVatDt(soDtType: QuoDtType) {
+      soDtType.is_lock_vat = 0
+      if (!soDtType.vat_id) {
+        soDtType.vat_perc = 0;
+        soDtType.vat_perc_am = 0;
+      }
+
+      this.calculateTotalAmount();
+    },
+
+    removePph23Dt(soDtType: QuoDtType) {
+      soDtType.is_lock_pph23 = 0
+      if (!soDtType.pph23_id) {
+        soDtType.pph23_perc = 0;
+        soDtType.pph23_perc_am = 0;
+      }
+
+      this.calculateTotalAmount();
+    },
+
+    removePph() {
+      this.form.pph23_perc = 0;
+      this.form.total_pph23 = 0;
+
+      // remove all childs
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        item.pph23_id = null;
+        item.pph23_perc = 0;
+        item.pph23_perc_am = 0;
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    removeAllPph() {
+      this.form.pph23_id = null;
+      this.form.pph23_perc = 0;
+
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        item.pph23_id = null;
+        item.pph23_perc = 0;
+        item.pph23_perc_am = 0;
+        item.is_lock_pph23 = 0;
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    autocompletePph(data: FormPph23Type, oldId: number | null) {
+      this.form.pph23_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        // if (!item.pph23_id) {
+        if (!item.is_lock_pph23) {
+          item.pph23_id = data.id as number;
+          item.pph23_perc = Number(data.num);
+        }
+        // }
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    autocompleteCurrency(data: FormCurrencyType) {
+      this.form.exchange_rate = Number(data.num);
+      this.currencySymbolLabel = data.symbol ?? '';
+
+      this.calculateTotalAmount();
+    },
+
+    autocompleteCustomer(data: any) {
+      this.form.email = data.email;
+      this.form.phone = data.phone;
+      this.form.address = data.address;
+    },
+
+    calculateTotalAmount() {
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        const discPercentage = Number((item.disc_perc ?? 0) / 100);
+        const discAmount = Number(item.disc_am);
+        const priceSell = Number(item.price_sell);
+        const priceBuy = Number(item.price_buy);
+        const qty = Number(item.qty);
+        const subtotalSell = Number(priceSell * qty);
+        const subtotalBuy = Number(priceBuy * qty);
+
+        const discPercPriceSell = Number(priceSell * discPercentage);
+        const discPercNum = Number(priceSell - discPercPriceSell);
+        // const subDiscPercAm = Number(qty * discPercNum);
+        const discPercAm = Number(subtotalSell * discPercentage);
+        const subDiscPercAm = Number(subtotalSell - discPercAm);
+
+        item.subtotal_sell = subtotalSell;
+        item.subtotal_buy = subtotalBuy;
+
+        let discType: QuoDtDiscType = null;
+
+        let discFinal = 0;
+        if (!!discAmount && discAmount > 0) {
+          discType = "a";
+          //   discFinal = subtotalSell - discAmount;
+        } else if (!!discPercentage && discPercentage > 0) {
+          discType = "p";
+          //   discFinal = subDiscPercAm;
+        } else if (
+          !!discAmount &&
+          discAmount > 0 &&
+          !!discPercentage &&
+          discPercentage > 0
+        ) {
+          discType = "all";
+          // discFinal = subDiscPercAm - discAmount;
+        }
+
+        // discFinal = subDiscPercAm;
+        discFinal = subDiscPercAm - discAmount;
+        if (discFinal <= 0) {
+          discFinal = subtotalSell;
+        }
+
+        item.disc_perc_num = 0;
+        item.disc_perc_am = 0;
+        item.disc_final = 0;
+        if (discPercentage || discAmount) {
+          item.disc_perc_num = discPercNum;
+          item.disc_perc_am = discPercAm;
+          item.disc_final = discFinal;
+          item.disc_type = discType;
+        }
+
+        item.head_disc_perc = (this.form.disc_perc / 100) * discFinal;
+
+        item.head_disc_am = 0
+
+        if (!!this.form.disc_am) {
+          let totalDiscAm = this.itemsCheck.checkMain.reduce(
+            (acc: number, item: QuoDtType) => acc + (item.qty * item.price_sell),
+            0
+          );
+
+          item.head_disc_am = ((item.qty * item.price_sell) / totalDiscAm) * this.form.disc_am;
+        }
+
+        item.disc_end = discFinal - (item.head_disc_perc + item.head_disc_am);
+
+        item.vat_perc_am = 0;
+
+        if (!!item.vat_id) {
+          item.vat_perc_am = item.disc_end * ((item.vat_perc ?? 0) / 100);
+        }
+
+        item.pph23_perc_am = 0;
+
+        if (!!item.pph23_id) {
+          item.pph23_perc_am = item.disc_end * ((item.pph23_perc ?? 0) / 100);
+        }
+
+        item.total_am = item.disc_end + item.vat_perc_am - item.pph23_perc_am;
+      });
+
+      // header calculation
+      this.form.subtotal = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + item.subtotal_sell,
+        0
+      );
+
+      this.form.total_qty = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + item.qty,
+        0
+      );
+
+      this.form.total_pph23 = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + (item.pph23_perc_am ?? 0),
+        0
+      );
+
+      this.form.total_vat = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + (item.vat_perc_am ?? 0),
+        0
+      );
+
+      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
+      // let itemsDiscount = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am + (item.head_disc_perc ?? 0),
+      //   0
+      // );
+
+      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
+      this.form.total_discount = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am + (item.head_disc_perc ?? 0) + (item.head_disc_am ?? 0)),
+        0
+      );
+
+      // const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
+      // const discAmountHead = Number(this.form.disc_am ?? 0);
+
+      // let discPercPriceSellHead = Number(this.form.subtotal * discPercentageHead);
+      // let discPercAmHead = Number(
+      //   this.form.subtotal - (discPercPriceSellHead ?? 0)
+      // );
+
+      this.form.disc_type = null;
+      this.form.disc_perc_am = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + ((item.head_disc_perc ?? 0)),
+        0
+      );
+
+      // this.form.total_discount = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: QuoDtType) => acc + (item.disc_end ?? 0),
+      //   0
+      // );
+      // if (!!discPercPriceSellHead) {
+      //   this.form.total_discount = discPercPriceSellHead + discAmountHead;
+      // }
+
+      // let discType: QuoDtDiscType = null;
+
+      // let discFinal = 0;
+      // if (!!discAmountHead && discAmountHead > 0) {
+      //   discType = "a";
+      // } else if (!!discPercentageHead && discPercentageHead > 0) {
+      //   discType = "p";
+      // } else if (
+      //   !!discAmountHead &&
+      //   discAmountHead > 0 &&
+      //   !!discPercentageHead &&
+      //   discPercentageHead > 0
+      // ) {
+      //   discType = "all";
+      // }
+
+      // discFinal = discPercAmHead - discAmountHead;
+      // discFinal = 0;
+      // if (discFinal <= 0) {
+      //   discFinal = this.form.subtotal;
+      // }
+
+      // if (this.form.disc_perc) {
+      //   this.form.disc_perc_am = discPercPriceSellHead;
+      // }
+
+      this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
+        0
+      ));
+      // if (discAmountHead || discPercentageHead) {
+      //   this.form.disc_type = discType;
+      //   this.form.disc_final = discFinal;
+      // }
+
+      // if (!!this.form.vat_id) {
+      //   this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
+      // }
+
+      // if (!!this.form.pph23_id) {
+      //   this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
+      // }
+
+      this.form.grand_total =
+        this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
+    },
 
   },
   persist: [

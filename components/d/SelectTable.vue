@@ -217,15 +217,11 @@ const fetchSingle = async (id: number, oldId: number | null) => {
   if (props.detailMethodApi == "post") {
     let payload;
 
-    console.log("itemscheck", itemsCheck.value);
-
     if (props.multiple && !props.returnObject) {
       payload = { ids: itemsCheck.value };
     } else {
       payload = { ids: [id] };
     }
-
-    console.log("payload", payload);
 
     apiUrl = `${props.detailApi}`;
     await useMyFetch()
@@ -327,8 +323,6 @@ watch(
         // single show
         await fetchSingle(newValue, oldValue);
       }
-
-      console.log("newValue123", newValue);
 
       if (!newValue && !showMetaModal.value.loading) {
         selectedText.value = "";

@@ -562,10 +562,6 @@ const filtersTextQuotations = ref([
     key: "quo_no",
   },
   {
-    title: "Product Name",
-    key: "name",
-  },
-  {
     title: "Global",
     key: "global",
   },
@@ -637,6 +633,27 @@ const calculateTotalAmountLocal = () => {
     // TODO foreach currency symbol
   }
 };
+
+// const autocompleteQuotation = (data: FormSoDtProductListType) => {
+//   form.value.customer_id = data.customer_id;
+//   form.value.order_type_id = data.order_type_id;
+//   form.value.currency_id = data.currency_id;
+//   form.value.exchange_rate = data.exchange_rate;
+//   form.value.vat_id = data.head_vat_id;
+//   form.value.pph23_id = data.head_pph23_id;
+//   form.value.disc_am = data.head_disc_am as number;
+//   form.value.disc_perc = data.head_disc_perc as number;
+// };
+
+watch(
+  () => itemsCheck.value.checkQuotations,
+  (newVal, oldVal) => {
+    if (newVal.length === 1) {
+      // newVal[0].customer_id = form.value.customer_id;
+      salesOrderStore.autocompleteQuotation(newVal[0]);
+    }
+  }
+);
 
 onMounted(async () => {
   salesOrderStore.handleClickClear();

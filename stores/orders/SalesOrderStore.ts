@@ -233,6 +233,18 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form = response.data.data[0]
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
 
+        // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
+        //   this.itemsCheck.checkMain,
+        //   "products",
+        //   this.itemsCheck.checkProducts
+        // );
+
+        // this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
+        //   this.itemsCheck.checkMain,
+        //   "quotations",
+        //   this.itemsCheck.checkQuotations
+        // );
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
@@ -653,7 +665,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     autocompletePph23Dt(data: FormPph23Type, soDtType: SoDtType) {
-      soDtType.vat_perc = Number(data.num);
+      soDtType.pph23_perc = Number(data.num);
       soDtType.is_lock_pph23 = 1
       this.calculateTotalAmount();
     },
@@ -888,6 +900,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       this.calculateTotalAmount();
+    },
+
+    autocompleteQuotation(data: FormSoDtProductListType) {
+      this.form.customer_id = data.customer_id;
+      this.form.order_type_id = data.order_type_id;
+      this.form.currency_id = data.currency_id;
+      this.form.exchange_rate = data.exchange_rate;
+      // this.form.vat_id = data.head_vat_id;
+      // this.form.pph23_id = data.head_pph23_id;
+      // this.form.disc_am = data.head_disc_am as number;
+      // this.form.disc_perc = data.head_disc_perc as number;
     },
 
     calculateTotalAmount() {
