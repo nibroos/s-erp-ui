@@ -6,7 +6,6 @@ const accountSettingStore = useAccountSettingStore();
 const { tabFormIndex, form, errors } = storeToRefs(accountSettingStore);
 const config = useRuntimeConfig();
 
-// Store original form data for cancel operation
 const originalFormData = ref(null);
 
 definePageMeta({
