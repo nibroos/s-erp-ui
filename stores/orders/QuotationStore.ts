@@ -16,7 +16,7 @@ const useQuotationStore = defineStore('QuotationStore', {
     queryModal: {
       qIndex: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         parent_ids: [],
         global: '',
         order_column: 'name',
@@ -25,7 +25,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       qIndexProducts: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',
@@ -37,7 +37,7 @@ const useQuotationStore = defineStore('QuotationStore', {
       } as QIndexProductsType,
       qIndexBoms: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',
@@ -430,12 +430,10 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
-        // if (!item.vat_id) {
-        if (!item.is_lock_vat) {
+        if (!!item.vat_id) {
           item.vat_id = data.id as number;
           item.vat_perc = Number(data.num);
         }
-        // }
       });
 
       this.calculateTotalAmount();
@@ -443,13 +441,11 @@ const useQuotationStore = defineStore('QuotationStore', {
 
     autocompleteVatDt(data: FormVatType, soDtType: QuoDtType) {
       soDtType.vat_perc = Number(data.num);
-      soDtType.is_lock_vat = 1
       this.calculateTotalAmount();
     },
 
     autocompletePph23Dt(data: FormPph23Type, soDtType: QuoDtType) {
       soDtType.pph23_perc = Number(data.num);
-      soDtType.is_lock_pph23 = 1
       this.calculateTotalAmount();
     },
 
@@ -468,14 +464,12 @@ const useQuotationStore = defineStore('QuotationStore', {
         item.vat_id = null;
         item.vat_perc = 0;
         item.vat_perc_am = 0;
-        item.is_lock_vat = 0;
       });
 
       this.calculateTotalAmount();
     },
 
     removeVatDt(soDtType: QuoDtType) {
-      soDtType.is_lock_vat = 0
       if (!soDtType.vat_id) {
         soDtType.vat_perc = 0;
         soDtType.vat_perc_am = 0;
@@ -485,7 +479,6 @@ const useQuotationStore = defineStore('QuotationStore', {
     },
 
     removePph23Dt(soDtType: QuoDtType) {
-      soDtType.is_lock_pph23 = 0
       if (!soDtType.pph23_id) {
         soDtType.pph23_perc = 0;
         soDtType.pph23_perc_am = 0;
@@ -516,7 +509,6 @@ const useQuotationStore = defineStore('QuotationStore', {
         item.pph23_id = null;
         item.pph23_perc = 0;
         item.pph23_perc_am = 0;
-        item.is_lock_pph23 = 0;
       });
 
       this.calculateTotalAmount();
@@ -527,12 +519,10 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
-        // if (!item.pph23_id) {
-        if (!item.is_lock_pph23) {
+        if (!!item.pph23_id) {
           item.pph23_id = data.id as number;
           item.pph23_perc = Number(data.num);
         }
-        // }
       });
 
       this.calculateTotalAmount();
@@ -551,11 +541,63 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.form.address = data.address;
     },
 
+    calculatePrice(quoDtBom: QuoDtBomType, quoDt: QuoDtType) {
+      quoDtBom.subtotal_buy = quoDtBom.price_buy * quoDtBom.qty;
+
+      if (!!quoDt.quo_dts_boms && quoDt.quo_dts_boms.length > 0) {
+        quoDt.price_buy = quoDt.quo_dts_boms.reduce(
+          (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      } else if (!!quoDt.boms && quoDt.boms.length > 0) {
+        quoDt.price_buy = quoDt.boms.reduce(
+          (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+
+      if (!quoDt.is_lock_price_sell) {
+        quoDt.markup_perc_am = quoDt.price_buy * (quoDt.markup_perc ?? 0) / 100;
+        quoDt.price_sell = quoDt.price_buy + (quoDt.price_buy * (quoDt.markup_perc ?? 0) / 100);
+      }
+    },
+
+    autocompleteMarkup(value: number) {
+      this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
+        if (!item.is_lock_markup) {
+          item.markup_perc = value;
+        }
+      });
+    },
+
+    onClickLockPriceSell(quoDt: QuoDtType) {
+      if (!!quoDt.is_lock_price_sell) {
+        quoDt.is_lock_price_sell = 0;
+      } else {
+        quoDt.is_lock_price_sell = 1;
+      }
+    },
+
     calculateTotalAmount() {
       this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
-        const discPercentage = Number((item.disc_perc ?? 0) / 100);
-        const discAmount = Number(item.disc_am);
-        const priceSell = Number(item.price_sell);
+        if (!!item.quo_dts_boms) {
+          item.quo_dts_boms.forEach((bom: QuoDtBomType) => {
+            this.calculatePrice(bom, item);
+          });
+        }
+
+        // let priceSell = item.price_buy + (item.price_buy * (item.markup_perc ?? 0) / 100);
+
+        if (!!item.disc_perc && item.disc_perc > 0) {
+          item.disc_am = 0;
+        } else if (!!item.disc_am && item.disc_am > 0) {
+          item.disc_perc = 0;
+        }
+
+        let priceSell = Number(item.price_sell);
+        let discPercentage = Number((item.disc_perc ?? 0) / 100);
+        let discAmount = Number(item.disc_am);
+
         const priceBuy = Number(item.price_buy);
         const qty = Number(item.qty);
         const subtotalSell = Number(priceSell * qty);
@@ -597,7 +639,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         item.disc_perc_num = 0;
         item.disc_perc_am = 0;
-        item.disc_final = 0;
+        item.disc_final = discFinal
         if (discPercentage || discAmount) {
           item.disc_perc_num = discPercNum;
           item.disc_perc_am = discPercAm;
@@ -605,34 +647,19 @@ const useQuotationStore = defineStore('QuotationStore', {
           item.disc_type = discType;
         }
 
-        item.head_disc_perc = (this.form.disc_perc / 100) * discFinal;
-
-        item.head_disc_am = 0
-
-        if (!!this.form.disc_am) {
-          let totalDiscAm = this.itemsCheck.checkMain.reduce(
-            (acc: number, item: QuoDtType) => acc + (item.qty * item.price_sell),
-            0
-          );
-
-          item.head_disc_am = ((item.qty * item.price_sell) / totalDiscAm) * this.form.disc_am;
-        }
-
-        item.disc_end = discFinal - (item.head_disc_perc + item.head_disc_am);
-
         item.vat_perc_am = 0;
 
         if (!!item.vat_id) {
-          item.vat_perc_am = item.disc_end * ((item.vat_perc ?? 0) / 100);
+          item.vat_perc_am = item.disc_final * ((item.vat_perc ?? 0) / 100);
         }
 
         item.pph23_perc_am = 0;
 
         if (!!item.pph23_id) {
-          item.pph23_perc_am = item.disc_end * ((item.pph23_perc ?? 0) / 100);
+          item.pph23_perc_am = item.disc_final * ((item.pph23_perc ?? 0) / 100);
         }
 
-        item.total_am = item.disc_end + item.vat_perc_am - item.pph23_perc_am;
+        item.total_am = item.disc_final + item.vat_perc_am - item.pph23_perc_am;
       });
 
       // header calculation
@@ -651,22 +678,30 @@ const useQuotationStore = defineStore('QuotationStore', {
         0
       );
 
-      this.form.total_vat = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: QuoDtType) => acc + (item.vat_perc_am ?? 0),
+      let itemsVat = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => {
+          if (!!item.vat_id) {
+            return acc + (item.vat_perc_am ?? 0)
+          }
+
+          return acc
+        },
         0
       );
 
-      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
-      // let itemsDiscount = this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am + (item.head_disc_perc ?? 0),
-      //   0
-      // );
+      this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
+        (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
+        0
+      ));
+
+      this.form.disc_perc_am = 0
+
+      if (!!this.form.disc_perc) {
+        this.form.disc_perc_am = this.form.disc_final * (((this.form.disc_perc ?? 0) / 100));
+      }
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
-      this.form.total_discount = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am + (item.head_disc_perc ?? 0) + (item.head_disc_am ?? 0)),
-        0
-      );
+      this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
 
       // const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
       // const discAmountHead = Number(this.form.disc_am ?? 0);
@@ -677,10 +712,10 @@ const useQuotationStore = defineStore('QuotationStore', {
       // );
 
       this.form.disc_type = null;
-      this.form.disc_perc_am = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: QuoDtType) => acc + ((item.head_disc_perc ?? 0)),
-        0
-      );
+      // this.form.disc_perc_am = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: QuoDtType) => acc + ((item.head_disc_perc ?? 0)),
+      //   0
+      // );
 
       // this.form.total_discount = this.itemsCheck.checkMain.reduce(
       //   (acc: number, item: QuoDtType) => acc + (item.disc_end ?? 0),
@@ -716,10 +751,10 @@ const useQuotationStore = defineStore('QuotationStore', {
       //   this.form.disc_perc_am = discPercPriceSellHead;
       // }
 
-      this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
-        (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
-        0
-      ));
+      // this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
+      //   0
+      // ));
       // if (discAmountHead || discPercentageHead) {
       //   this.form.disc_type = discType;
       //   this.form.disc_final = discFinal;

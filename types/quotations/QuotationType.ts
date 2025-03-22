@@ -16,6 +16,8 @@ export type IndexQuotationType = {
   remark: string | null
   status: string
   is_approved: number
+  is_vat: number
+  is_pph23: number
   exchange_rate: number | null
   vat_perc: number | null
   pph23_perc: number | null
@@ -70,7 +72,7 @@ export type FormQuotationType = {
   disc_final: number
   disc_type: QuoDtDiscType | null
   pph23_perc: number
-  markup: number // n
+  markup_perc: number // n
   total_qty: number
   subtotal: number
   total_discount: number
@@ -108,9 +110,12 @@ export type QuoDtType = {
   // is_lock_pph23?: number
   pph23_perc?: number
   pph23_perc_am?: number
-  markup?: number // n
+  is_lock_markup?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
   qty_so?: number
   qty: number
+  is_lock_price_sell?: number
   price_sell: number
   price_buy: number
   subtotal_sell: number
@@ -183,10 +188,10 @@ export type QuoDtsType = {
   ref_type: string
   product_uuid?: string | null
   remark?: string | null
-  is_lock_vat?: number
+  // is_lock_vat?: number
   vat_perc?: number
   vat_perc_am?: number
-  is_lock_pph23?: number
+  // is_lock_pph23?: number
   pph23_perc?: number
   pph23_perc_am?: number
   qty_so: number

@@ -228,6 +228,13 @@ const headersBOMModal = ref<FieldSelectableType[]>([
   },
   { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
   { key: "qty", title: "Qty", align: "end", sortable: true },
+  {
+    title: "Total Amount",
+    key: "subtotal_buy",
+    value: "subtotal_buy",
+    align: "end",
+    sortable: true,
+  },
   { key: "remark", title: "Remark", sortable: true },
 ]) as Ref<FieldSelectableType[]>;
 
@@ -836,34 +843,81 @@ watchEffect(() => {
                 class="w-[9rem]"
               />
             </template>
-            <template #item.markup="{ item }">
-              <d-num-v-format
-                v-model="item.markup"
-                :precision="{
-                  min: 3,
-                  max: 3,
-                }"
-                hide-currency-display
-                @update:modelValue="calculateTotalAmountLocal"
-                label=""
-                class="w-[9rem]"
-              />
+            <template #item.markup_perc="{ item }">
+              <div class="flex w-full gap-2 grow">
+                <d-num-v-format
+                  v-model="item.markup_perc"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                />
+
+                <d-bt
+                  type="button"
+                  cta="Lock/Unlock Margin"
+                  :class="
+                    classMerge(
+                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
+                    )
+                  "
+                  text-class="text-zinc-400"
+                  :icon="
+                    item.is_lock_markup
+                      ? 'mdi-lock-outline'
+                      : 'mdi-lock-open-variant-outline'
+                  "
+                  icon-class="text-zinc-400"
+                  is-no-text
+                  @click="item.is_lock_markup = !item.is_lock_markup"
+                />
+              </div>
             </template>
             <template #item.price_buy="{ item }">
               <d-num-layout :value="item.price_buy" />
             </template>
             <template #item.price_sell="{ item }">
-              <d-num-v-format
-                v-model="item.price_sell"
-                :precision="{
-                  min: 3,
-                  max: 3,
-                }"
-                hide-currency-display
-                @update:modelValue="calculateTotalAmountLocal"
-                label=""
-                class="w-[9rem]"
-              />
+              <div class="flex w-full gap-2 grow">
+                <d-num-v-format
+                  v-model="item.price_sell"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                />
+
+                <d-bt
+                  type="button"
+                  cta="Lock/Unlock Margin"
+                  :class="
+                    classMerge(
+                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
+                    )
+                  "
+                  text-class="text-zinc-400"
+                  :icon="
+                    !!item.is_lock_price_sell
+                      ? 'mdi-lock-outline'
+                      : 'mdi-lock-open-variant-outline'
+                  "
+                  icon-class="text-zinc-400"
+                  is-no-text
+                  @click="
+                    () => {
+                      quotationStore.onClickLockPriceSell(item);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                />
+              </div>
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
@@ -1018,6 +1072,16 @@ watchEffect(() => {
                           hide-currency-display
                           label=""
                           class="w-full"
+                          @update:modelValue="
+                            () => {
+                              // quotationStore.calculatePrice(
+                              //   item,
+                              //   internalItem.raw
+                              // );
+
+                              calculateTotalAmountLocal();
+                            }
+                          "
                         />
                       </template>
                       <template #item.subtotal_buy="{ item }">
@@ -1201,13 +1265,18 @@ watchEffect(() => {
           </div>
           <div class="sm:col-span-1">
             <d-num-v-format
-              v-model="form.disc_am"
+              v-model="form.markup_perc"
               :precision="{
                 min: 3,
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
+              @update:modelValue="
+                (value) => {
+                  quotationStore.autocompleteMarkup(value);
+                  calculateTotalAmountLocal;
+                }
+              "
               label="Markup (%)"
             />
           </div>
@@ -1351,7 +1420,7 @@ watchEffect(() => {
             index: number
           }"
         >
-          <tr v-if="item.quo_dts_boms.length > 0">
+          <tr v-if="!!item.quo_dts_boms && item.quo_dts_boms.length > 0">
             <td :colspan="columns.length" class="!p-0">
               <div class="">
                 <v-data-table-virtual
@@ -1380,7 +1449,11 @@ watchEffect(() => {
                       hide-currency-display
                       label=""
                       class="w-[9rem]"
-                      @update:modelValue="calculateTotalAmountLocal"
+                      @update:modelValue="
+                        () => {
+                          quotationStore.calculatePrice(item, internalItem.raw);
+                        }
+                      "
                     />
                   </template>
 
@@ -1394,14 +1467,19 @@ watchEffect(() => {
                       hide-currency-display
                       label=""
                       class="w-[9rem]"
-                      @update:modelValue="calculateTotalAmountLocal"
+                      @update:modelValue="
+                        quotationStore.calculatePrice(item, internalItem.raw)
+                      "
                     />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
                   </template>
                 </v-data-table-virtual>
               </div>
             </td>
           </tr>
-          <tr v-else-if="item.boms.length > 0">
+          <tr v-else-if="!!item.boms && item.boms.length > 0">
             <td :colspan="columns.length" class="!p-0">
               <div class="">
                 <v-data-table-virtual
@@ -1420,8 +1498,41 @@ watchEffect(() => {
                     class: 'whitespace-nowrap',
                   }"
                 >
+                  <template #item.price_buy="{ item }">
+                    <d-num-v-format
+                      v-model="item.price_buy"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        () => {
+                          quotationStore.calculatePrice(item, internalItem.raw);
+                        }
+                      "
+                    />
+                  </template>
+
                   <template #item.qty="{ item }">
-                    <d-num-layout :value="(item as ProductBomListType).qty" />
+                    <d-num-v-format
+                      v-model="item.qty"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        quotationStore.calculatePrice(item, internalItem.raw)
+                      "
+                    />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
                   </template>
                 </v-data-table-virtual>
               </div>
