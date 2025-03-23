@@ -565,29 +565,16 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   fetchModalFilter();
 };
 
-const onClickAddProductsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
-};
-
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMain.splice(index, 1);
 
   quotationStore.countSelectedReferences();
 };
 
-const onClickUpdateBomsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
-};
-
 const onClickOpenModalBOM = async (
   item: FormQuoDtProductListType,
   index: number
 ) => {
-  console.log("item, onClickOpenModalBOM", item);
   openedModal.value.boms.index = index;
   openedModal.value.boms.id = item.ref_id;
   openedModal.value.boms.product_id = item.item_id as number;
@@ -1566,7 +1553,7 @@ watchEffect(() => {
       :is-open="isOpenModal.boms"
       size="xl"
       custom-class="overflow-y-auto"
-      parent-class="!z-[2499]"
+      parent-class="!z-[1500]"
       label="List of Boms"
       @update:is-open="isOpenModal.boms = $event"
     >

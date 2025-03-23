@@ -37,7 +37,7 @@ export function convertSoItemRefProduct(
   item: FormSoDtProductListType,
   refType: SoDtRefType
 ): SoDtType {
-  console.log('convertSoItemRefProduct-item', item);
+  // console.log('convertSoItemRefProduct-item', item);
 
   let productUuid = randomId()
   let productId = item.product_id ?? item.ref_id

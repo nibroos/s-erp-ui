@@ -21,6 +21,7 @@ export type IndexSalesOrderType = {
   exchange_rate: number | null
   vat_perc: number | null
   pph23_perc: number | null
+  markup_perc: number | null
 
   disc_am: number | null
   disc_perc: number | null
@@ -80,12 +81,13 @@ export type FormSalesOrderType = {
   status: string
   exchange_rate?: number | null
   vat_perc: number
+  pph23_perc: number
+  markup_perc: number
   disc_am: number
   disc_perc: number
   disc_perc_am: number
   disc_final: number
   disc_type: SoDtDiscType | null
-  pph23_perc: number
   total_qty: number
   subtotal: number
   total_discount: number
@@ -120,12 +122,18 @@ export type SoDtType = {
   item_type: SoDtItemType
   gen_code?: string | null
   remark?: string
-  is_lock_vat?: number
+  // is_lock_vat?: number
   vat_perc?: number
   vat_perc_am?: number
-  is_lock_pph23?: number
+  // is_lock_pph23?: number
   pph23_perc?: number
   pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   qty_so?: number
   qty: number
   price_sell: number
@@ -138,9 +146,9 @@ export type SoDtType = {
   disc_perc_am: number
   disc_final: number
   disc_type?: SoDtDiscType | null
-  head_disc_am?: number | null
-  head_disc_perc?: number | null
-  disc_end?: number | null
+  // head_disc_am?: number | null
+  // head_disc_perc?: number | null
+  // disc_end?: number | null
   total_am: number
   so_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
   boms?: SoDtBomType[]
@@ -199,7 +207,16 @@ export type SoDtsType = {
   ref_type: string
   product_uuid?: string | null
   remark?: string | null
-  vat_perc: number
+  vat_perc?: number
+  vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   qty_so: number
   qty: number
   price_sell: number
@@ -252,6 +269,7 @@ export type QIndexQuotationsType = {
   per_page: number
   item_group_ids?: number[] | null
   item_sub_group_ids?: number[] | null
+  quotation_ids?: number[] | null
   customer_ids?: number[] | null
   product_ids?: number[] | null
   customer_id?: number | null
@@ -273,8 +291,17 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   sales_order_id?: number | null
   so_dt_id?: number | null
   vat_id?: number
+  pph23_id?: number
   vat_perc?: number
   vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   ref_id?: number
   qty_so?: number
   qty?: number
@@ -292,6 +319,7 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   so_dts_boms?: ProductBomListType[]
   quo_dts_boms?: ProductBomListType[]
 
+  quotation_id?: number | null
   order_type_id?: number | null
   currency_id?: number | null
   exchange_rate?: number | null
@@ -301,6 +329,8 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   head_pph23_perc?: number | null
   head_disc_am?: number | null
   head_disc_perc?: number | null
+  head_markup_perc?: number | null
+  head_remark?: string | null
 
   item_name?: string
   item_code?: string

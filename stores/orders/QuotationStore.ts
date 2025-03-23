@@ -631,11 +631,11 @@ const useQuotationStore = defineStore('QuotationStore', {
           item.disc_perc = 0;
         }
 
-        let priceSell = Number(item.price_sell);
+        const priceSell = Number(item.price_sell);
+        const priceBuy = Number(item.price_buy);
         let discPercentage = Number((item.disc_perc ?? 0) / 100);
         let discAmount = Number(item.disc_am);
 
-        const priceBuy = Number(item.price_buy);
         const qty = Number(item.qty);
         const subtotalSell = Number(priceSell * qty);
         const subtotalBuy = Number(priceBuy * qty);

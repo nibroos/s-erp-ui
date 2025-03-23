@@ -41,6 +41,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         per_page: 10,
         item_group_ids: [],
         item_sub_group_ids: [],
+        quotation_ids: [],
         customer_id: null,
         code: '',
         name: '',
@@ -478,10 +479,10 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           if (this.itemsCheck.checkQuotations.length > 0) {
             this.itemsCheck.checkQuotations.forEach((checkQuotation: FormSoDtProductListType, iCheckQuotation: number) => {
               (this.metaModal.indexQuotations.data as FormSoDtProductListType[]).forEach((resQuotation: FormSoDtProductListType, iResQuotation: number) => {
-                console.log('checkQuotation', iCheckQuotation, checkQuotation);
+                // console.log('checkQuotation', iCheckQuotation, checkQuotation);
 
                 if (resQuotation.quo_dt_id === checkQuotation.ref_id && checkQuotation.ref_type === 'quotations') {
-                  console.log('resQuotation', iResQuotation, resQuotation);
+                  // console.log('resQuotation', iResQuotation, resQuotation);
 
                   const combined = {
                     ...resQuotation,
@@ -580,7 +581,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     resetSummary() {
       if (this.formLayout?.summary) {
         this.formLayout.summary.total_amount.value = 0;
-        this.formLayout.summary.total_qty.value = 0
+        // this.formLayout.summary.total_qty.value = 0
         this.formLayout.summary.total_discount.value = 0
         this.formLayout.summary.total_vat.value = 0
         this.formLayout.summary.total_pph23.value = 0
@@ -640,7 +641,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
         // if (!item.vat_id) {
-        if (!item.is_lock_vat) {
+        if (!!item.is_vat) {
           item.vat_id = data.id as number;
           item.vat_perc = Number(data.num);
         }
@@ -652,13 +653,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
     autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
       soDtType.vat_perc = Number(data.num);
-      soDtType.is_lock_vat = 1
       this.calculateTotalAmount();
     },
 
     autocompletePph23Dt(data: FormPph23Type, soDtType: SoDtType) {
       soDtType.pph23_perc = Number(data.num);
-      soDtType.is_lock_pph23 = 1
       this.calculateTotalAmount();
     },
 
@@ -677,14 +676,13 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         item.vat_id = null;
         item.vat_perc = 0;
         item.vat_perc_am = 0;
-        item.is_lock_vat = 0;
+        item.is_vat = 0;
       });
 
       this.calculateTotalAmount();
     },
 
     removeVatDt(soDtType: SoDtType) {
-      soDtType.is_lock_vat = 0
       if (!soDtType.vat_id) {
         soDtType.vat_perc = 0;
         soDtType.vat_perc_am = 0;
@@ -694,7 +692,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     removePph23Dt(soDtType: SoDtType) {
-      soDtType.is_lock_pph23 = 0
       if (!soDtType.pph23_id) {
         soDtType.pph23_perc = 0;
         soDtType.pph23_perc_am = 0;
@@ -725,7 +722,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         item.pph23_id = null;
         item.pph23_perc = 0;
         item.pph23_perc_am = 0;
-        item.is_lock_pph23 = 0;
+        item.is_pph23 = 0;
       });
 
       this.calculateTotalAmount();
@@ -737,7 +734,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
         // if (!item.pph23_id) {
-        if (!item.is_lock_pph23) {
+        if (!!item.is_pph23) {
           item.pph23_id = data.id as number;
           item.pph23_perc = Number(data.num);
         }
@@ -895,18 +892,105 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     autocompleteQuotation(data: FormSoDtProductListType) {
+      console.log('data log', data);
+
       this.form.customer_id = data.customer_id;
       this.form.order_type_id = data.order_type_id;
       this.form.currency_id = data.currency_id;
       this.form.exchange_rate = data.exchange_rate;
-      // this.form.vat_id = data.head_vat_id;
-      // this.form.pph23_id = data.head_pph23_id;
-      // this.form.disc_am = data.head_disc_am as number;
-      // this.form.disc_perc = data.head_disc_perc as number;
+      this.form.vat_id = data.head_vat_id;
+      this.form.vat_perc = data.head_vat_perc as number;
+      this.form.pph23_id = data.head_pph23_id;
+      this.form.pph23_perc = data.head_pph23_perc as number;
+      this.form.markup_perc = data.head_markup_perc as number;
+      this.form.disc_am = data.head_disc_am as number;
+      this.form.disc_perc = data.head_disc_perc as number;
+      this.form.remark = data.head_remark
+      this.queryModal.qIndexQuotations.quotation_ids = [data.quotation_id as number];
+
+      this.indexQuotation();
+    },
+
+    removeQuotation() {
+      // this.form.customer_id = null;
+      // this.form.order_type_id = null;
+      // this.form.currency_id = null;
+      // this.form.exchange_rate = 1;
+      // this.form.vat_id = null;
+      // this.form.vat_perc = 0;
+      // this.form.pph23_id = null;
+      // this.form.pph23_perc = 0;
+      // this.form.markup_perc = 0;
+      // this.form.disc_am = 0;
+      // this.form.disc_perc = 0;
+      // this.form.remark = '';
+      this.queryModal.qIndexQuotations.quotation_ids = [];
+      this.indexQuotation();
+    },
+
+    autocompleteMarkup(value: number) {
+      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        if (!item.is_lock_markup) {
+          item.markup_perc = value;
+        }
+      });
+    },
+
+    calculateMarkup(soDt: SoDtType) {
+      if (!soDt.is_lock_price_sell) {
+        soDt.markup_perc_am = soDt.price_buy * (soDt.markup_perc ?? 0) / 100;
+        soDt.price_sell = soDt.price_buy + (soDt.price_buy * (soDt.markup_perc ?? 0) / 100);
+      }
+    },
+
+    onClickLockMarkup(quoDt: SoDtType) {
+      if (!!quoDt.is_lock_markup) {
+        quoDt.is_lock_markup = 0;
+      } else {
+        quoDt.is_lock_markup = 1;
+      }
+    },
+
+    onClickLockPriceSell(quoDt: SoDtType) {
+      if (!!quoDt.is_lock_price_sell) {
+        quoDt.is_lock_price_sell = 0;
+      } else {
+        quoDt.is_lock_price_sell = 1;
+      }
+    },
+
+    calculatePrice(soDtBom: SoDtBomType, soDt: SoDtType) {
+      soDtBom.subtotal_buy = soDtBom.price_buy * soDtBom.qty;
+
+      if (!!soDt.so_dts_boms && soDt.so_dts_boms.length > 0) {
+        soDt.price_buy = soDt.so_dts_boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      } else if (!!soDt.boms && soDt.boms.length > 0) {
+        soDt.price_buy = soDt.boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+
+      this.calculateMarkup(soDt);
     },
 
     calculateTotalAmount() {
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+        if (!!item.so_dts_boms) {
+          item.so_dts_boms.forEach((bom: SoDtBomType) => {
+            this.calculatePrice(bom, item);
+          });
+        }
+
+        if (!!item.disc_perc && item.disc_perc > 0) {
+          item.disc_am = 0;
+        } else if (!!item.disc_am && item.disc_am > 0) {
+          item.disc_perc = 0;
+        }
+
         const discPercentage = Number((item.disc_perc ?? 0) / 100);
         const discAmount = Number(item.disc_am);
         const priceSell = Number(item.price_sell);
@@ -951,32 +1035,30 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         item.disc_perc_num = 0;
         item.disc_perc_am = 0;
-        item.disc_final = 0;
-        if (discPercentage || discAmount) {
+        item.disc_final = discFinal
+        if (discPercentage) {
           item.disc_perc_num = discPercNum;
           item.disc_perc_am = discPercAm;
-          item.disc_final = discFinal;
-          item.disc_type = discType;
         }
 
         item.vat_perc_am = 0;
 
-        if (!!item.vat_id) {
-          item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
-        }
+        // if (!!item.vat_id) {
+        //   item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
+        // }
 
         item.pph23_perc_am = 0;
 
-        if (!!item.pph23_id) {
-          item.pph23_perc_am = discFinal * ((item.pph23_perc ?? 0) / 100);
-        }
+        // if (!!item.pph23_id) {
+        //   item.pph23_perc_am = discFinal * ((item.pph23_perc ?? 0) / 100);
+        // }
 
-        item.total_am = discFinal + item.vat_perc_am - item.pph23_perc_am;
+        item.total_am = item.disc_final + item.vat_perc_am - item.pph23_perc_am;
       });
 
       // header calculation
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.total_am,
+        (acc: number, item: SoDtType) => acc + item.subtotal_sell,
         0
       );
 
@@ -985,68 +1067,83 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         0
       );
 
-      this.form.total_vat = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + (item.vat_perc_am as number),
+      // this.form.total_vat = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: SoDtType) => acc + (item.vat_perc_am as number),
+      //   0
+      // );
+
+      // this.form.total_pph23 = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: SoDtType) => acc + (item.pph23_perc_am as number),
+      //   0
+      // );
+
+      this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
+        (acc: number, item: SoDtType) => acc + (item.disc_perc_am + item.disc_am),
         0
-      );
+      ));
 
-      this.form.total_pph23 = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + (item.pph23_perc_am as number),
-        0
-      );
+      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
+      // let itemsDiscount = this.itemsCheck.checkMain.reduce(
+      //   (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
+      //   0
+      // );
 
-      // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
-      let itemsDiscount = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.disc_perc_am + item.disc_am,
-        0
-      );
+      this.form.disc_perc_am = 0
 
-      const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
-      const discAmountHead = Number(this.form.disc_am ?? 0);
+      if (!!this.form.disc_perc) {
+        // this.form.disc_perc_am = this.form.disc_final * (((this.form.disc_perc ?? 0) / 100));
+        this.form.disc_perc_am = (this.form.subtotal - this.form.disc_final) * (((this.form.disc_perc ?? 0) / 100));
+      }
 
-      let discPercPriceSellHead = Number(this.form.subtotal * discPercentageHead);
-      let discPercAmHead = Number(
-        this.form.subtotal - (discPercPriceSellHead ?? 0)
-      );
+      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
+      this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
+
+      // const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
+      // const discAmountHead = Number(this.form.disc_am ?? 0);
+
+      // let discPercPriceSellHead = Number(this.form.subtotal * discPercentageHead);
+      // let discPercAmHead = Number(
+      //   this.form.subtotal - (discPercPriceSellHead ?? 0)
+      // );
 
       this.form.disc_type = null;
-      this.form.disc_perc_am = 0;
+      // this.form.disc_perc_am = 0;
 
-      this.form.total_discount = discAmountHead + itemsDiscount;
-      if (!!discPercPriceSellHead) {
-        this.form.total_discount = discPercPriceSellHead + discAmountHead;
-      }
+      // this.form.total_discount = discAmountHead + itemsDiscount;
+      // if (!!discPercPriceSellHead) {
+      //   this.form.total_discount = discPercPriceSellHead + discAmountHead;
+      // }
 
-      let discType: SoDtDiscType = null;
+      // let discType: SoDtDiscType = null;
 
-      let discFinal = 0;
-      if (!!discAmountHead && discAmountHead > 0) {
-        discType = "a";
-      } else if (!!discPercentageHead && discPercentageHead > 0) {
-        discType = "p";
-      } else if (
-        !!discAmountHead &&
-        discAmountHead > 0 &&
-        !!discPercentageHead &&
-        discPercentageHead > 0
-      ) {
-        discType = "all";
-      }
+      // let discFinal = 0;
+      // if (!!discAmountHead && discAmountHead > 0) {
+      //   discType = "a";
+      // } else if (!!discPercentageHead && discPercentageHead > 0) {
+      //   discType = "p";
+      // } else if (
+      //   !!discAmountHead &&
+      //   discAmountHead > 0 &&
+      //   !!discPercentageHead &&
+      //   discPercentageHead > 0
+      // ) {
+      //   discType = "all";
+      // }
 
-      discFinal = discPercAmHead - discAmountHead;
-      if (discFinal <= 0) {
-        discFinal = this.form.subtotal;
-      }
+      // discFinal = discPercAmHead - discAmountHead;
+      // if (discFinal <= 0) {
+      //   discFinal = this.form.subtotal;
+      // }
 
-      if (this.form.disc_perc) {
-        this.form.disc_perc_am = discPercPriceSellHead;
-      }
+      // if (this.form.disc_perc) {
+      //   this.form.disc_perc_am = discPercPriceSellHead;
+      // }
 
-      this.form.disc_final = 0;
-      if (discAmountHead || discPercentageHead) {
-        this.form.disc_type = discType;
-        this.form.disc_final = discFinal;
-      }
+      // this.form.disc_final = 0;
+      // if (discAmountHead || discPercentageHead) {
+      //   this.form.disc_type = discType;
+      //   this.form.disc_final = discFinal;
+      // }
 
       // if (!!this.form.vat_id) {
       //   this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
@@ -1056,12 +1153,24 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
       // }
 
+      // this.form.grand_total =
+      //   discFinal + this.form.total_vat - this.form.total_pph23;
+
+      if (!!this.form.vat_id) {
+        // this.form.total_discount
+        this.form.total_vat = (this.form.subtotal - this.form.total_discount) * ((this.form.vat_perc ?? 0) / 100);
+      }
+
+      if (!!this.form.pph23_id) {
+        this.form.total_pph23 = (this.form.subtotal - this.form.total_discount) * ((this.form.pph23_perc ?? 0) / 100);
+      }
+
       this.form.grand_total =
-        discFinal + this.form.total_vat - this.form.total_pph23;
+        this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
         this.formLayout.summary.total_amount.value = this.form.subtotal;
-        this.formLayout.summary.total_qty.value = this.form.total_qty;
+        // this.formLayout.summary.total_qty.value = this.form.total_qty;
         this.formLayout.summary.total_discount.value = this.form.total_discount;
         this.formLayout.summary.total_vat.value = this.form.total_vat;
         this.formLayout.summary.total_pph23.value = this.form.total_pph23;
