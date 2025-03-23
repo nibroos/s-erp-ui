@@ -63,7 +63,7 @@ const headers = ref<FieldSelectableType[]>([
   { key: "unit_name", title: "Unit", sortable: true },
   { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "markup", title: "Markup (%)", sortable: true, align: "end" },
+  { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
   { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
   { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
   { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
@@ -547,11 +547,6 @@ const fetchInitialData = async () => {
   await Promise.all([quotationStore.show(), quotationStore.indexProduct()]);
 };
 
-const closeAllModal = () => {
-  isOpenModal.value.products = false;
-  isOpenModal.value.boms = false;
-};
-
 const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   if (isOpenModal.value.products) {
     queryModal.value.qIndexProducts.page = options.page;
@@ -582,23 +577,10 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   fetchModalFilter();
 };
 
-const onClickUpdateProductsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
-};
-
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMain.splice(index, 1);
 
   quotationStore.countSelectedReferences();
-};
-
-const onClickUpdateBomsModal = () => {
-  // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
 };
 
 const onClickOpenModalBOM = async (
@@ -815,7 +797,12 @@ watchEffect(() => {
             :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
             icon="mdi-refresh"
             type="button"
-            @click="quotationStore.clickClearRefs"
+            @click="
+              () => {
+                quotationStore.clickClearRefs();
+                calculateTotalAmountLocal();
+              }
+            "
           />
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
@@ -852,7 +839,12 @@ watchEffect(() => {
                     max: 3,
                   }"
                   hide-currency-display
-                  @update:modelValue="calculateTotalAmountLocal"
+                  @update:modelValue="
+                    () => {
+                      quotationStore.calculateMarkup(item);
+                      calculateTotalAmountLocal();
+                    }
+                  "
                   label=""
                   class="w-[9rem]"
                 />
@@ -873,7 +865,7 @@ watchEffect(() => {
                   "
                   icon-class="text-zinc-400"
                   is-no-text
-                  @click="item.is_lock_markup = !item.is_lock_markup"
+                  @click="quotationStore.onClickLockMarkup(item)"
                 />
               </div>
             </template>
@@ -1060,6 +1052,15 @@ watchEffect(() => {
                           hide-currency-display
                           label=""
                           class="w-full"
+                          @update:modelValue="
+                            () => {
+                              quotationStore.calculatePrice(
+                                item,
+                                internalItem.raw
+                              );
+                              calculateTotalAmountLocal();
+                            }
+                          "
                         />
                       </template>
                       <template #item.price_buy="{ item }">
@@ -1074,11 +1075,10 @@ watchEffect(() => {
                           class="w-full"
                           @update:modelValue="
                             () => {
-                              // quotationStore.calculatePrice(
-                              //   item,
-                              //   internalItem.raw
-                              // );
-
+                              quotationStore.calculatePrice(
+                                item,
+                                internalItem.raw
+                              );
                               calculateTotalAmountLocal();
                             }
                           "
@@ -1158,7 +1158,12 @@ watchEffect(() => {
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
               is-display-multiple-key
-              @click:selected="(data) => quotationStore.autocompleteVat(data)"
+              @click:selected="
+                (data) => {
+                  quotationStore.autocompleteVat(data);
+                  calculateTotalAmountLocal();
+                }
+              "
               @click:clear="quotationStore.removeVat()"
               :fields="headersVAT"
               :filters="[
@@ -1195,7 +1200,10 @@ watchEffect(() => {
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
-                (data, oldId) => quotationStore.autocompletePph(data, oldId)
+                (data, oldId) => {
+                  quotationStore.autocompletePph(data, oldId);
+                  calculateTotalAmountLocal();
+                }
               "
               @click:clear="quotationStore.removePph()"
               modal-parent-class="!z-[2500]"
@@ -1274,7 +1282,7 @@ watchEffect(() => {
               @update:modelValue="
                 (value) => {
                   quotationStore.autocompleteMarkup(value);
-                  calculateTotalAmountLocal;
+                  calculateTotalAmountLocal();
                 }
               "
               label="Markup (%)"
@@ -1545,7 +1553,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateProductsModal"
+            @click="quotationStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1601,6 +1609,7 @@ watchEffect(() => {
 
       <v-data-table-server
         v-model="itemsCheck.checkBoms"
+        v-model:page="queryModal.qIndexBoms.page"
         :items="metaModal.indexBoms.data ?? []"
         :headers="headersModalProducts"
         :items-per-page="queryModal.qIndexBoms.per_page"
@@ -1629,6 +1638,9 @@ watchEffect(() => {
             >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
         </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
+        </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
         </template>
@@ -1644,7 +1656,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateBomsModal"
+            @click="quotationStore.onClickUpdateBomsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Boms ({{ itemsCheck.checkBoms.length }})

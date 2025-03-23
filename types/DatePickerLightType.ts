@@ -1,5 +1,5 @@
 export type DatePickerLightType = {
-  modelValue?: string
+  modelValue?: string | null | undefined
   format?: string
   displayFormat?: string
   label?: string

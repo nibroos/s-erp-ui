@@ -18,13 +18,16 @@ export type FormProductType = {
   tpb_code?: string | null
   minimum_stock?: number | null
   is_all_branch?: number | null
+  is_vat: number | null | undefined
+  is_pph23: number | null | undefined
   status?: number
-  expired_at?: string | null
+  expired_at: string | undefined | null
   units: CreateMsItemUnitsRequestType[]
   boms: CreateBomsRequestType[]
 }
 
 export type CreateMsItemUnitsRequestType = {
+  id?: number | null | undefined | string | string[]
   unit_id: number
   conversion: number
   price_sell: number
@@ -32,6 +35,7 @@ export type CreateMsItemUnitsRequestType = {
 }
 
 export type CreateBomsRequestType = {
+  id?: number | null | undefined | string | string[]
   product_item_id: number
   item_unit_id: number
   qty: number
@@ -132,3 +136,6 @@ export type ProductBomListType = {
   item_id?: number
   ref_id?: number
 }
+
+
+export type ModalIndexMasterFilterTextType = 'code' | 'name'

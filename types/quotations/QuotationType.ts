@@ -140,6 +140,8 @@ export type QuoDtType = {
   product_code?: string
   item_name?: string
   item_code?: string
+  is_vat?: number
+  is_pph23?: number
 }
 
 export type QuoDtBomType = {
