@@ -2,7 +2,7 @@
 const emit = defineEmits(["update:modelValue"]);
 
 type IProps = {
-  modelValue: number | string;
+  modelValue: number | null | undefined;
   label: string;
   class?: string;
   trueValue?: any;
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<IProps>(), {
   color: "brown",
 });
 
-const switchActive = ref<number | string | undefined>(props.modelValue);
+const switchActive = ref<number | string | null | undefined>(props.modelValue);
 
 const toggleSwitch = () => {
   switchActive.value = switchActive.value == 1 ? 0 : 1;

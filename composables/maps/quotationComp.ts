@@ -2,57 +2,57 @@ import type { ProductBomListType } from "~/types/masters/ProductType"
 import type { FormQuoDtProductListType, FormQuoDtRefType, QuoDtBomType, QuoDtItemType, QuoDtRefType, QuoDtType } from "~/types/quotations/QuotationType"
 
 export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
-  return bom.map((bomItem: QuoDtBomType | ProductBomListType) => {
-    const randomUuid = randomId()
+  return bom
+    .filter((bomItem: QuoDtBomType | ProductBomListType) => bomItem.qty !== 0)
+    .map((bomItem: QuoDtBomType | ProductBomListType) => {
+      const randomUuid = randomId()
 
-    if (type === 'bom') {
-      return {
-        ...bomItem,
-        uid: randomUuid,
-        product_uuid: productUuid,
-        item_id: bomItem.product_item_id ?? bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
-        name: bomItem.item_name ?? bomItem.name,
-        code: bomItem.item_code ?? bomItem.code,
-        sku: bomItem.item_sku ?? bomItem.sku,
-        barcode: bomItem.item_barcode ?? bomItem.barcode,
-        factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
-        specification: bomItem.item_specification ?? bomItem.specification,
-        item_name: bomItem.item_name ?? bomItem.name,
-        item_code: bomItem.item_code ?? bomItem.code,
-        item_sku: bomItem.item_sku ?? bomItem.sku,
-        item_barcode: bomItem.item_barcode ?? bomItem.barcode,
-        item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
-        item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
-        product_id: productId,
+      if (type === 'bom') {
+        return {
+          ...bomItem,
+          uid: randomUuid,
+          product_uuid: productUuid,
+          item_id: bomItem.product_item_id ?? bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
+          name: bomItem.item_name ?? bomItem.name,
+          code: bomItem.item_code ?? bomItem.code,
+          sku: bomItem.item_sku ?? bomItem.sku,
+          barcode: bomItem.item_barcode ?? bomItem.barcode,
+          factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
+          specification: bomItem.item_specification ?? bomItem.specification,
+          item_name: bomItem.item_name ?? bomItem.name,
+          item_code: bomItem.item_code ?? bomItem.code,
+          item_sku: bomItem.item_sku ?? bomItem.sku,
+          item_barcode: bomItem.item_barcode ?? bomItem.barcode,
+          item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
+          item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
+          product_id: productId,
+        }
+      } else {
+        return {
+          ...bomItem,
+          uid: randomUuid,
+          product_uuid: productUuid,
+          item_id: bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
+          name: bomItem.name ?? bomItem.item_name,
+          code: bomItem.code ?? bomItem.item_code,
+          sku: bomItem.sku ?? bomItem.item_sku,
+          barcode: bomItem.barcode ?? bomItem.item_barcode,
+          factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
+          specification: bomItem.item_specification,
+          item_name: bomItem.name ?? bomItem.item_name,
+          item_code: bomItem.code ?? bomItem.item_code,
+          item_sku: bomItem.sku ?? bomItem.item_sku,
+          item_barcode: bomItem.barcode ?? bomItem.item_barcode,
+          item_factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
+          product_id: productId,
+        }
       }
-    } else {
-      return {
-        ...bomItem,
-        uid: randomUuid,
-        product_uuid: productUuid,
-        item_id: bomItem.bom_id ?? bomItem.item_id ?? bomItem.ref_id,
-        name: bomItem.name ?? bomItem.item_name,
-        code: bomItem.code ?? bomItem.item_code,
-        sku: bomItem.sku ?? bomItem.item_sku,
-        barcode: bomItem.barcode ?? bomItem.item_barcode,
-        factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
-        specification: bomItem.item_specification,
-        item_name: bomItem.name ?? bomItem.item_name,
-        item_code: bomItem.code ?? bomItem.item_code,
-        item_sku: bomItem.sku ?? bomItem.item_sku,
-        item_barcode: bomItem.barcode ?? bomItem.item_barcode,
-        item_factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
-        product_id: productId,
-      }
-    }
-  })
+    })
 }
 
 export function convertQuoItemRefProduct(
   item: FormQuoDtProductListType,
 ): QuoDtType {
-  console.log('convertQuoItemRefProduct-item', item);
-
   let itemType: QuoDtItemType = item.boms && item.boms.length > 0 ? 'product' : 'item'
   let productUuid = randomId()
   let productId = item.product_id ?? item.ref_id
@@ -114,22 +114,6 @@ export function generateQuoDt(
     | QuoDtRefType,
   checkMain: QuoDtType[],
 ): QuoDtType[] {
-  // let generatedList: QuoDtType[] = []
-
-  // const generatedList = data.map((dt: FormQuoDtRefType): QuoDtType => {
-  //   // if (useInventoryInStore().showModal.listPO) {
-  //   //   return convertPoRefToListItem(dt as PoTableCheck, invType)
-  //   // }
-  //   console.log('generateQuoDt-checkMain', checkMain);
-
-  //   if (checkOpened == 'products') {
-
-  //     return convertQuoItemRefProduct(dt)
-  //   } else {
-  //     return dt as unknown as QuoDtType
-  //   }
-  // })
-
   let newRefItems: QuoDtType[]
   let removedRefItems: QuoDtType[]
   let updatedList: QuoDtType[]
@@ -146,10 +130,6 @@ export function generateQuoDt(
     })
     updatedList = [...newRefItems]
 
-    console.log('generateQuoDt-prod-newRefItems', newRefItems);
-    console.log('generateQuoDt-prod-removedRefItems', removedRefItems);
-    console.log('generateQuoDt-prod-updatedList', updatedList);
-
   } else {
     newRefItems = data as unknown as QuoDtType[]
     removedRefItems = checkMain.filter((item: QuoDtType) => {
@@ -158,10 +138,6 @@ export function generateQuoDt(
       })
     })
     updatedList = [...newRefItems]
-
-    console.log('generateQuoDt-else-newRefItems', newRefItems);
-    console.log('generateQuoDt-else-removedRefItems', removedRefItems);
-    console.log('generateQuoDt-else-updatedList', updatedList);
   }
 
   return updatedList
@@ -187,9 +163,7 @@ export function updateQuoRefsModalFromMain(
 
     if (checkProducts.length > 0) {
       checkProducts.forEach((prodItem: FormQuoDtProductListType, iProdItem: number) => {
-        console.log('updateQuoRefsModalFromMain-mainItem-base', iProdItem, mainItem);
         if (mainItem.ref_id == prodItem.ref_id) {
-          console.log('updateQuoRefsModalFromMain-mainItem-found', iProdItem, mainItem);
 
           const combined = {
             ...prodItem,

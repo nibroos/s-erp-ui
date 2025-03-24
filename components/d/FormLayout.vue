@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
     <slot name="action"></slot>
     <div
       v-if="!!mergedConfig.isAction"
-      class="flex h-max w-full flex-col gap-4 rounded-lg !border !border-zinc-400 p-3"
+      class="flex h-max w-full flex-col gap-3 rounded-lg !border !border-zinc-400 p-3"
     >
       <div class="flex flex-row items-center justify-between">
         <div class="flex w-max items-center gap-3 whitespace-nowrap">

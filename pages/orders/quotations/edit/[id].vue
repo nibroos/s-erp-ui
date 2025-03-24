@@ -17,11 +17,13 @@ import type {
   FormQuoDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
+  QuoDtBomType,
   QuoDtDiscType,
   QuoDtType,
   VatModeType,
 } from "~/types/quotations/QuotationType";
 import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
+import type { ProductBomListType } from "~/types/masters/ProductType";
 
 const router = useRouter();
 const layoutStore = useLayoutsStore();
@@ -52,22 +54,21 @@ useHead({
 
 const id = ref(router.currentRoute.value.params.id);
 
-const headers = ref([
+const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
   { key: "item_type", title: "Item Type", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  // { key: "sku", title: "SKU", sortable: true },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
+  { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
+  { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
+  { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
-  // { key: "qty_so", title: "Qty SO", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
-  { key: "price_sell", title: "Price", sortable: true },
-  { key: "disc_perc", title: "Disc (%)", sortable: true },
-  { key: "disc_am", title: "Disc (Am)", sortable: true },
-  { key: "vat_id", title: "VAT", sortable: true },
-  { key: "total_am", title: "Total Amount", sortable: true },
   {
     key: "action",
     title: "Action",
@@ -83,7 +84,9 @@ const headersBOM = ref([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "qty", title: "Qty", sortable: true },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -211,7 +214,32 @@ const filtersCustomer = ref<FilterSelectableType[]>([
   },
 ]);
 
+const headersBOMModal = ref<FieldSelectableType[]>([
+  { key: "item_code", title: "Product Code", sortable: true },
+  { key: "item_name", title: "Product Name", sortable: true },
+  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_sku", title: "SKU", align: "end", sortable: true },
+  { key: "item_barcode", title: "Barcode", align: "end", sortable: true },
+  {
+    key: "item_specification",
+    title: "Specification",
+    align: "end",
+    sortable: true,
+  },
+  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
+  { key: "qty", title: "Qty", align: "end", sortable: true },
+  {
+    title: "Total Amount",
+    key: "subtotal_buy",
+    value: "subtotal_buy",
+    align: "end",
+    sortable: true,
+  },
+  { key: "remark", title: "Remark", sortable: true },
+]) as Ref<FieldSelectableType[]>;
+
 const headersModalProducts = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "Group",
     key: "item_group_name",
@@ -272,6 +300,20 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     title: "Stock",
     key: "qty_stock",
     value: "qty_stock",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Price Buy",
+    key: "price_buy",
+    value: "price_buy",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
     align: "end",
     sortable: true,
   },
@@ -366,17 +408,9 @@ const currencySymbolLabel = ref<string | null>("");
 
 const summaryLayout = ref({
   total_amount: {
-    label: "Total Amount",
+    label: "Sub Amount",
     symbol: currencySymbolLabel.value,
     value: form.value.subtotal,
-
-    format: {
-      precision: 2,
-    },
-  },
-  total_qty: {
-    label: "Total Qty",
-    value: form.value.total_qty,
 
     format: {
       precision: 2,
@@ -475,84 +509,6 @@ const handleSubmit = async () => {
   await quotationStore.update();
 };
 
-const autocompleteCustomer = (data: any) => {
-  form.value.email = data.email;
-  form.value.phone = data.phone;
-  form.value.address = data.address;
-};
-
-const autocompleteVat = (data: FormVatType) => {
-  form.value.vat_perc = Number(data.num);
-
-  // vatMode.value = null;
-
-  // if (!!form.value.vat_id) {
-  //   itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-  //     item.vat_id = null;
-  //     item.vat_perc = 0;
-  //   });
-
-  //   vatMode.value = "header";
-  // }
-
-  calculateTotalAmount();
-};
-
-const autocompleteVatDt = (data: FormVatType, quoDtType: QuoDtType) => {
-  quoDtType.vat_perc = Number(data.num);
-
-  // form.value.vat_id = null;
-  // form.value.vat_perc = 0;
-
-  vatMode.value = "detail";
-
-  calculateTotalAmount();
-};
-
-const removeVat = () => {
-  form.value.vat_perc = 0;
-  vatMode.value = null;
-
-  calculateTotalAmount();
-};
-
-const removeVatDt = (quoDtType: QuoDtType) => {
-  if (!quoDtType.vat_id) {
-    quoDtType.vat_perc = 0;
-    quoDtType.vat_perc_am = 0;
-  }
-
-  // if all items vat_id is null, then change vatmode to null
-  const isAllVatNull = itemsCheck.value.checkMain.every(
-    (item: QuoDtType) => !item.vat_id
-  );
-
-  if (isAllVatNull) {
-    form.value.vat_id = null;
-    form.value.vat_perc = 0;
-    vatMode.value = null;
-  }
-
-  calculateTotalAmount();
-};
-
-const removePph = () => {
-  form.value.pph23_perc = 0;
-};
-
-const autocompletePph = (data: FormPph23Type) => {
-  form.value.pph23_perc = Number(data.num);
-
-  calculateTotalAmount();
-};
-
-const autocompleteCurrency = (data: FormCurrencyType) => {
-  form.value.exchange_rate = Number(data.num);
-  currencySymbolLabel.value = data.symbol;
-
-  calculateTotalAmount();
-};
-
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
   isOpenModal.value.products = false;
   if (ref.key == "products") {
@@ -591,11 +547,6 @@ const fetchInitialData = async () => {
   await Promise.all([quotationStore.show(), quotationStore.indexProduct()]);
 };
 
-const closeAllModal = () => {
-  isOpenModal.value.products = false;
-  isOpenModal.value.boms = false;
-};
-
 const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   if (isOpenModal.value.products) {
     queryModal.value.qIndexProducts.page = options.page;
@@ -626,23 +577,10 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   fetchModalFilter();
 };
 
-const onClickUpdateProductsModal = () => {
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
-};
-
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMain.splice(index, 1);
 
   quotationStore.countSelectedReferences();
-};
-
-const onClickUpdateBomsModal = () => {
-  // console.log("item, onClickUpdateBomsModal", itemsCheck.value.checkBoms);
-  quotationStore.selectItemRefModal();
-  quotationStore.countSelectedReferences();
-  closeAllModal();
 };
 
 const onClickOpenModalBOM = async (
@@ -669,150 +607,14 @@ const onClickDeleteBom = (
     item.quo_dts_boms.splice(indexBom, 1);
   }
 
-  calculateTotalAmount();
+  quotationStore.calculateTotalAmount();
 };
 
-const calculateTotalAmount = () => {
-  itemsCheck.value.checkMain.forEach((item: QuoDtType) => {
-    const discPercentage = Number((item.disc_perc ?? 0) / 100);
-    const discAmount = Number(item.disc_am);
-    const priceSell = Number(item.price_sell);
-    const priceBuy = Number(item.price_buy);
-    const qty = Number(item.qty);
-    const subtotalSell = Number(priceSell * qty);
-    const subtotalBuy = Number(priceBuy * qty);
-
-    const discPercPriceSell = Number(priceSell * discPercentage);
-    const discPercNum = Number(priceSell - discPercPriceSell);
-    // const subDiscPercAm = Number(qty * discPercNum);
-    const discPercAm = Number(subtotalSell * discPercentage);
-    const subDiscPercAm = Number(subtotalSell - discPercAm);
-
-    item.subtotal_sell = subtotalSell;
-    item.subtotal_buy = subtotalBuy;
-
-    let discType: QuoDtDiscType = null;
-
-    let discFinal = 0;
-    if (!!discAmount && discAmount > 0) {
-      discType = "a";
-      //   discFinal = subtotalSell - discAmount;
-    } else if (!!discPercentage && discPercentage > 0) {
-      discType = "p";
-      //   discFinal = subDiscPercAm;
-    } else if (
-      !!discAmount &&
-      discAmount > 0 &&
-      !!discPercentage &&
-      discPercentage > 0
-    ) {
-      discType = "all";
-      // discFinal = subDiscPercAm - discAmount;
-    }
-
-    // discFinal = subDiscPercAm;
-    discFinal = subDiscPercAm - discAmount;
-    if (discFinal <= 0) {
-      discFinal = subtotalSell;
-    }
-
-    item.disc_perc_num = 0;
-    item.disc_perc_am = 0;
-    item.disc_final = 0;
-    if (discPercentage || discAmount) {
-      item.disc_perc_num = discPercNum;
-      item.disc_perc_am = discPercAm;
-      item.disc_final = discFinal;
-      item.disc_type = discType;
-    }
-
-    item.vat_perc_am = 0;
-
-    if (!!item.vat_id) {
-      item.vat_perc_am = discFinal * ((item.vat_perc ?? 0) / 100);
-    }
-
-    item.total_am = discFinal + item.vat_perc_am;
-  });
-
-  // header calculation
-  form.value.subtotal = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.total_am,
-    0
-  );
-
-  form.value.total_qty = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.qty,
-    0
-  );
-
-  // form.value.total_discount = item.disc_perc_am + item.disc_am + form.value.disc_am + form.value.disc_perc_am;
-  let itemsDiscount = itemsCheck.value.checkMain.reduce(
-    (acc: number, item: QuoDtType) => acc + item.disc_perc_am + item.disc_am,
-    0
-  );
-
-  const discPercentageHead = Number((form.value.disc_perc ?? 0) / 100);
-  const discAmountHead = Number(form.value.disc_am ?? 0);
-
-  let discPercPriceSellHead = Number(form.value.subtotal * discPercentageHead);
-  let discPercAmHead = Number(
-    form.value.subtotal - (discPercPriceSellHead ?? 0)
-  );
-
-  form.value.disc_type = null;
-  form.value.disc_perc_am = 0;
-
-  form.value.total_discount = discAmountHead + itemsDiscount;
-  if (!!discPercPriceSellHead) {
-    form.value.total_discount = discPercPriceSellHead + discAmountHead;
-  }
-
-  let discType: QuoDtDiscType = null;
-
-  let discFinal = 0;
-  if (!!discAmountHead && discAmountHead > 0) {
-    discType = "a";
-  } else if (!!discPercentageHead && discPercentageHead > 0) {
-    discType = "p";
-  } else if (
-    !!discAmountHead &&
-    discAmountHead > 0 &&
-    !!discPercentageHead &&
-    discPercentageHead > 0
-  ) {
-    discType = "all";
-  }
-
-  discFinal = discPercAmHead - discAmountHead;
-  if (discFinal <= 0) {
-    discFinal = form.value.subtotal;
-  }
-
-  if (form.value.disc_perc) {
-    form.value.disc_perc_am = discPercPriceSellHead;
-  }
-
-  form.value.disc_final = 0;
-  if (discAmountHead || discPercentageHead) {
-    form.value.disc_type = discType;
-    form.value.disc_final = discFinal;
-  }
-
-  if (!!form.value.vat_id) {
-    form.value.total_vat = discFinal * ((form.value.vat_perc ?? 0) / 100);
-  }
-
-  if (!!form.value.pph23_id) {
-    form.value.total_pph23 = discFinal * ((form.value.pph23_perc ?? 0) / 100);
-  }
-
-  form.value.grand_total =
-    discFinal + form.value.total_vat + form.value.total_pph23;
+const calculateTotalAmountLocal = () => {
+  quotationStore.calculateTotalAmount();
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
-    formLayout.value.summary.total_qty.value = form.value.total_qty;
     formLayout.value.summary.total_discount.value = form.value.total_discount;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
@@ -820,40 +622,15 @@ const calculateTotalAmount = () => {
 
     // TODO foreach currency symbol
   }
-
-  console.log(
-    form.value.subtotal,
-    form.value.grand_total,
-    discFinal,
-    form.value.total_vat,
-    form.value.total_pph23,
-    form.value.total_discount
-  );
 };
 
-// watch(
-//   () => itemsCheck.value.checkMain,
-//   (oldValue, newVal) => {
-//     if (oldValue != newVal) {
-//       calculateTotalAmount();
-//     }
-//   },
-//   { deep: true, immediate: true }
-// );
-
-// watch(
-//   () => itemsCheck.value.checkMain.length,
-//   (oldValue, newVal) => {
-//     if (oldValue !== newVal) {
-//       quotationStore.countSelectedReferences();
-//     }
-//   }
-// );
-
-const vatMode = ref<VatModeType>(null);
+const clickClearForm = () => {
+  quotationStore.handleClickClear();
+  quotationStore.calculateTotalAmount();
+};
 
 onMounted(async () => {
-  quotationStore.handleClickClear();
+  clickClearForm();
   await fetchInitialData();
   // quotationStore.updateRefsModal();
 });
@@ -911,7 +688,9 @@ watchEffect(() => {
               v-model="form.customer_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompleteCustomer"
+              @click:selected="
+                (data) => quotationStore.autocompleteCustomer(data)
+              "
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :fields="headersCustomer"
@@ -1018,7 +797,12 @@ watchEffect(() => {
             :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
             icon="mdi-refresh"
             type="button"
-            @click="quotationStore.clickClearRefs"
+            @click="
+              () => {
+                quotationStore.clickClearRefs();
+                calculateTotalAmountLocal();
+              }
+            "
           />
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
@@ -1035,33 +819,6 @@ watchEffect(() => {
               class: 'whitespace-nowrap',
             }"
           >
-            <template #item.vat_id="{ item }">
-              <lazy-d-select-table
-                api="/v1/vats/index-vat"
-                detail-api="/v1/vats/index-vat"
-                method-api="post"
-                detail-method-api="post"
-                mapping-detail="data[0]"
-                total-prop="meta.total"
-                label="VAT"
-                v-model="item.vat_id"
-                class="col-span-2 lg:col-span-1 w-[9rem]"
-                is-quick-select
-                modal-parent-class="!z-[2500]"
-                modal-custom-class="!w-4/5"
-                :display-single-multiple-keys="['name', 'num']"
-                is-display-multiple-key
-                @click:selected="(data) => autocompleteVatDt(data, item)"
-                @click:clear="removeVatDt(item)"
-                :fields="headersVAT"
-                :filters="[
-                  {
-                    title: 'Name',
-                    key: 'name',
-                  },
-                ]"
-              />
-            </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
             </template>
@@ -1073,18 +830,86 @@ watchEffect(() => {
                 class="w-[9rem]"
               />
             </template>
+            <template #item.markup_perc="{ item }">
+              <div class="flex w-full gap-2 grow">
+                <d-num-v-format
+                  v-model="item.markup_perc"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="
+                    () => {
+                      quotationStore.calculateMarkup(item);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                  label=""
+                  class="w-[9rem]"
+                />
+
+                <d-bt
+                  type="button"
+                  cta="Lock/Unlock Margin"
+                  :class="
+                    classMerge(
+                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
+                    )
+                  "
+                  text-class="text-zinc-400"
+                  :icon="
+                    item.is_lock_markup
+                      ? 'mdi-lock-outline'
+                      : 'mdi-lock-open-variant-outline'
+                  "
+                  icon-class="text-zinc-400"
+                  is-no-text
+                  @click="quotationStore.onClickLockMarkup(item)"
+                />
+              </div>
+            </template>
+            <template #item.price_buy="{ item }">
+              <d-num-layout :value="item.price_buy" />
+            </template>
             <template #item.price_sell="{ item }">
-              <d-num-v-format
-                v-model="item.price_sell"
-                :precision="{
-                  min: 3,
-                  max: 3,
-                }"
-                hide-currency-display
-                @update:modelValue="calculateTotalAmount"
-                label=""
-                class="w-[9rem]"
-              />
+              <div class="flex w-full gap-2 grow">
+                <d-num-v-format
+                  v-model="item.price_sell"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                />
+
+                <d-bt
+                  type="button"
+                  cta="Lock/Unlock Margin"
+                  :class="
+                    classMerge(
+                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
+                    )
+                  "
+                  text-class="text-zinc-400"
+                  :icon="
+                    !!item.is_lock_price_sell
+                      ? 'mdi-lock-outline'
+                      : 'mdi-lock-open-variant-outline'
+                  "
+                  icon-class="text-zinc-400"
+                  is-no-text
+                  @click="
+                    () => {
+                      quotationStore.onClickLockPriceSell(item);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                />
+              </div>
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
@@ -1096,7 +921,7 @@ watchEffect(() => {
                 hide-currency-display
                 label=""
                 class="w-[9rem]"
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
               />
             </template>
             <template #item.disc_am="{ item }">
@@ -1107,23 +932,27 @@ watchEffect(() => {
                   max: 3,
                 }"
                 hide-currency-display
-                @update:modelValue="calculateTotalAmount"
+                @update:modelValue="calculateTotalAmountLocal"
                 label=""
                 class="w-[9rem]"
+                :disabled="!!item.disc_perc"
               />
             </template>
             <template #item.disc_perc="{ item }">
-              <d-num-v-format
-                v-model="item.disc_perc"
-                :precision="{
-                  min: 3,
-                  max: 3,
-                }"
-                hide-currency-display
-                @update:modelValue="calculateTotalAmount"
-                label=""
-                class="w-[9rem]"
-              />
+              <div class="flex flex-col">
+                <d-num-v-format
+                  v-model="item.disc_perc"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                  :disabled="!!item.disc_am"
+                />
+              </div>
             </template>
 
             <template #item.total_am="{ item }">
@@ -1133,7 +962,7 @@ watchEffect(() => {
               <div class="action-button flex gap-2">
                 <d-bt
                   v-if="item.item_type == 'product'"
-                  @click="onClickOpenModalBOM(item, index)"
+                  @click="onClickOpenModalBOM(((item as unknown as FormQuoDtProductListType)), index)"
                   class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
                   text-class="text-primary1 dark:text-white"
                   rounded="xl"
@@ -1158,7 +987,10 @@ watchEffect(() => {
 
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.quo_dts_boms.length > 0"
+                v-if="
+                  internalItem.raw.quo_dts_boms &&
+                  internalItem.raw.quo_dts_boms.length > 0
+                "
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -1204,7 +1036,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="item.remark"
+                          v-model="(item as QuoDtType).remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1212,7 +1044,7 @@ watchEffect(() => {
                       </template>
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="item.qty"
+                          v-model="(item as QuoDtType).qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1220,7 +1052,40 @@ watchEffect(() => {
                           hide-currency-display
                           label=""
                           class="w-full"
+                          @update:modelValue="
+                            () => {
+                              quotationStore.calculatePrice(
+                                item,
+                                internalItem.raw
+                              );
+                              calculateTotalAmountLocal();
+                            }
+                          "
                         />
+                      </template>
+                      <template #item.price_buy="{ item }">
+                        <d-num-v-format
+                          v-model="(item as QuoDtType).price_buy"
+                          :precision="{
+                            min: 3,
+                            max: 3,
+                          }"
+                          hide-currency-display
+                          label=""
+                          class="w-full"
+                          @update:modelValue="
+                            () => {
+                              quotationStore.calculatePrice(
+                                item,
+                                internalItem.raw
+                              );
+                              calculateTotalAmountLocal();
+                            }
+                          "
+                        />
+                      </template>
+                      <template #item.subtotal_buy="{ item }">
+                        <d-num-layout :value="item.subtotal_buy" />
                       </template>
                       <template #item.action="{ item: itemBom, index: iBom }">
                         <div class="action-button">
@@ -1234,7 +1099,7 @@ watchEffect(() => {
                             cta="delete"
                             icon-size="16"
                             :is-notif="true"
-                            :notif-text="`${itemBom.item_name} deleted`"
+                            :notif-text="`${(itemBom as QuoDtBomType).item_name} deleted`"
                           ></d-bt>
                         </div>
                       </template>
@@ -1261,7 +1126,9 @@ watchEffect(() => {
               inner-search-key="global"
               label="Currency"
               :errors="errors.currency_id"
-              @click:selected="autocompleteCurrency"
+              @click:selected="
+                (data) => quotationStore.autocompleteCurrency(data)
+              "
             ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
@@ -1291,8 +1158,13 @@ watchEffect(() => {
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
               is-display-multiple-key
-              @click:selected="autocompleteVat"
-              @click:clear="removeVat"
+              @click:selected="
+                (data) => {
+                  quotationStore.autocompleteVat(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+              @click:clear="quotationStore.removeVat()"
               :fields="headersVAT"
               :filters="[
                 {
@@ -1327,8 +1199,13 @@ watchEffect(() => {
               v-model="form.pph23_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              @click:selected="autocompletePph"
-              @click:clear="removePph"
+              @click:selected="
+                (data, oldId) => {
+                  quotationStore.autocompletePph(data, oldId);
+                  calculateTotalAmountLocal();
+                }
+              "
+              @click:clear="quotationStore.removePph()"
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :display-single-multiple-keys="['name', 'num']"
@@ -1378,7 +1255,7 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc (%)"
             />
           </div>
@@ -1390,8 +1267,25 @@ watchEffect(() => {
                 max: 3,
               }"
               hide-currency-display
-              @update:modelValue="calculateTotalAmount"
+              @update:modelValue="calculateTotalAmountLocal"
               label="Disc Amount"
+            />
+          </div>
+          <div class="sm:col-span-1">
+            <d-num-v-format
+              v-model="form.markup_perc"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              @update:modelValue="
+                (value) => {
+                  quotationStore.autocompleteMarkup(value);
+                  calculateTotalAmountLocal();
+                }
+              "
+              label="Markup (%)"
             />
           </div>
         </div>
@@ -1411,6 +1305,7 @@ watchEffect(() => {
       :is-open="isOpenModal.products"
       size="xl"
       custom-class="overflow-y-auto"
+      parent-class="!z-[1500]"
       label="List of Products"
       @update:is-open="isOpenModal.products = $event"
     >
@@ -1479,17 +1374,178 @@ watchEffect(() => {
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
+            >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
-        </template>
-        <template #item.price_sell="{ item }">
-          <d-num-layout :value="item.price_sell" />
         </template>
         <template #item.price_buy="{ item }">
           <d-num-layout :value="item.price_buy" />
         </template>
+
+        <template #item.qty="{ item }">
+          <d-num-v-format
+            v-model="item.qty"
+            :precision="{
+              min: 3,
+              max: 3,
+            }"
+            hide-currency-display
+            label=""
+            class="w-[9rem]"
+            @update:modelValue="calculateTotalAmountLocal"
+          />
+        </template>
+
+        <template #item.price_sell="{ item }">
+          <d-num-layout :value="item.price_sell" />
+        </template>
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="internalItem.raw.boms.length > 0"
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
+          >
+            <v-icon
+              icon="mdi-chevron-down"
+              class="transition-transform"
+              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+            />
+          </button>
+        </template>
+        <template
+          #expanded-row="{
+            columns,
+            item,
+            internalItem,
+            index
+          }: {
+            columns: any
+            item: any
+            internalItem: any
+            index: number
+          }"
+        >
+          <tr v-if="!!item.quo_dts_boms && item.quo_dts_boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.quo_dts_boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.price_buy="{ item }">
+                    <d-num-v-format
+                      v-model="item.price_buy"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        () => {
+                          quotationStore.calculatePrice(item, internalItem.raw);
+                        }
+                      "
+                    />
+                  </template>
+
+                  <template #item.qty="{ item }">
+                    <d-num-v-format
+                      v-model="item.qty"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        quotationStore.calculatePrice(item, internalItem.raw)
+                      "
+                    />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="!!item.boms && item.boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.price_buy="{ item }">
+                    <d-num-v-format
+                      v-model="item.price_buy"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        () => {
+                          quotationStore.calculatePrice(item, internalItem.raw);
+                        }
+                      "
+                    />
+                  </template>
+
+                  <template #item.qty="{ item }">
+                    <d-num-v-format
+                      v-model="item.qty"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-[9rem]"
+                      @update:modelValue="
+                        quotationStore.calculatePrice(item, internalItem.raw)
+                      "
+                    />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
         </template>
       </v-data-table-server>
 
@@ -1497,7 +1553,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateProductsModal"
+            @click="quotationStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1509,6 +1565,7 @@ watchEffect(() => {
       :is-open="isOpenModal.boms"
       size="xl"
       custom-class="overflow-y-auto"
+      parent-class="!z-[2499]"
       label="List of Boms"
       @update:is-open="isOpenModal.boms = $event"
     >
@@ -1552,6 +1609,7 @@ watchEffect(() => {
 
       <v-data-table-server
         v-model="itemsCheck.checkBoms"
+        v-model:page="queryModal.qIndexBoms.page"
         :items="metaModal.indexBoms.data ?? []"
         :headers="headersModalProducts"
         :items-per-page="queryModal.qIndexBoms.per_page"
@@ -1577,8 +1635,11 @@ watchEffect(() => {
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineQuoItemTypeQuotation(item) }}
+            >{{ defineQuoItemTypeQuotation((item as QuoDtType)) }}
           </span>
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />
@@ -1595,7 +1656,7 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="onClickUpdateBomsModal"
+            @click="quotationStore.onClickUpdateBomsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Boms ({{ itemsCheck.checkBoms.length }})

@@ -145,6 +145,7 @@ const formQuotationCreateEdit = {
   exchange_rate: null,
   vat_perc: 0,
   vat_perc_am: 0,
+  markup_perc: 0,
   disc_am: 0,
   disc_perc: 0,
   disc_perc_am: 0,

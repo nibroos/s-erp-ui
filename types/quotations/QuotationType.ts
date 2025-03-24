@@ -16,9 +16,13 @@ export type IndexQuotationType = {
   remark: string | null
   status: string
   is_approved: number
+  is_vat: number
+  is_pph23: number
   exchange_rate: number | null
   vat_perc: number | null
   pph23_perc: number | null
+  markup_perc: number | null
+
   total_qty: number | null
   subtotal: number | null
   total_discount: number | null
@@ -37,6 +41,7 @@ export type IndexQuotationType = {
   updated_at: string | null
   deleted_at: string | null
   product_id: string | null
+
   item_id: string | null
   quo_dt_vat_id: string | null
   currency_name: string | null
@@ -70,6 +75,7 @@ export type FormQuotationType = {
   disc_final: number
   disc_type: QuoDtDiscType | null
   pph23_perc: number
+  markup_perc: number // n
   total_qty: number
   subtotal: number
   total_discount: number
@@ -93,6 +99,7 @@ export type QuoDtType = {
   quotation_id?: number | null
   item_unit_id?: number | null
   vat_id?: number | null
+  pph23_id?: number | null
   ref_id: number
   item_id: number
   product_uuid: string
@@ -100,8 +107,18 @@ export type QuoDtType = {
   item_type: QuoDtItemType
   gen_code?: string | null
   remark?: string
+  // is_lock_vat?: number
   vat_perc?: number
   vat_perc_am?: number
+  // is_lock_pph23?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   qty_so?: number
   qty: number
   price_sell: number
@@ -114,7 +131,10 @@ export type QuoDtType = {
   disc_perc_am: number
   disc_final: number
   disc_type?: QuoDtDiscType | null
-  total_am: number
+  // head_disc_am?: number | null
+  // head_disc_perc?: number | null
+  // disc_end?: number | null
+  total_am: number // ambil dari (qty * price_sell) - (disc_am or disc_perc per detail)
   quo_dts_boms?: (QuoDtBomType | ProductBomListType)[] | null
   boms?: QuoDtBomType[]
 
@@ -173,7 +193,18 @@ export type QuoDtsType = {
   ref_type: string
   product_uuid?: string | null
   remark?: string | null
-  vat_perc: number
+  // is_lock_vat?: number
+  vat_perc?: number
+  vat_perc_am?: number
+  // is_lock_pph23?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   qty_so: number
   qty: number
   price_sell: number
@@ -226,8 +257,17 @@ export type FormQuoDtProductListType = ProductListType & QuoDtsType & {
   quotation_id?: number | null
   quo_dt_id?: number | null
   vat_id?: number
+  pph23_id?: number
   vat_perc?: number
   vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  markup_perc?: number // n
+  markup_perc_am?: number // n
+  is_vat?: number
+  is_pph23?: number
+  is_lock_markup?: number
+  is_lock_price_sell?: number
   ref_id?: number
   qty_so?: number
   qty?: number
