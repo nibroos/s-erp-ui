@@ -242,8 +242,8 @@ const formApprovedQuotation = [
 ]
 
 const formTabQuotation = {
-  items: 0,
-  payments: 1,
+  payments: 0,
+  items: 1,
   remarks: 2,
 }
 

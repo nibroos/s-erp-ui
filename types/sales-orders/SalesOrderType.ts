@@ -82,7 +82,7 @@ export type FormSalesOrderType = {
   exchange_rate?: number | null
   vat_perc: number
   pph23_perc: number
-  markup_perc: number
+  // markup_perc: number
   disc_am: number
   disc_perc: number
   disc_perc_am: number
@@ -91,6 +91,7 @@ export type FormSalesOrderType = {
   total_qty: number
   subtotal: number
   total_discount: number
+  total_after_disc: number
   total_pph23: number
   total_vat: number
   grand_total: number

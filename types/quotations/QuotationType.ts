@@ -79,6 +79,7 @@ export type FormQuotationType = {
   total_qty: number
   subtotal: number
   total_discount: number
+  total_after_disc: number
   total_pph23: number
   total_vat: number
   grand_total: number

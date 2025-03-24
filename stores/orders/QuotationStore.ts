@@ -356,7 +356,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
     selectItemRefModal() {
       if (this.isOpenModal.products) {
-        this.itemsCheck.checkMain = generateQuoDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain)
+        this.itemsCheck.checkMain = generateQuoDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain, this.form)
         this.isOpenModal.products = false
       }
       if (this.isOpenModal.boms) {
@@ -716,22 +716,6 @@ const useQuotationStore = defineStore('QuotationStore', {
         0
       );
 
-      // this.form.total_pph23 = this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => acc + (item.pph23_perc_am ?? 0),
-      //   0
-      // );
-
-      // let itemsVat = this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => {
-      //     if (!!item.vat_id) {
-      //       return acc + (item.vat_perc_am ?? 0)
-      //     }
-
-      //     return acc
-      //   },
-      //   0
-      // );
-
       this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
         (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
         0
@@ -755,71 +739,9 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
       this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
-
-      // const discPercentageHead = Number((this.form.disc_perc ?? 0) / 100);
-      // const discAmountHead = Number(this.form.disc_am ?? 0);
-
-      // let discPercPriceSellHead = Number(this.form.subtotal * discPercentageHead);
-      // let discPercAmHead = Number(
-      //   this.form.subtotal - (discPercPriceSellHead ?? 0)
-      // );
+      this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
 
       this.form.disc_type = null;
-      // this.form.disc_perc_am = this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => acc + ((item.head_disc_perc ?? 0)),
-      //   0
-      // );
-
-      // this.form.total_discount = this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => acc + (item.disc_end ?? 0),
-      //   0
-      // );
-      // if (!!discPercPriceSellHead) {
-      //   this.form.total_discount = discPercPriceSellHead + discAmountHead;
-      // }
-
-      // let discType: QuoDtDiscType = null;
-
-      // let discFinal = 0;
-      // if (!!discAmountHead && discAmountHead > 0) {
-      //   discType = "a";
-      // } else if (!!discPercentageHead && discPercentageHead > 0) {
-      //   discType = "p";
-      // } else if (
-      //   !!discAmountHead &&
-      //   discAmountHead > 0 &&
-      //   !!discPercentageHead &&
-      //   discPercentageHead > 0
-      // ) {
-      //   discType = "all";
-      // }
-
-      // discFinal = discPercAmHead - discAmountHead;
-      // discFinal = 0;
-      // if (discFinal <= 0) {
-      //   discFinal = this.form.subtotal;
-      // }
-
-      // if (this.form.disc_perc) {
-      //   this.form.disc_perc_am = discPercPriceSellHead;
-      // }
-
-      // this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
-      //   (acc: number, item: QuoDtType) => acc + (item.disc_perc_am + item.disc_am),
-      //   0
-      // ));
-      // if (discAmountHead || discPercentageHead) {
-      //   this.form.disc_type = discType;
-      //   this.form.disc_final = discFinal;
-      // }
-
-      // if (!!this.form.vat_id) {
-      //   this.form.total_vat = discFinal * ((this.form.vat_perc ?? 0) / 100);
-      // }
-
-      // if (!!this.form.pph23_id) {
-      //   this.form.total_pph23 = discFinal * ((this.form.pph23_perc ?? 0) / 100);
-      // }
 
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(

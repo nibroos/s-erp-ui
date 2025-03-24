@@ -420,6 +420,15 @@ const summaryLayout = ref({
       precision: 2,
     },
   },
+  total_after_disc: {
+    label: "Total After Discount",
+    symbol: currencySymbolLabel.value,
+    value: form.value.total_after_disc,
+
+    format: {
+      precision: 2,
+    },
+  },
   total_vat: {
     label: "Total VAT",
     symbol: currencySymbolLabel.value,
@@ -455,7 +464,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/orders/quotations",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark"],
+  tabs: ["Payments", "Items", "Remark"],
   button: {
     clear: {
       show: true,
@@ -532,11 +541,6 @@ const fetchInitialData = async () => {
   await quotationStore.indexProduct();
 };
 
-const closeAllModal = () => {
-  isOpenModal.value.products = false;
-  isOpenModal.value.boms = false;
-};
-
 const fetchDataServerFetch = async (options: { [key: string]: any }) => {
   if (isOpenModal.value.products) {
     queryModal.value.qIndexProducts.page = options.page;
@@ -604,6 +608,8 @@ const calculateTotalAmountLocal = () => {
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
     formLayout.value.summary.total_discount.value = form.value.total_discount;
+    formLayout.value.summary.total_after_disc.value =
+      form.value.total_after_disc;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
     formLayout.value.summary.grand_total.value = form.value.grand_total;
@@ -1077,7 +1083,12 @@ watchEffect(() => {
                       <template #item.action="{ item: itemBom, index: iBom }">
                         <div class="action-button">
                           <d-bt
-                            @click="onClickDeleteBom(index, iBom, internalItem)"
+                            @click="
+                              () => {
+                                onClickDeleteBom(index, iBom, internalItem);
+                                calculateTotalAmountLocal();
+                              }
+                            "
                             icon="mdi-delete"
                             is-no-text
                             class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1114,7 +1125,7 @@ watchEffect(() => {
               label="Currency"
               :errors="errors.currency_id"
               @click:selected="
-                (data) => quotationStore.autocompleteCurrency(data)
+                (data: FormCurrencyType) => quotationStore.autocompleteCurrency(data)
               "
             ></d-autocomplete>
           </div>
@@ -1541,7 +1552,12 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="quotationStore.onClickUpdateProductsModal()"
+            @click="
+              () => {
+                quotationStore.onClickUpdateProductsModal();
+                calculateTotalAmountLocal();
+              }
+            "
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1644,7 +1660,12 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="quotationStore.onClickUpdateBomsModal()"
+            @click="
+              () => {
+                quotationStore.onClickUpdateBomsModal();
+                calculateTotalAmountLocal();
+              }
+            "
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Boms ({{ itemsCheck.checkBoms.length }})

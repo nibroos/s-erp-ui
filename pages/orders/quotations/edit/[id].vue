@@ -425,6 +425,15 @@ const summaryLayout = ref({
       precision: 2,
     },
   },
+  total_after_disc: {
+    label: "Total After Discount",
+    symbol: currencySymbolLabel.value,
+    value: form.value.total_after_disc,
+
+    format: {
+      precision: 2,
+    },
+  },
   total_vat: {
     label: "Total VAT",
     symbol: currencySymbolLabel.value,
@@ -460,7 +469,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/orders/quotations",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark"],
+  tabs: ["Payments", "Items", "Remark"],
   mode: "edit",
   button: {
     create: {
@@ -616,6 +625,8 @@ const calculateTotalAmountLocal = () => {
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
     formLayout.value.summary.total_discount.value = form.value.total_discount;
+    formLayout.value.summary.total_after_disc.value =
+      form.value.total_after_disc;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
     formLayout.value.summary.grand_total.value = form.value.grand_total;
@@ -1553,7 +1564,12 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="quotationStore.onClickUpdateProductsModal()"
+            @click="
+              () => {
+                quotationStore.onClickUpdateProductsModal();
+                calculateTotalAmountLocal();
+              }
+            "
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1656,7 +1672,12 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="quotationStore.onClickUpdateBomsModal()"
+            @click="
+              () => {
+                quotationStore.onClickUpdateBomsModal();
+                calculateTotalAmountLocal();
+              }
+            "
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Boms ({{ itemsCheck.checkBoms.length }})

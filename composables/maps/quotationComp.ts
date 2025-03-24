@@ -1,5 +1,5 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
-import type { FormQuoDtProductListType, FormQuoDtRefType, QuoDtBomType, QuoDtItemType, QuoDtRefType, QuoDtType } from "~/types/quotations/QuotationType"
+import type { FormQuoDtProductListType, FormQuoDtRefType, FormQuotationType, QuoDtBomType, QuoDtItemType, QuoDtRefType, QuoDtType } from "~/types/quotations/QuotationType"
 
 export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom
@@ -52,6 +52,7 @@ export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], prod
 
 export function convertQuoItemRefProduct(
   item: FormQuoDtProductListType,
+  head: FormQuotationType
 ): QuoDtType {
   let itemType: QuoDtItemType = item.boms && item.boms.length > 0 ? 'product' : 'item'
   let productUuid = randomId()
@@ -64,6 +65,8 @@ export function convertQuoItemRefProduct(
   if (!!item.quo_dts_boms) {
     item.quo_dts_boms = generateQuoBoms(item.quo_dts_boms, productUuid, 'bom', productId)
   }
+
+  let markupPerc = item.markup_perc ?? head.markup_perc
 
   const data: QuoDtType = {
     ...item,
@@ -79,6 +82,7 @@ export function convertQuoItemRefProduct(
     remark: item.remark,
     vat_perc: item.vat_perc || 0,
     vat_perc_am: item.vat_perc_am || 0,
+    markup_perc: markupPerc,
     item_type: itemType,
     qty: item.qty || 0,
     price_sell: (item.price_sell || 0) as number,
@@ -113,6 +117,7 @@ export function generateQuoDt(
   checkOpened:
     | QuoDtRefType,
   checkMain: QuoDtType[],
+  head: FormQuotationType
 ): QuoDtType[] {
   let newRefItems: QuoDtType[]
   let removedRefItems: QuoDtType[]
@@ -120,7 +125,7 @@ export function generateQuoDt(
 
   if (checkOpened == 'products') {
     newRefItems = data.map((dt: FormQuoDtRefType): QuoDtType => {
-      return convertQuoItemRefProduct(dt)
+      return convertQuoItemRefProduct(dt, head)
     })
 
     removedRefItems = checkMain.filter((rmItem: QuoDtType) => {
