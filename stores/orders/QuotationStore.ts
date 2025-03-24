@@ -544,6 +544,12 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.form.address = data.address;
     },
 
+    // calculatePriceSell(priceSell: number, iQuoDt: number) {
+    //   console.log('priceSell', priceSell, iQuoDt);
+
+    //   this.itemsCheck.checkMain[iQuoDt].price_sell = priceSell;
+    // },
+
     calculatePrice(quoDtBom: QuoDtBomType, quoDt: QuoDtType) {
       quoDtBom.subtotal_buy = quoDtBom.price_buy * quoDtBom.qty;
 
@@ -735,7 +741,16 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       if (!!this.form.disc_perc) {
         // this.form.disc_perc_am = this.form.disc_final * (((this.form.disc_perc ?? 0) / 100));
-        this.form.disc_perc_am = (this.form.subtotal - this.form.disc_final) * (((this.form.disc_perc ?? 0) / 100));
+        // this.form.disc_perc_am = (this.form.subtotal - this.form.disc_final) * (((this.form.disc_perc ?? 0) / 100));
+
+        let discPercAm = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: QuoDtType) => {
+            return acc + (item.total_am * (this.form.disc_perc / 100));
+          },
+          0
+        );
+
+        this.form.disc_perc_am = discPercAm;
       }
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
@@ -807,12 +822,39 @@ const useQuotationStore = defineStore('QuotationStore', {
       // }
 
       if (!!this.form.vat_id) {
-        // this.form.total_discount
-        this.form.total_vat = (this.form.subtotal - this.form.total_discount) * ((this.form.vat_perc ?? 0) / 100);
+        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: QuoDtType) => {
+            if (!!item.is_vat) {
+              return acc + item.total_am;
+            }
+            return acc;
+          },
+          0
+        );
+
+        let discPercAmVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: QuoDtType) => {
+            if (!!item.is_vat) {
+              return acc + (item.total_am * (this.form.disc_perc / 100));
+            }
+            return acc;
+          },
+          0
+        );
+        this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.disc_am)) * ((this.form.vat_perc ?? 0) / 100)
       }
 
       if (!!this.form.pph23_id) {
-        this.form.total_pph23 = (this.form.subtotal - this.form.total_discount) * ((this.form.pph23_perc ?? 0) / 100);
+        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: QuoDtType) => {
+            if (!!item.is_pph23) {
+              return acc + item.subtotal_sell;
+            }
+            return acc;
+          },
+          0
+        );
+        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_perc ?? 0) / 100);
       }
 
       this.form.grand_total =

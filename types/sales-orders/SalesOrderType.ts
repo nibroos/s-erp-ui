@@ -151,6 +151,7 @@ export type SoDtType = {
   // disc_end?: number | null
   total_am: number
   so_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
+  quo_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
   boms?: SoDtBomType[]
 
   code?: string

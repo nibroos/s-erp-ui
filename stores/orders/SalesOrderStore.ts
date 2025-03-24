@@ -20,7 +20,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         per_page: 10,
         parent_ids: [],
         global: '',
-        order_column: 'name',
+        order_column: 'order_at',
         order_direction: 'desc'
       } as QIndexType,
 
@@ -130,6 +130,22 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
     currencySymbolLabel: '' as string | null,
+    headAutocomplete: {
+      quo: {
+        customer_id: null as number | null | undefined,
+        order_type_id: null as number | null | undefined,
+        currency_id: null as number | null | undefined,
+        exchange_rate: 0 as number | null | undefined,
+        vat_id: null as number | null | undefined,
+        vat_perc: 0,
+        pph23_id: null as number | null | undefined,
+        pph23_perc: 0,
+        markup_perc: 0,
+        disc_am: 0,
+        disc_perc: 0,
+        remark: '' as string | null | undefined,
+      }
+    },
     formLayout: {
       title: "Basic Information",
       parentPath: "/orders/sales-orders",
@@ -761,6 +777,18 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.selectItemRefModal();
       this.countSelectedReferences();
       this.closeAllModal();
+
+      this.form.order_type_id = this.headAutocomplete.quo.order_type_id;
+      this.form.currency_id = this.headAutocomplete.quo.currency_id;
+      this.form.exchange_rate = this.headAutocomplete.quo.exchange_rate;
+      this.form.vat_id = this.headAutocomplete.quo.vat_id;
+      this.form.vat_perc = this.headAutocomplete.quo.vat_perc as number;
+      this.form.pph23_id = this.headAutocomplete.quo.pph23_id;
+      this.form.pph23_perc = this.headAutocomplete.quo.pph23_perc as number;
+      this.form.markup_perc = this.headAutocomplete.quo.markup_perc as number;
+      this.form.disc_am = this.headAutocomplete.quo.disc_am as number;
+      this.form.disc_perc = this.headAutocomplete.quo.disc_perc as number;
+      this.form.remark = this.headAutocomplete.quo.remark
     },
 
     onClickDeleteSelected(item: any, index: number) {
@@ -892,20 +920,18 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     autocompleteQuotation(data: FormSoDtProductListType) {
-      console.log('data log', data);
-
       this.form.customer_id = data.customer_id;
-      this.form.order_type_id = data.order_type_id;
-      this.form.currency_id = data.currency_id;
-      this.form.exchange_rate = data.exchange_rate;
-      this.form.vat_id = data.head_vat_id;
-      this.form.vat_perc = data.head_vat_perc as number;
-      this.form.pph23_id = data.head_pph23_id;
-      this.form.pph23_perc = data.head_pph23_perc as number;
-      this.form.markup_perc = data.head_markup_perc as number;
-      this.form.disc_am = data.head_disc_am as number;
-      this.form.disc_perc = data.head_disc_perc as number;
-      this.form.remark = data.head_remark
+      this.headAutocomplete.quo.order_type_id = data.order_type_id;
+      this.headAutocomplete.quo.currency_id = data.currency_id;
+      this.headAutocomplete.quo.exchange_rate = data.exchange_rate;
+      this.headAutocomplete.quo.vat_id = data.head_vat_id;
+      this.headAutocomplete.quo.vat_perc = data.head_vat_perc as number;
+      this.headAutocomplete.quo.pph23_id = data.head_pph23_id;
+      this.headAutocomplete.quo.pph23_perc = data.head_pph23_perc as number;
+      this.headAutocomplete.quo.markup_perc = data.head_markup_perc as number;
+      this.headAutocomplete.quo.disc_am = data.head_disc_am as number;
+      this.headAutocomplete.quo.disc_perc = data.head_disc_perc as number;
+      this.headAutocomplete.quo.remark = data.head_remark
       this.queryModal.qIndexQuotations.quotation_ids = [data.quotation_id as number];
 
       this.indexQuotation();
@@ -959,6 +985,29 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    calculateDtPrice(soDt: SoDtType) {
+      if (!!soDt.so_dts_boms && soDt.so_dts_boms.length > 0) {
+        soDt.price_buy = soDt.so_dts_boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+      else if (!!soDt.quo_dts_boms && soDt.quo_dts_boms.length > 0) {
+        soDt.price_buy = soDt.quo_dts_boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+      else if (!!soDt.boms && soDt.boms.length > 0) {
+        soDt.price_buy = soDt.boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+
+      this.calculateMarkup(soDt);
+    },
+
     calculatePrice(soDtBom: SoDtBomType, soDt: SoDtType) {
       soDtBom.subtotal_buy = soDtBom.price_buy * soDtBom.qty;
 
@@ -967,7 +1016,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
           0
         );
-      } else if (!!soDt.boms && soDt.boms.length > 0) {
+      }
+      else if (!!soDt.quo_dts_boms && soDt.quo_dts_boms.length > 0) {
+        soDt.price_buy = soDt.quo_dts_boms.reduce(
+          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
+          0
+        );
+      }
+      else if (!!soDt.boms && soDt.boms.length > 0) {
         soDt.price_buy = soDt.boms.reduce(
           (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
           0
@@ -1092,7 +1148,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       if (!!this.form.disc_perc) {
         // this.form.disc_perc_am = this.form.disc_final * (((this.form.disc_perc ?? 0) / 100));
-        this.form.disc_perc_am = (this.form.subtotal - this.form.disc_final) * (((this.form.disc_perc ?? 0) / 100));
+
+        let discPercAm = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: SoDtType) => {
+            return acc + (item.total_am * (this.form.disc_perc / 100));
+          },
+          0
+        );
+
+        this.form.disc_perc_am = discPercAm;
       }
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
@@ -1157,12 +1221,40 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       //   discFinal + this.form.total_vat - this.form.total_pph23;
 
       if (!!this.form.vat_id) {
-        // this.form.total_discount
-        this.form.total_vat = (this.form.subtotal - this.form.total_discount) * ((this.form.vat_perc ?? 0) / 100);
+        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: SoDtType) => {
+            if (!!item.is_vat) {
+              return acc + item.total_am;
+            }
+            return acc;
+          },
+          0
+        );
+
+        let discPercAmVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: SoDtType) => {
+            if (!!item.is_vat) {
+              return acc + (item.total_am * (this.form.disc_perc / 100));
+            }
+            return acc;
+          },
+          0
+        );
+
+        this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.disc_am)) * ((this.form.vat_perc ?? 0) / 100)
       }
 
       if (!!this.form.pph23_id) {
-        this.form.total_pph23 = (this.form.subtotal - this.form.total_discount) * ((this.form.pph23_perc ?? 0) / 100);
+        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: SoDtType) => {
+            if (!!item.is_pph23) {
+              return acc + item.subtotal_sell;
+            }
+            return acc;
+          },
+          0
+        );
+        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_perc ?? 0) / 100);
       }
 
       this.form.grand_total =

@@ -30,6 +30,7 @@ import type {
   QuoDtType,
 } from "~/types/quotations/QuotationType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
+import { debounce } from "lodash-es";
 
 const router = useRouter();
 const layoutStore = useLayoutsStore();
@@ -103,7 +104,9 @@ const headersBOM = ref([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "qty", title: "Qty", align: "end", sortable: true },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -114,21 +117,29 @@ const headersBOM = ref([
       class: "action-table sticky-right",
     },
   },
-]) as Ref<FieldSelectableType[]>;
+]);
 
-const headersBOMModal = ref([
+const headersBOMModal = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "item_sku", title: "SKU", align: "end", sortable: true },
-  { key: "item_barcode", title: "Barcode", align: "end", sortable: true },
+  { key: "item_sku", title: "SKU", align: "start", sortable: true },
+  { key: "item_barcode", title: "Barcode", align: "start", sortable: true },
   {
     key: "item_specification",
     title: "Specification",
+    align: "start",
+    sortable: true,
+  },
+  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
+  { key: "qty", title: "Qty", align: "end", sortable: true },
+  {
+    title: "Total Amount",
+    key: "subtotal_buy",
+    value: "subtotal_buy",
     align: "end",
     sortable: true,
   },
-  { key: "qty", title: "Qty", align: "end", sortable: true },
   { key: "remark", title: "Remark", sortable: true },
 ]) as Ref<FieldSelectableType[]>;
 
@@ -305,10 +316,24 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
+  // {
+  //   title: "Stock",
+  //   key: "qty_stock",
+  //   value: "qty_stock",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
-    title: "Stock",
-    key: "qty_stock",
-    value: "qty_stock",
+    title: "Price Buy",
+    key: "price_buy",
+    value: "price_buy",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
     align: "end",
     sortable: true,
   },
@@ -661,14 +686,16 @@ const initialFormLayout = () => {
 
 watch(
   () => itemsCheck.value.checkQuotations,
-  (newVal, oldVal) => {
+  debounce((newVal) => {
     if (newVal.length > 0) {
-      // newVal[0].customer_id = form.value.customer_id;
       salesOrderStore.autocompleteQuotation(newVal[0]);
+      // salesOrderStore.autocompleteQuotation(newVal[0]);
     } else if (newVal.length === 0) {
+      console.log("removeQuotation", newVal);
+
       salesOrderStore.removeQuotation();
     }
-  }
+  }, 500)
 );
 
 onMounted(async () => {
@@ -1797,7 +1824,39 @@ watchEffect(() => {
             index: number
           }"
         >
-          <tr v-if="item.quo_dts_boms.length > 0">
+          <tr v-if="!!item.so_dts_boms && item.so_dts_boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBOMModal"
+                  :items="item.so_dts_boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.so_dts_boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.qty="{ item }">
+                    <d-num-layout :value="item.qty" />
+                  </template>
+                  <template #item.price_buy="{ item }">
+                    <d-num-layout :value="item.price_buy" />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="!!item.quo_dts_boms && item.quo_dts_boms.length > 0">
             <td :colspan="columns.length" class="!p-0">
               <div class="">
                 <v-data-table-virtual
@@ -1816,8 +1875,30 @@ watchEffect(() => {
                     class: 'whitespace-nowrap',
                   }"
                 >
+                  <!-- <template #item.qty="{ item }">
+                    <d-num-v-format
+                      v-model="item.qty"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class=""
+                      @update:modelValue="
+                        salesOrderStore.calculatePrice(item, internalItem.raw);
+                        calculateTotalAmountLocal();
+                      "
+                    />
+                  </template> -->
                   <template #item.qty="{ item }">
-                    <d-num-layout :value="(item as FormQuoDtBomListType).qty" />
+                    <d-num-layout :value="item.qty" />
+                  </template>
+                  <template #item.price_buy="{ item }">
+                    <d-num-layout :value="item.price_buy" />
+                  </template>
+                  <template #item.subtotal_buy="{ item }">
+                    <d-num-layout :value="item.subtotal_buy" />
                   </template>
                 </v-data-table-virtual>
               </div>
@@ -1915,9 +1996,6 @@ watchEffect(() => {
           <span class="capitalize"
             >{{ defineItemTypeSalesOrder(item as SoDtType) }}
           </span>
-        </template>
-        <template #item.qty="{ item }">
-          <d-num-layout :value="item.qty" />
         </template>
         <template #item.price_sell="{ item }">
           <d-num-layout :value="item.price_sell" />

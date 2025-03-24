@@ -291,13 +291,13 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  {
-    title: "Stock",
-    key: "qty_stock",
-    value: "qty_stock",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Stock",
+  //   key: "qty_stock",
+  //   value: "qty_stock",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Price Buy",
     key: "price_buy",
