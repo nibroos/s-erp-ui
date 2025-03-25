@@ -121,13 +121,6 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Approve",
-    key: "is_approved",
-    value: "is_approved",
-    align: "start",
-    sortable: true,
-  },
-  {
     title: "Created By",
     key: "created_by_name",
     value: "created_by_name",
@@ -203,23 +196,6 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete-client",
     others: {
       items: useStatics.QuoIndexStatus,
-    },
-  },
-  {
-    title: "Approve",
-    key: "is_approve",
-    type: "autocomplete-client",
-    others: {
-      items: [
-        {
-          title: "Yes",
-          value: 1,
-        },
-        {
-          title: "No",
-          value: 0,
-        },
-      ],
     },
   },
   {

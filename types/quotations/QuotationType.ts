@@ -79,6 +79,7 @@ export type FormQuotationType = {
   total_qty: number
   subtotal: number
   total_discount: number
+  total_after_disc: number
   total_pph23: number
   total_vat: number
   grand_total: number
@@ -119,6 +120,7 @@ export type QuoDtType = {
   is_pph23?: number
   is_lock_markup?: number
   is_lock_price_sell?: number
+  is_lock_price_buy?: number
   qty_so?: number
   qty: number
   price_sell: number
@@ -205,6 +207,7 @@ export type QuoDtsType = {
   is_pph23?: number
   is_lock_markup?: number
   is_lock_price_sell?: number
+  is_lock_price_buy?: number
   qty_so: number
   qty: number
   price_sell: number
@@ -268,6 +271,7 @@ export type FormQuoDtProductListType = ProductListType & QuoDtsType & {
   is_pph23?: number
   is_lock_markup?: number
   is_lock_price_sell?: number
+  is_lock_price_buy?: number
   ref_id?: number
   qty_so?: number
   qty?: number

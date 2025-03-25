@@ -196,11 +196,6 @@ const QuoIndexStatus = [
     color: 'grey',
   },
   {
-    value: 'CONFIRMED',
-    title: 'Confirmed',
-    color: 'blue',
-  },
-  {
     value: 'APPROVED',
     title: 'Approved',
     color: 'green',
@@ -230,7 +225,6 @@ const QuoIndexDateType = [
 
 const formStatusQuotation = [
   { id: 'WAITING', name: 'WAITING' },
-  { id: 'CONFIRMED', name: 'CONFIRMED' },
   { id: 'APPROVED', name: 'APPROVED' },
   { id: 'PENDING', name: 'PENDING' },
   { id: 'CANCELED', name: 'CANCELED' },
@@ -242,42 +236,37 @@ const formApprovedQuotation = [
 ]
 
 const formTabQuotation = {
-  items: 0,
-  payments: 1,
+  payments: 0,
+  items: 1,
   remarks: 2,
 }
 
 const SoIndexStatus = [
   // WAITING, PROCESS, SHIPPED, PENDING, CANCEL, INVOICE, FINISH
   {
-    value: 'WAITING',
-    title: 'Waiting',
-    color: 'grey',
-  },
-  {
     value: 'PROCESS',
     title: 'Process',
     color: 'blue',
   },
   {
-    value: 'SHIPPED',
-    title: 'Approved',
+    value: 'DELIVERY',
+    title: 'Delivery',
     color: 'green',
   },
   {
-    value: 'PENDING',
-    title: 'Pending',
+    value: 'SCHEDULE',
+    title: 'Schedule',
     color: 'orange',
-  },
-  {
-    value: 'CANCELED',
-    title: 'Canceled',
-    color: 'red',
   },
   {
     value: 'INVOICE',
     title: 'Invoice',
     color: 'purple',
+  },
+  {
+    value: 'CANCELED',
+    title: 'Canceled',
+    color: 'red',
   },
   {
     value: 'FINISH',
@@ -298,18 +287,20 @@ const SoIndexDateType = [
 ]
 
 const formStatusSalesOrder = [
-  { id: 'WAITING', name: 'WAITING' },
-  { id: 'CONFIRMED', name: 'CONFIRMED' },
-  { id: 'APPROVED', name: 'APPROVED' },
-  { id: 'PENDING', name: 'PENDING' },
+  { id: 'PROCESS', name: 'PROCESS' },
+  { id: 'DELIVERY', name: 'DELIVERY' },
+  { id: 'SCHEDULE', name: 'SCHEDULE' },
+  { id: 'INVOICE', name: 'INVOICE' },
   { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'FINISH', name: 'FINISH' },
 ]
 
 const formTabSalesOrder = {
-  items: 0,
-  payments: 1,
+  payments: 0,
+  items: 1,
   remarks: 2,
   schedules: 3,
+  attachments: 4,
 }
 
 const formTabProduct = {

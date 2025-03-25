@@ -76,15 +76,15 @@ const headers = ref<FieldSelectableType[]>([
     },
   },
   { key: "item_type", title: "Item Type", sortable: true },
+  { key: "ref_num", title: "Ref Num", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   // { key: "sku", title: "SKU", sortable: true },
-  // { key: "qty_so", title: "Qty SO", sortable: true },
-  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
-  { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
-  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  // { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
   { key: "price_sell", title: "Price", sortable: true, align: "end" },
+  { key: "qty", title: "Qty", sortable: true, align: "end" },
   { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
   { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
   { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
@@ -104,9 +104,9 @@ const headersBOM = ref([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
+  // { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -426,13 +426,6 @@ const headersModalQuotations = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Qty SO",
-    key: "qty_so",
-    value: "qty_so",
-    align: "end",
-    sortable: true,
-  },
-  {
     title: "Qty",
     key: "qty",
     value: "qty",
@@ -630,7 +623,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/orders/sales-orders",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+  tabs: ["Payments", "Items", "Remark", "Schedule", "Attachments"],
   mode: "edit",
   button: {
     create: {
@@ -657,6 +650,8 @@ const calculateTotalAmountLocal = () => {
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
+    formLayout.value.summary.total_after_disc.value =
+      form.value.total_after_disc;
     formLayout.value.summary.total_discount.value = form.value.total_discount;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
@@ -686,16 +681,37 @@ const initialFormLayout = () => {
 
 watch(
   () => itemsCheck.value.checkQuotations,
-  debounce((newVal) => {
-    if (newVal.length > 0) {
-      salesOrderStore.autocompleteQuotation(newVal[0]);
-      // salesOrderStore.autocompleteQuotation(newVal[0]);
+  (newVal) => {
+    if (newVal.length === 1) {
+      salesOrderStore.indexQuotation();
     } else if (newVal.length === 0) {
-      console.log("removeQuotation", newVal);
-
       salesOrderStore.removeQuotation();
     }
-  }, 500)
+  }
+);
+
+watch(
+  () => isOpenModal.value.quotations,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkQuotations = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => isOpenModal.value.products,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkProducts = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
 );
 
 onMounted(async () => {
@@ -736,6 +752,7 @@ watchEffect(() => {
               :label="`Order No`"
               :placeholder="`Order No`"
               :errors="errors.name"
+              disabled
             >
             </d-text-input>
           </div>
@@ -885,7 +902,12 @@ watchEffect(() => {
             :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
             icon="mdi-refresh"
             type="button"
-            @click="salesOrderStore.clickClearRefs"
+            @click="
+              () => {
+                salesOrderStore.clickClearRefs();
+                calculateTotalAmountLocal();
+              }
+            "
           />
           <v-data-table-virtual
             :items="itemsCheck.checkMain ?? []"
@@ -913,48 +935,6 @@ watchEffect(() => {
                 class="w-[9rem]"
               />
             </template>
-            <template #item.markup_perc="{ item }">
-              <div class="flex w-full gap-2 grow">
-                <d-num-v-format
-                  v-model="item.markup_perc"
-                  :precision="{
-                    min: 3,
-                    max: 3,
-                  }"
-                  hide-currency-display
-                  @update:modelValue="
-                    () => {
-                      salesOrderStore.calculateMarkup(item);
-                      calculateTotalAmountLocal();
-                    }
-                  "
-                  label=""
-                  class="w-[9rem]"
-                />
-
-                <d-bt
-                  type="button"
-                  cta="Lock/Unlock Margin"
-                  :class="
-                    classMerge(
-                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
-                    )
-                  "
-                  text-class="text-zinc-400"
-                  :icon="
-                    item.is_lock_markup
-                      ? 'mdi-lock-outline'
-                      : 'mdi-lock-open-variant-outline'
-                  "
-                  icon-class="text-zinc-400"
-                  is-no-text
-                  @click="salesOrderStore.onClickLockMarkup(item)"
-                />
-              </div>
-            </template>
-            <template #item.price_buy="{ item }">
-              <d-num-layout :value="item.price_buy" />
-            </template>
             <template #item.price_sell="{ item }">
               <div class="flex w-full gap-2 grow">
                 <d-num-v-format
@@ -967,30 +947,6 @@ watchEffect(() => {
                   @update:modelValue="calculateTotalAmountLocal"
                   label=""
                   class="w-[9rem]"
-                />
-
-                <d-bt
-                  type="button"
-                  cta="Lock/Unlock Margin"
-                  :class="
-                    classMerge(
-                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
-                    )
-                  "
-                  text-class="text-zinc-400"
-                  :icon="
-                    !!item.is_lock_price_sell
-                      ? 'mdi-lock-outline'
-                      : 'mdi-lock-open-variant-outline'
-                  "
-                  icon-class="text-zinc-400"
-                  is-no-text
-                  @click="
-                    () => {
-                      salesOrderStore.onClickLockPriceSell(item);
-                      calculateTotalAmountLocal();
-                    }
-                  "
                 />
               </div>
             </template>
@@ -1051,7 +1007,12 @@ watchEffect(() => {
                   no-icon
                 ></d-bt>
                 <d-bt
-                  @click="salesOrderStore.onClickDeleteSelected(item, index)"
+                  @click="
+                    () => {
+                      salesOrderStore.onClickDeleteSelected(item, index);
+                      calculateTotalAmountLocal();
+                    }
+                  "
                   icon="mdi-delete"
                   is-no-text
                   class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1173,11 +1134,14 @@ watchEffect(() => {
                         <div class="action-button">
                           <d-bt
                             @click="
-                              salesOrderStore.onClickDeleteBom(
-                                index,
-                                iBom,
-                                internalItem
-                              )
+                              () => {
+                                salesOrderStore.onClickDeleteBom(
+                                  index,
+                                  iBom,
+                                  internalItem
+                                );
+                                calculateTotalAmountLocal();
+                              }
                             "
                             icon="mdi-delete"
                             is-no-text
@@ -1215,7 +1179,7 @@ watchEffect(() => {
               label="Currency"
               :errors="errors.currency_id"
               @click:selected="
-                (data) => salesOrderStore.autocompleteCurrency(data)
+                (data: FormCurrencyType) => salesOrderStore.autocompleteCurrency(data)
               "
             ></d-autocomplete>
           </div>
@@ -1360,7 +1324,7 @@ watchEffect(() => {
               label="Disc Amount"
             />
           </div>
-          <div class="sm:col-span-1">
+          <!-- <div class="sm:col-span-1">
             <d-num-v-format
               v-model="form.markup_perc"
               :precision="{
@@ -1376,7 +1340,7 @@ watchEffect(() => {
               "
               label="Markup (%)"
             />
-          </div>
+          </div> -->
         </div>
         <div v-if="tabFormIndex == useStatics.formTabSalesOrder.remarks">
           <div class="sm:col-span-1">
@@ -1770,9 +1734,6 @@ watchEffect(() => {
             >{{ item.item_type ?? defineItemTypeSalesOrder(item as QuoDtType) }}
           </span>
         </template>
-        <template #item.qty_so="{ item }">
-          <d-num-layout :value="item.qty_so" />
-        </template>
         <template #item.qty="{ item }">
           <d-num-layout :value="item.qty" />
         </template>
@@ -1799,7 +1760,10 @@ watchEffect(() => {
         </template>
         <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
           <button
-            v-if="internalItem.raw.quo_dts_boms.length > 0"
+            v-if="
+              !!internalItem.raw.quo_dts_boms &&
+              internalItem.raw.quo_dts_boms.length > 0
+            "
             class="cursor-pointer"
             @click="toggleExpand(internalItem)"
             @submit.prevent

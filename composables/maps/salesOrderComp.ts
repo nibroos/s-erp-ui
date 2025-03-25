@@ -175,20 +175,22 @@ export function updateSoRefsModalFromMain(
   let selectedRefList: SoDtType[]
 
   // if (checkOpened == 'products') {
-  selectedRefList = checkMain.filter((item: SoDtType) => {
-    return (item.ref_type == checkOpened) && (item.ref_type == 'products' || item.ref_type == 'quotations')
+  selectedRefList = checkMain.filter((itemMain: SoDtType) => {
+    return (itemMain.ref_type == checkOpened)
+    // && (itemMain.ref_type == 'products' || itemMain.ref_type == 'quotations')
   })
 
   if (checkProducts.length > 0) {
-    selectedRefList.forEach((item: SoDtType) => {
+    selectedRefList.forEach((mainItem: SoDtType) => {
       checkProducts.forEach((prodItem: FormSoDtProductListType) => {
+
         if (
-          (item.ref_type == 'quotations' && item.ref_id == prodItem.quo_dt_id) ||
-          (item.ref_type == 'products' && item.ref_id == prodItem.ref_id)
+          (mainItem.ref_type == 'quotations' && mainItem.ref_id == prodItem.ref_id) ||
+          (mainItem.ref_type == 'products' && mainItem.ref_id == prodItem.ref_id)
         ) {
           let combined: any = {
             ...prodItem,
-            ...item,
+            ...mainItem,
           }
 
           combined = convertSoItemRefProduct(combined, checkOpened)
