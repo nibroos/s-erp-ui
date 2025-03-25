@@ -31,7 +31,7 @@ const defaultProps: TProps = {
       },
       cancel: {
         show: true,
-        cta: "Cancel",
+        cta: "Go To List",
         activateLoading: false,
         isLoadingDefault: true,
       },

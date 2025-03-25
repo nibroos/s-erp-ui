@@ -23,6 +23,7 @@ export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], produc
       item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
       item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
       product_id: productId,
+      qty: bomItem.qty ?? 1,
     }
   })
 }
@@ -93,7 +94,7 @@ export function convertSoItemRefProduct(
     vat_perc: item.vat_perc || 0,
     vat_perc_am: item.vat_perc_am || 0,
     item_type: optional.item_type,
-    qty: item.qty || 0,
+    qty: item.qty || 1,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
     subtotal_sell: item.subtotal_sell || 0,

@@ -762,7 +762,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
-    autocompletePph(data: FormPph23Type, oldId: number | null) {
+    autocompletePph(data: FormPph23Type) {
       this.form.pph23_perc = Number(data.num);
 
       // apply to all childs

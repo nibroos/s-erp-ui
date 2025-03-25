@@ -166,12 +166,6 @@ const getDisplayMultipleKeys = (item: any) => {
     })
     .join(props.displayMultipleSeparator);
 
-  // console.log(
-  //   'displayLabelMulti',
-  //   item,
-  //   props.displayMultipleKeys,
-  //   props.displayMultipleSeparator
-  // )
   // console.log('displayLabel', displayLabel)
 
   return displayLabel;

@@ -166,7 +166,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/quotations/edit/${response.data.data[0].id}`)
+        navigateTo(`/orders/quotations`)
 
         return response
       } catch (error: any) {
@@ -220,7 +220,8 @@ const useQuotationStore = defineStore('QuotationStore', {
         // navigateTo(`/masters/customizations/quotations/edit/${response.data.data[0].id}`)
 
         this.form.id = id
-        await this.show()
+        // await this.show()
+        navigateTo(`/orders/quotations`)
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
@@ -517,7 +518,7 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.calculateTotalAmount();
     },
 
-    autocompletePph(data: FormPph23Type, oldId: number | null) {
+    autocompletePph(data: FormPph23Type) {
       this.form.pph23_perc = Number(data.num);
 
       // apply to all childs
