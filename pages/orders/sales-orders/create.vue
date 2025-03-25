@@ -71,6 +71,7 @@ const headers = ref<FieldSelectableType[]>([
     },
   },
   { key: "item_type", title: "Item Type", sortable: true },
+  { key: "ref_num", title: "Ref Num", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
@@ -305,13 +306,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  // {
-  //   title: "Stock",
-  //   key: "qty_stock",
-  //   value: "qty_stock",
-  //   align: "end",
-  //   sortable: true,
-  // },
   {
     title: "Price Buy",
     key: "price_buy",
@@ -412,13 +406,6 @@ const headersModalQuotations = ref<FieldSelectableType[]>([
     key: "unit_name",
     value: "unit_name",
     align: "start",
-    sortable: true,
-  },
-  {
-    title: "Qty SO",
-    key: "qty_so",
-    value: "qty_so",
-    align: "end",
     sortable: true,
   },
   {
@@ -587,13 +574,11 @@ const filtersTextQuotations = ref([
   },
 ]);
 
-const currencySymbolLabel = ref<string | null>("");
-
 const formLayout = ref({
   title: "Basic Information",
   parentPath: "/orders/sales-orders",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+  tabs: ["Payments", "Items", "Remark", "Schedule", "Attachments"],
   button: {
     clear: {
       show: true,
@@ -655,27 +640,39 @@ const calculateTotalAmountLocal = () => {
   }
 };
 
-// const autocompleteQuotation = (data: FormSoDtProductListType) => {
-//   form.value.customer_id = data.customer_id;
-//   form.value.order_type_id = data.order_type_id;
-//   form.value.currency_id = data.currency_id;
-//   form.value.exchange_rate = data.exchange_rate;
-//   form.value.vat_id = data.head_vat_id;
-//   form.value.pph23_id = data.head_pph23_id;
-//   form.value.disc_am = data.head_disc_am as number;
-//   form.value.disc_perc = data.head_disc_perc as number;
-// };
-
 watch(
   () => itemsCheck.value.checkQuotations,
-  debounce((newVal) => {
-    if (newVal.length > 0) {
-      salesOrderStore.autocompleteQuotation(newVal[0]);
-      // salesOrderStore.autocompleteQuotation(newVal[0]);
+  (newVal) => {
+    if (newVal.length === 1) {
+      salesOrderStore.indexQuotation();
     } else if (newVal.length === 0) {
       salesOrderStore.removeQuotation();
     }
-  }, 500)
+  }
+);
+
+watch(
+  () => isOpenModal.value.quotations,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkQuotations = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => isOpenModal.value.products,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkProducts = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
 );
 
 onMounted(async () => {
@@ -708,15 +705,6 @@ watchEffect(() => {
           "
           @submit.prevent="handleSubmit"
         >
-          <div class="sm:col-span-1 flex flex-col">
-            <d-text-input
-              v-model="form.sales_order_no"
-              :label="`Order No`"
-              :placeholder="`Order No`"
-              :errors="errors.name"
-            >
-            </d-text-input>
-          </div>
           <div class="sm:col-span-1">
             <d-text-input
               v-model="form.po_buyer_no"
@@ -724,6 +712,20 @@ watchEffect(() => {
               :placeholder="`PO Buyer No`"
               :errors="errors.po_buyer_no"
             />
+          </div>
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.order_type_id"
+              api="/v1/order-types/index-order-type"
+              single-api="/v1/order-types/show-order-type"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Order Type"
+              :errors="errors.order_type_id"
+            ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
             <d-select-table
@@ -775,20 +777,6 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.order_type_id"
-              api="/v1/order-types/index-order-type"
-              single-api="/v1/order-types/show-order-type"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Order Type"
-              :errors="errors.order_type_id"
-            ></d-autocomplete>
-          </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
               v-model="form.order_at"
@@ -1695,9 +1683,6 @@ watchEffect(() => {
             >{{ item.item_type ?? defineItemTypeSalesOrder(item as QuoDtType) }}
           </span>
         </template>
-        <template #item.qty_so="{ item }">
-          <d-num-layout :value="item.qty_so" />
-        </template>
         <template #item.qty="{ item }">
           <d-num-layout :value="item.qty" />
         </template>
@@ -1724,7 +1709,10 @@ watchEffect(() => {
         </template>
         <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
           <button
-            v-if="internalItem.raw.quo_dts_boms.length > 0"
+            v-if="
+              !!internalItem.raw.quo_dts_boms &&
+              internalItem.raw.quo_dts_boms.length > 0
+            "
             class="cursor-pointer"
             @click="toggleExpand(internalItem)"
             @submit.prevent

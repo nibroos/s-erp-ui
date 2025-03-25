@@ -863,7 +863,43 @@ watchEffect(() => {
               </div>
             </template>
             <template #item.price_buy="{ item }">
-              <d-num-layout :value="item.price_buy" />
+              <div class="flex w-full gap-2 grow">
+                <d-num-v-format
+                  v-model="item.price_buy"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  @update:modelValue="calculateTotalAmountLocal"
+                  label=""
+                  class="w-[9rem]"
+                />
+
+                <d-bt
+                  type="button"
+                  cta="Lock/Unlock Margin"
+                  :class="
+                    classMerge(
+                      'text-none m-0 rounded-r-md flex items-center justify-center py-0'
+                    )
+                  "
+                  text-class="text-zinc-400"
+                  :icon="
+                    !!item.is_lock_price_buy
+                      ? 'mdi-lock-outline'
+                      : 'mdi-lock-open-variant-outline'
+                  "
+                  icon-class="text-zinc-400"
+                  is-no-text
+                  @click="
+                    () => {
+                      quotationStore.onClickLockPriceBuy(item);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                />
+              </div>
             </template>
             <template #item.price_sell="{ item }">
               <div class="flex w-full gap-2 grow">

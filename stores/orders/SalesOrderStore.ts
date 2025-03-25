@@ -487,11 +487,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
+      if (this.itemsCheck.checkQuotations.length > 0) {
+        this.queryModal.qIndexQuotations.quotation_ids = this.itemsCheck.checkQuotations.map((item: FormSoDtProductListType) => (item.quotation_id as number))
+      }
+
       let params = this.queryModal.qIndexQuotations
 
       if (this.isOpenModal.boms) {
         params = this.queryModal.qIndexBoms
       }
+
       try {
         const response = await useMyFetch().post(
           '/v1/sales-orders/index-ref-quo-dt',
@@ -504,10 +509,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           if (this.itemsCheck.checkQuotations.length > 0) {
             this.itemsCheck.checkQuotations.forEach((checkQuotation: FormSoDtProductListType, iCheckQuotation: number) => {
               (this.metaModal.indexQuotations.data as FormSoDtProductListType[]).forEach((resQuotation: FormSoDtProductListType, iResQuotation: number) => {
-                // console.log('checkQuotation', iCheckQuotation, checkQuotation);
 
-                if (resQuotation.quo_dt_id === checkQuotation.ref_id && checkQuotation.ref_type === 'quotations') {
-                  // console.log('resQuotation', iResQuotation, resQuotation);
+                if (
+                  resQuotation.quo_dt_id === checkQuotation.quo_dt_id ||
+                  resQuotation.quo_dt_id === checkQuotation.ref_id
+                ) {
 
                   const combined = {
                     ...resQuotation,
@@ -519,6 +525,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
                 }
               })
             })
+
+            this.autocompleteQuotation(this.itemsCheck.checkQuotations[0]);
           }
         }
 
@@ -532,8 +540,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
               (this.metaModal.indexBoms.data as SoDtBomType[]).forEach((resBom: FormSoDtBomListType, iResBom: number) => {
 
                 if (resBom.ref_id === checkBom.item_id) {
-                  console.log('checkBom', iCheckBom, checkBom);
-                  console.log('checkResBom', iResBom, resBom);
+                  // console.log('checkBom', iCheckBom, checkBom);
+                  // console.log('checkResBom', iResBom, resBom);
                   // console.log('resBom', iResBom, resBom);
 
                   const combined = {
@@ -847,6 +855,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         if (!!this.form.customer_id) {
           this.queryModal.qIndexQuotations.customer_id = this.form.customer_id;
           this.queryModal.qIndexQuotations.customer_ids = [this.form.customer_id];
+        } else {
+          this.queryModal.qIndexQuotations.customer_id = null;
+          this.queryModal.qIndexQuotations.customer_ids = [];
         }
         await this.indexQuotation();
       }
@@ -942,9 +953,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.headAutocomplete.quo.disc_am = data.head_disc_am as number;
       this.headAutocomplete.quo.disc_perc = data.head_disc_perc as number;
       this.headAutocomplete.quo.remark = data.head_remark
-      this.queryModal.qIndexQuotations.quotation_ids = [data.quotation_id as number];
-
-      this.indexQuotation();
     },
 
     removeQuotation() {

@@ -181,7 +181,7 @@ const formSalesOrderCreateEdit = {
   sales_order_no: "",
   po_buyer_no: "",
   remark: "",
-  status: "WAITING",
+  status: "PROCESS",
   exchange_rate: null,
   vat_perc: 0,
   vat_perc_am: 0,

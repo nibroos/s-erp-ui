@@ -76,11 +76,11 @@ const headers = ref<FieldSelectableType[]>([
     },
   },
   { key: "item_type", title: "Item Type", sortable: true },
+  { key: "ref_num", title: "Ref Num", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   // { key: "sku", title: "SKU", sortable: true },
-  // { key: "qty_so", title: "Qty SO", sortable: true },
   // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   // { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
   { key: "price_sell", title: "Price", sortable: true, align: "end" },
@@ -426,13 +426,6 @@ const headersModalQuotations = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Qty SO",
-    key: "qty_so",
-    value: "qty_so",
-    align: "end",
-    sortable: true,
-  },
-  {
     title: "Qty",
     key: "qty",
     value: "qty",
@@ -630,7 +623,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/orders/sales-orders",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+  tabs: ["Payments", "Items", "Remark", "Schedule", "Attachments"],
   mode: "edit",
   button: {
     create: {
@@ -688,16 +681,37 @@ const initialFormLayout = () => {
 
 watch(
   () => itemsCheck.value.checkQuotations,
-  debounce((newVal) => {
-    if (newVal.length > 0) {
-      salesOrderStore.autocompleteQuotation(newVal[0]);
-      // salesOrderStore.autocompleteQuotation(newVal[0]);
+  (newVal) => {
+    if (newVal.length === 1) {
+      salesOrderStore.indexQuotation();
     } else if (newVal.length === 0) {
-      console.log("removeQuotation", newVal);
-
       salesOrderStore.removeQuotation();
     }
-  }, 500)
+  }
+);
+
+watch(
+  () => isOpenModal.value.quotations,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkQuotations = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => isOpenModal.value.products,
+  (oldVal, newVal) => {
+    if (oldVal != newVal) {
+      if (!oldVal) {
+        itemsCheck.value.checkProducts = [];
+      }
+    }
+  },
+  { immediate: true, deep: true }
 );
 
 onMounted(async () => {
@@ -738,6 +752,7 @@ watchEffect(() => {
               :label="`Order No`"
               :placeholder="`Order No`"
               :errors="errors.name"
+              disabled
             >
             </d-text-input>
           </div>
@@ -1719,9 +1734,6 @@ watchEffect(() => {
             >{{ item.item_type ?? defineItemTypeSalesOrder(item as QuoDtType) }}
           </span>
         </template>
-        <template #item.qty_so="{ item }">
-          <d-num-layout :value="item.qty_so" />
-        </template>
         <template #item.qty="{ item }">
           <d-num-layout :value="item.qty" />
         </template>
@@ -1748,7 +1760,10 @@ watchEffect(() => {
         </template>
         <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
           <button
-            v-if="internalItem.raw.quo_dts_boms.length > 0"
+            v-if="
+              !!internalItem.raw.quo_dts_boms &&
+              internalItem.raw.quo_dts_boms.length > 0
+            "
             class="cursor-pointer"
             @click="toggleExpand(internalItem)"
             @submit.prevent

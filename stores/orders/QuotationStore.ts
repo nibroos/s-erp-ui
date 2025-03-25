@@ -553,16 +553,18 @@ const useQuotationStore = defineStore('QuotationStore', {
     calculatePrice(quoDtBom: QuoDtBomType, quoDt: QuoDtType) {
       quoDtBom.subtotal_buy = quoDtBom.price_buy * quoDtBom.qty;
 
-      if (!!quoDt.quo_dts_boms && quoDt.quo_dts_boms.length > 0) {
-        quoDt.price_buy = quoDt.quo_dts_boms.reduce(
-          (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      } else if (!!quoDt.boms && quoDt.boms.length > 0) {
-        quoDt.price_buy = quoDt.boms.reduce(
-          (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
+      if (!quoDt.is_lock_price_buy) {
+        if (!!quoDt.quo_dts_boms && quoDt.quo_dts_boms.length > 0) {
+          quoDt.price_buy = quoDt.quo_dts_boms.reduce(
+            (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
+            0
+          );
+        } else if (!!quoDt.boms && quoDt.boms.length > 0) {
+          quoDt.price_buy = quoDt.boms.reduce(
+            (acc: number, item: QuoDtBomType) => acc + item.subtotal_buy,
+            0
+          );
+        }
       }
 
       this.calculateMarkup(quoDt);
@@ -600,6 +602,14 @@ const useQuotationStore = defineStore('QuotationStore', {
         quoDt.is_lock_price_sell = 0;
       } else {
         quoDt.is_lock_price_sell = 1;
+      }
+    },
+
+    onClickLockPriceBuy(quoDt: QuoDtType) {
+      if (!!quoDt.is_lock_price_buy) {
+        quoDt.is_lock_price_buy = 0;
+      } else {
+        quoDt.is_lock_price_buy = 1;
       }
     },
 
