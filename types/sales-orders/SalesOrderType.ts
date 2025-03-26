@@ -102,11 +102,27 @@ export type FormSalesOrderType = {
   expired_at: string
   so_dts: SoDtType[]
 
+  schedule: FormScheduleType
+  attachments: any[]
+
   email?: string
   phone?: string
   address?: string
 
   summary?: Record<string, SummaryPartType>
+}
+
+export type FormScheduleType = {
+  id: number | null
+  sales_order_id: number | null
+  assignee_id: number | null
+  schedule_no: string
+  title: string
+  start_at: string
+  end_at: string
+  color: string
+  status: string
+  remark: string | null
 }
 
 export type SoDtType = {

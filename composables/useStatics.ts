@@ -309,6 +309,13 @@ const formTabProduct = {
   remarks: 2,
 }
 
+const orderTypes = {
+  sales: 129,
+  maintenance: 130,
+  project: 131,
+  service: 132,
+}
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -320,4 +327,5 @@ export const useStatics = {
   formTabProduct,
   formTabSalesOrder,
   formStatusSalesOrder,
+  orderTypes,
 }

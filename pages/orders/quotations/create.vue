@@ -1134,7 +1134,7 @@ watchEffect(() => {
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabQuotation.payments"
-          class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
+          class="grid grid-cols-7 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
         >
           <div class="sm:col-span-1">
             <d-autocomplete

@@ -159,7 +159,7 @@ const formQuotationCreateEdit = {
   total_pph23: 0,
   total_vat: 0,
   grand_total: 0,
-  due_at: "",
+  due_at: new Date().toISOString().split('T')[0],
   expired_at: "",
 
   quo_dts: [],
@@ -198,13 +198,29 @@ const formSalesOrderCreateEdit = {
   total_pph23: 0,
   total_vat: 0,
   grand_total: 0,
-  order_at: "",
-  shipping_at: "",
+  order_at: new Date().toISOString().split('T')[0],
+  shipping_at: new Date().toISOString().split('T')[0],
   agree_at: "",
   due_at: "",
   expired_at: "",
 
   so_dts: [],
+
+  schedule: {
+    id: null,
+    sales_order_id: null,
+    assignee_id: null,
+    schedule_no: "",
+    title: "",
+    start_at: new Date().toISOString().split('T')[0],
+    end_at: new Date().toISOString().split('T')[0],
+    color: "",
+    status: "WAITING",
+    remark: "",
+  },
+
+  attachments: [],
+
 
   email: "",
   phone: "",

@@ -424,7 +424,7 @@ onMounted(async () => {
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-cart-outline"
-                title="Orders"
+                title="Sales"
                 density="compact"
                 rounded="lg"
               ></v-list-item>
@@ -447,7 +447,7 @@ onMounted(async () => {
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-credit-card-outline"
-                title="Sales"
+                title="Invoice"
                 density="compact"
                 rounded="lg"
                 color="#898F99"

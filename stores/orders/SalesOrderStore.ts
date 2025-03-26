@@ -248,7 +248,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
             id: this.form.id
           }
         )
+
         this.form = response.data.data[0]
+        if (!this.form.schedule) {
+          this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
+          this.form.schedule.title = this.form.po_buyer_no
+        }
+
+        if (!this.form.attachments) {
+          this.form.attachments = []
+        }
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
 
         // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
@@ -1222,6 +1231,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       return response
     },
+
+    handleUploadFile(file: any) {
+      console.log('file', file);
+    },
+
+    handleDeleteFile(index: number) {
+      console.log('index', index);
+      this.form.attachments.splice(index, 1);
+    }
 
 
   },
