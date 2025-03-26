@@ -338,10 +338,10 @@ const POIndexDateType = [
 ]
 
 const formTabPurchaseOrder = {
-  items: 0,
-  payments: 1,
+  payments: 0,
+  items: 1,
   remarks: 2,
-  schedules: 3,
+  attachments: 3,
 }
 
 const formTabProduct = {
