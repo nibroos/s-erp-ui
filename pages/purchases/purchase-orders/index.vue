@@ -117,7 +117,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
 
 const filtersConfig = ref<FilterSelectableType[]>([
   {
-    title: "Suppliers",
+    title: "Supplier",
     key: "customer_ids",
     type: "autocomplete",
     others: {
@@ -208,23 +208,13 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
-function formatDateOnly(dateString: string): string {
-  if (!dateString) return '';
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; 
-    return date.toISOString().split('T')[0];
-  } catch (e) {
-    return dateString; 
-  }
+function getStatusColorFromStatics(status: string): string {
+  const statusItem = useStatics.POIndexStatus.find(
+    (s) => s.value === status
+  );
+  return statusItem ? statusItem.color : 'grey';
 }
 
-function getStatusColorFromStatics(status: string): string {
-  const statusObj = useStatics.POIndexStatus.find(
-    s => s.value.toLowerCase() === status.toLowerCase()
-  );
-  return statusObj ? statusObj.color : 'grey';
-}
 </script>
 
 <template>
@@ -233,20 +223,19 @@ function getStatusColorFromStatics(status: string): string {
       :config="{
         permission: {
           isActive: true,
-          name: ['r_ms'],
+          name: ['r_ms', 'superadmin'],
         },
       }"
     >
       <d-datatable
         api="/v1/purchase-orders/index-purchase-order"
-        detail-link="/purchases/purchase-orders"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
         label="Purchase Orders"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to Purchase Order..."
+        search-placeholder="Search anything related to Purchase Orders..."
         is-quick-select
         no-title
         edit-link="/purchases/purchase-orders/edit"
@@ -266,7 +255,7 @@ function getStatusColorFromStatics(status: string): string {
         "
       >
         <template #item.total_qty="{ item }">
-          <d-num-layout :value="item.total_qty" />
+          <d-num-layout :value="item.total_qty" :precision="0" />
         </template>
         <template #item.subtotal="{ item }">
           <d-num-layout :value="item.subtotal" />
@@ -283,21 +272,15 @@ function getStatusColorFromStatics(status: string): string {
         <template #item.grand_total="{ item }">
           <d-num-layout :value="item.grand_total" />
         </template>
-        <template #item.po_date="{ item }">
-          {{ formatDateOnly(item.po_date) }}
-        </template>
-        <template #item.delivery_date="{ item }">
-          {{ formatDateOnly(item.delivery_date) }}
-        </template>
         <template #item.status="{ item }">
           <v-chip
             :color="getStatusColorFromStatics(item.status)"
-            size="medium"
-            class="px-2 py-1 border"
+            size="small"
+            class="text-white"
           >
             {{ item.status }}
           </v-chip>
-        </template>
+        </template>        
       </d-datatable>
     </d-index-layout>
   </div>

@@ -1,5 +1,15 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
-import type { FormPoDtProductListType, FormPoDtRefType, PoDtBomType, PoDtRefType, PoDtType } from "~/types/purchase-orders/PurchaseOrderType"
+import type { FormPoDtProductListType, FormPoDtRefType, PoDtBomType, PoDtProductType, PoDtRefType, PoDtType } from "~/types/purchase-orders/PurchaseOrderType"
+
+export function defineItemTypePurchaseOrder(
+  item: FormPoDtProductListType
+): PoDtProductType {
+  if (item.product_type) {
+    return item.product_type;
+  }
+  
+  return (item.boms && item.boms.length > 0) || (item.po_dts_boms && item.po_dts_boms.length > 0) ? 'product' : 'item'
+}
 
 export const generatePoBoms = (bom: PoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: PoDtBomType | ProductBomListType) => {
@@ -27,11 +37,6 @@ export const generatePoBoms = (bom: PoDtBomType[] | ProductBomListType[], produc
   })
 }
 
-const isItemTypeProduct = (item: FormPoDtProductListType): boolean => {
-  return (item.boms && item.boms.length > 0) ||
-    (item.po_dt_boms && item.po_dt_boms.length > 0)
-}
-
 export function convertPoItemRefProduct(
   item: FormPoDtProductListType,
   refType: PoDtRefType
@@ -43,42 +48,7 @@ export function convertPoItemRefProduct(
     item.boms = generatePoBoms(item.boms, productUuid, 'bom', productId)
   }
 
-  if (!!item.po_dt_boms) {
-    item.po_dt_boms = generatePoBoms(item.po_dt_boms, productUuid, 'bom', productId)
-  }
-
-  let refId = null
-  let itemId = null
-
-  if (refType === 'products') {
-    refId = item.product_id
-    itemId = item.product_id
-  }
-  // SO and RO implementations will be added later
-  /* 
-  else if (refType === 'so') {
-    refId = item.so_dt_id
-    itemId = item.item_id
-  } 
-  else if (refType === 'ro') {
-    refId = item.ro_dt_id
-    itemId = item.item_id
-  }
-  */
-
-  let poDtsBoms
-  if (item.boms) {
-    poDtsBoms = item.boms
-  } else if (item.po_dt_boms) {
-    poDtsBoms = item.po_dt_boms
-  }
-
-  let discountType: PoDtDiscType = null;
-  if (item.discount_percentage && item.discount_percentage > 0) {
-    discountType = 'percentage';
-  } else if (item.discount_amount && item.discount_amount > 0) {
-    discountType = 'amount';
-  }
+  const productType = defineItemTypePurchaseOrder(item)
 
   const data: PoDtType = {
     ...item,
@@ -86,19 +56,18 @@ export function convertPoItemRefProduct(
     id: item.po_dt_id ?? null,
     po_id: item.po_id,
     item_unit_id: item.item_unit_id,
-    vat_id: item.vat_id || null, 
-    pph23_id: item.pph23_id || null, 
-    is_vat: item.is_vat || 0, 
-    is_pph23: item.is_pph23 || 0,
-    ref_id: refId as number,
+    vat_id: item.vat_id,
+    pph23_id: item.pph23_id,
+    ref_id: item.ref_id as number,
     product_id: productId,
+    bom_id: item.bom_id || null,
+    product_type: productType,
     product_uuid: productUuid,
     ref_type: refType,
-    product_type: isItemTypeProduct(item) ? 'product' : 'item',
     remark: item.remark,
     need_qty: item.need_qty || 0,
     qty: item.qty || 0,
-    price: (item.price_buy || 0) as number,
+    price: (item.price || item.price_buy || 0) as number,
     subtotal: item.subtotal || 0,
     discount_amount: item.discount_amount || 0,
     discount_percentage: item.discount_percentage || 0,
@@ -109,16 +78,13 @@ export function convertPoItemRefProduct(
     is_vat: item.is_vat || 0,
     is_pph23: item.is_pph23 || 0,
     total_amount: item.total_amount || 0,
-    po_dt_boms: poDtsBoms,
 
-    item_name: item.name ?? item.item_name ?? item.product_name,
-    item_code: item.code ?? item.item_code ?? item.product_code,
-    product_name: item.name ?? item.item_name ?? item.product_name,
-    product_code: item.code ?? item.item_code ?? item.product_code,
-    unit_name: item.unit_name,
+    item_name: item.item_name ?? item.name ?? item.product_name,
+    item_code: item.item_code ?? item.code ?? item.product_code,
+    product_name: item.item_name ?? item.name ?? item.product_name,
+    product_code: item.item_code ?? item.code ?? item.product_code,
+    unit_name: item.item_unit_name ?? item.unit_name,
   }
-
-  delete data.boms
 
   return data
 }
@@ -138,49 +104,33 @@ export function generatePoDt(
   }
 
   selectedRefList.products = checkMain.filter((item: PoDtType) => {
-    return item.ref_type === 'products'
+    return item.ref_type == 'products'
   })
 
-  /* 
   selectedRefList.so = checkMain.filter((item: PoDtType) => {
-    return item.ref_type === 'so'
+    return item.ref_type == 'so'
   })
 
   selectedRefList.ro = checkMain.filter((item: PoDtType) => {
-    return item.ref_type === 'ro'
+    return item.ref_type == 'ro'
   })
-  */
 
   newRefItems = data.map((dt: FormPoDtRefType): PoDtType => {
     return convertPoItemRefProduct(dt as FormPoDtProductListType, checkOpened)
   })
-
-  if (checkOpened === 'products') {
+  
+  if (checkOpened == 'products') {
     selectedRefList[checkOpened] = [...newRefItems]
-    updatedList = [
-      ...selectedRefList[checkOpened], 
-      // ...selectedRefList.so, 
-      // ...selectedRefList.ro
-    ]
-  }
-  /* 
-  else if (checkOpened === 'so') {
+    updatedList = [...selectedRefList.so, ...selectedRefList.ro, ...selectedRefList[checkOpened]]
+  } else if (checkOpened == 'so') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products, ...selectedRefList.ro]
-  }
-  else if (checkOpened === 'ro') {
+  } else if (checkOpened == 'ro') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products, ...selectedRefList.so]
   }
-  */
 
   return updatedList
-}
-
-export function defineItemTypePurchaseOrder(
-  item: PoDtType
-): string {
-  return (item.boms && item.boms.length > 0) || (item.po_dt_boms && item.po_dt_boms.length > 0) ? 'product' : 'item'
 }
 
 export function updatePoRefsModalFromMain(
@@ -192,23 +142,21 @@ export function updatePoRefsModalFromMain(
 
   let selectedRefList: PoDtType[]
 
-  selectedRefList = checkMain.filter((item: PoDtType) => {
-    return (item.ref_type === checkOpened) && (item.ref_type === 'products')
-    // For future implementation: || item.ref_type === 'so' || item.ref_type === 'ro'
+  selectedRefList = checkMain.filter((itemMain: PoDtType) => {
+    return (itemMain.ref_type == checkOpened)
   })
 
   if (checkProducts.length > 0) {
-    selectedRefList.forEach((item: PoDtType) => {
+    selectedRefList.forEach((mainItem: PoDtType) => {
       checkProducts.forEach((prodItem: FormPoDtProductListType) => {
         if (
-          (item.ref_type === 'products' && item.ref_id === prodItem.ref_id)
-          // For future implementation:
-          // || (item.ref_type === 'so' && item.ref_id === prodItem.so_dt_id)
-          // || (item.ref_type === 'ro' && item.ref_id === prodItem.ro_dt_id)
+          (mainItem.ref_type == 'products' && mainItem.ref_id == prodItem.ref_id) ||
+          (mainItem.ref_type == 'so' && mainItem.ref_id == prodItem.ref_id) ||
+          (mainItem.ref_type == 'ro' && mainItem.ref_id == prodItem.ref_id)
         ) {
           let combined: any = {
             ...prodItem,
-            ...item,
+            ...mainItem,
           }
 
           combined = convertPoItemRefProduct(combined, checkOpened)
@@ -237,4 +185,8 @@ export function initCheckedPoDt(
   })
 
   return updatedList
+}
+
+function randomId() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
