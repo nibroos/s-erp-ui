@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
-import type { QSoIndexType } from "~/types/sales-orders/SalesOrderType";
+import useInventoryStore from "~/stores/inventories/InventoryStore";
+import type { QInvIndexType } from "~/types/inventories/InventoryType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useSalesOrderStore();
+const { queryModal } = useInventoryStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -18,28 +18,21 @@ definePageMeta({
 });
 
 useHead({
-  title: "Sales Orders",
+  title: "Inventory IN",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
-    title: "Order No",
-    key: "sales_order_no",
-    value: "sales_order_no",
+    title: "DO No",
+    key: "do_no",
+    value: "do_no",
     align: "start",
     sortable: true,
   },
   {
-    title: "PO Buyer No",
-    key: "po_buyer_no",
-    value: "po_buyer_no",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Order Type",
-    key: "order_type_name",
-    value: "order_type_name",
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
     align: "start",
     sortable: true,
   },
@@ -51,9 +44,9 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Order Date",
-    key: "order_at",
-    value: "order_at",
+    title: "IN Date",
+    key: "ingoing_at",
+    value: "ingoing_at",
     align: "start",
     sortable: true,
   },
@@ -65,23 +58,9 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Agreement Date",
-    key: "agree_at",
-    value: "agree_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Expired Date",
-    key: "expired_at",
-    value: "expired_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Due Date",
-    key: "due_at",
-    value: "due_at",
+    title: "Invoice Date",
+    key: "invoice_at",
+    value: "invoice_at",
     align: "start",
     sortable: true,
   },
@@ -110,13 +89,6 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "PPH",
     key: "total_pph23",
     value: "total_pph23",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Discount",
-    key: "total_discount",
-    value: "total_discount",
     align: "end",
     sortable: true,
   },
@@ -172,31 +144,11 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
-    title: "Order Type",
-    key: "order_type_ids",
-    type: "autocomplete",
-    others: {
-      methodApi: "post",
-      api: "/v1/order-types/index-order-type",
-      singleApi: "/v1/order-types/index-order-type",
-      mappingDetail: "data",
-      itemsProp: "data",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Roles",
-      innerSearchKey: "global",
-      multiple: true,
-      returnObject: false,
-      itemColor: "brown-lighten-2",
-    },
-  },
-  {
     title: "Date Type",
     key: "date_type",
     type: "autocomplete-client",
     others: {
-      items: useStatics.SoIndexDateType,
+      items: useStatics.invIndexDateType,
     },
   },
   {
@@ -234,24 +186,24 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "status",
     type: "autocomplete-client",
     others: {
-      items: useStatics.SoIndexStatus,
+      items: useStatics.invIndexStatus,
     },
   },
   {
-    title: "Order No",
-    key: "sales_order_no",
+    title: "DO No",
+    key: "do_no",
   },
   {
-    title: "PO Buyer No",
-    key: "po_buyer_no",
+    title: "Invoice No",
+    key: "invoice_no",
   },
 ]);
 
 // const changeTitle = () => {
 //   let config = {
-//     topTitle: "SalesOrder",
+//     topTitle: "Inventory",
 //     parentTitle: "Orders",
-//     subTitlePath: "SalesOrder",
+//     subTitlePath: "Inventory",
 //     lastPathSegment: "",
 //   };
 
@@ -278,29 +230,29 @@ const filtersConfig = ref<FilterSelectableType[]>([
       }"
     >
       <d-datatable
-        api="/v1/sales-orders/index-sales-order"
-        detail-link="/orders/sales-orders"
+        api="/v1/inventories/index-inventory"
+        detail-link="/inventories/in"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to Order.."
+        search-placeholder="Search anything related to inventory.."
         is-quick-select
         no-title
-        edit-link="/orders/sales-orders/edit"
-        delete-api="/v1/sales-orders/delete-sales-order"
+        edit-link="/inventories/in/edit"
+        delete-api="/v1/inventories/delete-inventory"
         :fields="fieldsConfig"
         :filters="filtersConfig"
-        :query-modal="queryModal.qIndex"
+        :query-modal="queryModal.qIndexIn"
         :create-option="{
-          link: '/orders/sales-orders/create',
+          link: '/inventories/in/create',
           show: true,
           cta: '+ Create',
         }"
         @update:filters="
-          (filters: QSoIndexType) => {
-            queryModal.qIndex = filters;
+          (filters: QInvIndexType) => {
+            queryModal.qIndexIn = filters;
           }
         "
       >

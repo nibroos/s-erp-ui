@@ -7,7 +7,7 @@ const alertSuccess = (message?: string | null, title?: string | null) => {
     showConfirmButton: true,
     icon: 'success',
     showCloseButton: true,
-    // timer: 2000,
+    timer: 2000,
     customClass: {
       popup: 'p-3',
       container: '',

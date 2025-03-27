@@ -5,8 +5,9 @@ import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPagin
 import type { RefBtnType } from '~/types/components/OptionRefBtnType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
+import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormQuoDtBomListType, FormQuoDtProductListType, FormQuotationType, IndexQuotationType, QIndexProductsType, QIndexType, QuoDtBomType, QuoDtDiscType, QuoDtType } from '~/types/quotations/QuotationType'
+import type { FormQuoDtBomListType, FormQuoDtProductListType, FormQuotationType, IndexQuotationType, QQuoIndexType, QuoDtBomType, QuoDtDiscType, QuoDtType } from '~/types/quotations/QuotationType'
 
 const useQuotationStore = defineStore('QuotationStore', {
   state: () => ({
@@ -21,7 +22,7 @@ const useQuotationStore = defineStore('QuotationStore', {
         global: '',
         order_column: 'quo_no',
         order_direction: 'desc'
-      } as QIndexType,
+      } as QQuoIndexType,
 
       qIndexProducts: {
         page: 1,
@@ -166,7 +167,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/quotations/edit/${response.data.data[0].id}`)
+        navigateTo(`/orders/quotations`)
 
         return response
       } catch (error: any) {
@@ -220,7 +221,8 @@ const useQuotationStore = defineStore('QuotationStore', {
         // navigateTo(`/masters/customizations/quotations/edit/${response.data.data[0].id}`)
 
         this.form.id = id
-        await this.show()
+        // await this.show()
+        navigateTo(`/orders/quotations`)
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
@@ -517,7 +519,7 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.calculateTotalAmount();
     },
 
-    autocompletePph(data: FormPph23Type, oldId: number | null) {
+    autocompletePph(data: FormPph23Type) {
       this.form.pph23_perc = Number(data.num);
 
       // apply to all childs

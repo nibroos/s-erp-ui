@@ -324,8 +324,12 @@ watch(
         await fetchSingle(newValue, oldValue);
       }
 
-      if (!newValue && !showMetaModal.value.loading) {
+      if (!newValue) {
         selectedText.value = "";
+      }
+
+      if (!newValue && !!showMetaModal.value.loading) {
+        selectedText.value = "Loading...";
       }
     }
   }

@@ -26,6 +26,7 @@ export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], prod
           item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
           item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
           product_id: productId,
+          qty: bomItem.qty ?? 1,
         }
       } else {
         return {
@@ -45,6 +46,7 @@ export const generateQuoBoms = (bom: QuoDtBomType[] | ProductBomListType[], prod
           item_barcode: bomItem.barcode ?? bomItem.item_barcode,
           item_factory_code: bomItem.factory_code ?? bomItem.item_factory_code,
           product_id: productId,
+          qty: bomItem.qty ?? 1,
         }
       }
     })
@@ -84,7 +86,7 @@ export function convertQuoItemRefProduct(
     vat_perc_am: item.vat_perc_am || 0,
     markup_perc: markupPerc,
     item_type: itemType,
-    qty: item.qty || 0,
+    qty: item.qty || 1,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
     subtotal_sell: item.subtotal_sell || 0,

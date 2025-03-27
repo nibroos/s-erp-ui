@@ -70,8 +70,8 @@ const headers = ref<FieldSelectableType[]>([
       class: "capitalize",
     },
   },
-  { key: "item_type", title: "Item Type", sortable: true },
   { key: "ref_num", title: "Ref Num", sortable: true },
+  { key: "item_type", title: "Item Type", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
@@ -132,37 +132,6 @@ const headersBOMModal = ref<FieldSelectableType[]>([
   },
   { key: "remark", title: "Remark", sortable: true },
 ]) as Ref<FieldSelectableType[]>;
-
-const headersVAT = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Percentage",
-    key: "num",
-    value: "num",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Multiplier",
-    key: "multiplier",
-    value: "multiplier",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Divider",
-    key: "divider",
-    value: "divider",
-    align: "start",
-    sortable: true,
-  },
-]);
 
 const headersCustomer = ref<FieldSelectableType[]>([
   {
@@ -767,13 +736,15 @@ watchEffect(() => {
               disabled
             />
           </div>
+
           <div class="sm:col-span-1">
-            <d-text-input
-              v-model="form.address"
-              :label="`Address`"
-              :placeholder="`Address`"
-              :errors="errors.address"
-              disabled
+            <d-autocomplete-client
+              v-model="form.status"
+              :items="useStatics.formStatusSalesOrder"
+              label="Status"
+              item-value="id"
+              item-title="name"
+              :clearable="false"
             />
           </div>
 
@@ -789,32 +760,40 @@ watchEffect(() => {
               label="Shipping Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div
+            class="sm:col-span-1"
+            v-if="
+              [
+                useStatics.orderTypes.maintenance,
+                useStatics.orderTypes.service,
+              ].includes(form.order_type_id || 0)
+            "
+          >
             <d-date-picker-light
               v-model="form.agree_at"
               label="Agreement Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div
+            class="sm:col-span-1"
+            v-if="
+              [
+                useStatics.orderTypes.maintenance,
+                useStatics.orderTypes.service,
+              ].includes(form.order_type_id || 0)
+            "
+          >
             <d-date-picker-light
               v-model="form.due_at"
               label="Due Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
-            <d-date-picker-light
-              v-model="form.expired_at"
-              label="Expired Date"
-            ></d-date-picker-light>
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete-client
-              v-model="form.status"
-              :items="useStatics.formStatusSalesOrder"
-              label="Status"
-              item-value="id"
-              item-title="name"
-              :clearable="false"
+          <div class="sm:col-span-1 col-span-4">
+            <d-text-area-input
+              v-model="form.ship_dest"
+              :label="``"
+              :placeholder="`Shipping Address`"
+              class=""
             />
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
@@ -1144,110 +1123,46 @@ watchEffect(() => {
             />
           </div>
           <div class="sm:col-span-1">
-            <d-select-table
-              api="/v1/vats/index-vat"
-              detail-api="/v1/vats/index-vat"
-              method-api="post"
-              detail-method-api="post"
-              mapping-detail="data[0]"
-              total-prop="meta.total"
-              label="VAT"
+            <d-autocomplete
               v-model="form.vat_id"
-              class="col-span-2 lg:col-span-1"
-              is-quick-select
-              modal-parent-class="!z-[2500]"
-              modal-custom-class="!w-4/5"
-              :display-single-multiple-keys="['name', 'num']"
-              is-display-multiple-key
+              api="/v1/vats/index-vat"
+              single-api="/v1/vats/show-vat"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="VAT"
+              :errors="errors.vat_id"
               @click:selected="
                 (data) => {
                   salesOrderStore.autocompleteVat(data);
                   calculateTotalAmountLocal();
                 }
               "
-              @click:clear="salesOrderStore.removeVat()"
-              :fields="headersVAT"
-              :filters="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                },
-              ]"
-            />
+            ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.vat_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="VAT (%)"
-              :errors="errors.vat_perc"
-              disabled
-            />
-          </div>
-
-          <div class="sm:col-span-1">
-            <d-select-table
-              api="/v1/pph23s/index-pph23"
-              detail-api="/v1/pph23s/index-pph23"
-              method-api="post"
-              detail-method-api="post"
-              mapping-detail="data[0]"
-              total-prop="meta.total"
-              label="PPH"
+            <d-autocomplete
               v-model="form.pph23_id"
-              class="col-span-2 lg:col-span-1"
-              is-quick-select
+              api="/v1/pph23s/index-pph23"
+              single-api="/v1/pph23s/show-pph23"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="PPH (%)"
+              :display-multiple-keys="['name', 'num']"
+              is-display-multiple-key
+              :errors="errors.pph23_id"
               @click:selected="
-                (data, oldId) => {
-                  salesOrderStore.autocompletePph(data, oldId);
+                (data) => {
+                  salesOrderStore.autocompletePph(data);
                   calculateTotalAmountLocal();
                 }
               "
-              @click:clear="salesOrderStore.removePph()"
-              modal-parent-class="!z-[2500]"
-              modal-custom-class="!w-4/5"
-              :display-single-multiple-keys="['name', 'num']"
-              is-display-multiple-key
-              :fields="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                  value: 'name',
-                  align: 'start',
-                  sortable: true,
-                },
-                {
-                  title: 'Percentage',
-                  key: 'num',
-                  value: 'num',
-                  align: 'start',
-                  sortable: true,
-                },
-              ]"
-              :filters="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                },
-              ]"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.pph23_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="PPH (%)"
-              :errors="errors.pph23_perc"
-              disabled
-            />
+            ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
             <d-num-v-format
@@ -1299,6 +1214,125 @@ watchEffect(() => {
               :placeholder="`Remark`"
               :errors="errors.remark"
             />
+          </div>
+        </div>
+        <div
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
+          class="grid grid-cols-5 gap-2"
+        >
+          <div class="sm:col-span-1">
+            <d-text-input
+              v-model="form.schedule.title"
+              :label="`Title`"
+              :placeholder="`Title`"
+              :errors="errors.title"
+            />
+          </div>
+
+          <!-- assignee_id -->
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.schedule.assignee_id"
+              api="/v1/users/index-user"
+              single-api="/v1/users/show-user"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Assignee"
+            ></d-autocomplete>
+          </div>
+
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.schedule.start_at"
+              label="Start Date"
+            ></d-date-picker-light>
+          </div>
+          <div class="sm:col-span-1">
+            <d-date-picker-light
+              v-model="form.schedule.end_at"
+              label="End Date"
+            ></d-date-picker-light>
+          </div>
+        </div>
+        <div
+          v-if="tabFormIndex == useStatics.formTabSalesOrder.attachments"
+          class="grid grid-cols-3 md:grid-cols-1 gap-2"
+        >
+          <div class="md:col-span-1">
+            <v-file-upload
+              v-model="form.attachments"
+              clearable
+              density="compact"
+              variant="compact"
+              multiple
+              @update:modelValue="salesOrderStore.handleUploadFile"
+            >
+              <template #item="{ props: itemProps }">
+                <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                  <template v-slot:prepend>
+                    <v-avatar size="32" rounded></v-avatar>
+                  </template>
+
+                  <template v-slot:clear="{ props: clearProps }">
+                    <v-btn color="primary" v-bind="clearProps"></v-btn>
+                  </template>
+                </v-file-upload-item>
+              </template>
+            </v-file-upload>
+          </div>
+          <div
+            class="md:col-span-1 col-span-2 grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+          >
+            <!-- attached files -->
+            <div
+              v-for="(file, index) in form.attachments"
+              :key="index"
+              class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
+            >
+              <div class="flex gap-2">
+                <v-img
+                  :aspect-ratio="1"
+                  :src="file.url"
+                  :alt="file.name"
+                  width="50"
+                  cover
+                  class="border border-solid border-grey3"
+                ></v-img>
+
+                <div class="flex flex-col justify-center">
+                  <span class="text-sm dark:text-primary1">{{
+                    file.name
+                  }}</span>
+                  <span class="text-xs dark:text-grey1">{{ file.size }}</span>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <d-bt
+                  icon="mdi-download"
+                  is-no-text
+                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                  icon-class="text-sc dark:text-primary1"
+                  rounded="xl"
+                  cta="download"
+                  icon-size="16"
+                ></d-bt>
+                <d-bt
+                  @click="salesOrderStore.handleDeleteFile(index)"
+                  icon="mdi-delete"
+                  is-no-text
+                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                  icon-class="text-cancel dark:text-primary1"
+                  rounded="xl"
+                  cta="delete"
+                  icon-size="16"
+                  :is-notif="true"
+                  :notif-text="`${file.name} deleted`"
+                ></d-bt>
+              </div>
+            </div>
           </div>
         </div>
       </template>

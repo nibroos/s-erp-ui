@@ -95,37 +95,37 @@ const itemInventory = [
   {
     title: "Inventory IN",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/inventory-in",
+    link: "/inventories/in",
     permissions: ["r_invs"],
   },
   {
     title: "Inventory OUT",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/inventory-out",
+    link: "/inventories/out",
     permissions: ["r_invs"],
   },
   {
     title: "Inventory Status",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/inventory-status",
+    link: "/inventories/status",
     permissions: ["r_invs"],
   },
   {
     title: "Card Stock",
     icon: "",
-    link: "/inventory/stock",
+    link: "/inventories/stock",
     permissions: ["r_invs"],
   },
   {
     title: "BC Tracking",
     icon: "",
-    link: "/inventory/bc-tracking",
+    link: "/inventories/bc-tracking",
     permissions: ["r_invs"],
   },
   {
     title: "Pabean Document",
     icon: "mdi-file-sign",
-    link: "/inventory/pabean-document",
+    link: "/inventories/pabean-document",
     permissions: ["r_invs"],
   },
 ];
@@ -134,44 +134,44 @@ const itemExim = [
   {
     title: "Lp. Pemasukan Barang",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc1",
+    link: "/inventories/exim/bc1",
     permissions: ["r_invs"],
   },
   {
     title: "Lp. Pengeluaran Barang",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc2",
+    link: "/inventories/exim/bc2",
     permissions: ["r_invs"],
   },
   {
     title: "Lp. Posisi Barang",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc3",
+    link: "/inventories/exim/bc3",
     permissions: ["r_invs"],
   },
   {
     title: "Lp. Pertanggungjawaban Mutasi Barang",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc4",
+    link: "/inventories/exim/bc4",
     permissions: ["r_invs"],
   },
   {
     title: "Lp. Pertanggungjawaban Mutasi Barang Jadi",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc5",
+    link: "/inventories/exim/bc5",
     permissions: ["r_invs"],
   },
   {
     title: "Lp. Pertanggungjawaban Mutasi Barang dan Sisa Scrap",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc6",
+    link: "/inventories/exim/bc6",
     permissions: ["r_invs"],
   },
   {
     title:
       "Lp. Pertanggungjawaban Mutasi Mesin dan Peralatan Perkantoran Kawasan Berikat",
     icon: "mdi-credit-card-outline",
-    link: "/inventory/exim/bc7",
+    link: "/inventories/exim/bc7",
     permissions: ["r_invs"],
   },
 ];
@@ -424,7 +424,7 @@ onMounted(async () => {
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-cart-outline"
-                title="Orders"
+                title="Sales"
                 density="compact"
                 rounded="lg"
               ></v-list-item>
@@ -447,7 +447,7 @@ onMounted(async () => {
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-credit-card-outline"
-                title="Sales"
+                title="Invoice"
                 density="compact"
                 rounded="lg"
                 color="#898F99"
@@ -506,6 +506,7 @@ onMounted(async () => {
                 prepend-icon="mdi-warehouse"
                 title="Inventory"
                 density="compact"
+                class="!text-primary1"
               ></v-list-item>
             </template>
 
@@ -517,6 +518,7 @@ onMounted(async () => {
                 variant="text"
                 rounded="lg"
                 density="compact"
+                class="!text-primary1"
                 color="#898F99"
               ></v-list-item>
             </template>
@@ -525,7 +527,7 @@ onMounted(async () => {
           <v-list-item
             v-if="useAuth.permit('EXIM_READ')"
             color="#898F99"
-            to="/inventory/exim"
+            to="/inventories/exim"
             rounded="lg"
           >
             <template #prepend>

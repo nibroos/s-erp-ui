@@ -230,26 +230,13 @@ export type FormQuoDtRefType = FormQuoDtProductListType
 export type ModalIndexProductFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
 
-export type QIndexType = {
+export type QQuoIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
   global: string
   order_column: string
   order_direction: string
-}
-
-export type QIndexProductsType = {
-  page: number
-  per_page: number
-  item_group_ids?: number[] | null
-  item_sub_group_ids?: number[] | null
-  code?: string
-  name?: string
-  sku?: string
-  factory_code?: string
-  order_column?: string
-  order_direction?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null

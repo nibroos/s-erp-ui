@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
 import useQuotationStore from "~/stores/orders/QuotationStore";
-import type { QIndexType } from "~/types/quotations/QuotationType";
+import type { QQuoIndexType } from "~/types/quotations/QuotationType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
@@ -279,7 +279,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
           cta: '+ Create',
         }"
         @update:filters="
-          (filters: QIndexType) => {
+          (filters: QQuoIndexType) => {
             queryModal.qIndex = filters;
           }
         "

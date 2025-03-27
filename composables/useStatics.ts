@@ -270,8 +270,16 @@ const SoIndexStatus = [
 
 const SoIndexDateType = [
   {
-    value: 'expired_at',
-    title: 'Expired Date',
+    value: 'order_at',
+    title: 'Order Date',
+  },
+  {
+    value: 'shipping_at',
+    title: 'Shipping Date',
+  },
+  {
+    value: 'agree_at',
+    title: 'Agree Date',
   },
   {
     value: 'due_at',
@@ -350,6 +358,69 @@ const formTabProduct = {
   remarks: 2,
 }
 
+const orderTypes = {
+  sales: 129,
+  maintenance: 130,
+  project: 131,
+  service: 132,
+}
+
+const invIndexStatus = [
+  {
+    value: 'DELIVERY',
+    title: 'Delivery',
+    color: 'green',
+  },
+  {
+    value: 'INVOICE',
+    title: 'Invoice',
+    color: 'purple',
+  },
+  {
+    value: 'CANCELED',
+    title: 'Canceled',
+    color: 'red',
+  },
+  {
+    value: 'FINISH',
+    title: 'Finish',
+    color: 'cyan',
+  },
+]
+
+const invIndexDateType = [
+  {
+    value: 'ingoing_at',
+    title: 'IN Date',
+  },
+  {
+    value: 'shipping_at',
+    title: 'Shipping Date',
+  },
+  {
+    value: 'do_at',
+    title: 'DO Date',
+  },
+  {
+    value: 'invoice_at',
+    title: 'Invoice Date',
+  },
+]
+
+const formStatusInventory = [
+  { id: 'DELIVERY', name: 'DELIVERY' },
+  { id: 'INVOICE', name: 'INVOICE' },
+  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'FINISH', name: 'FINISH' },
+]
+
+const formTabInventory = {
+  payments: 0,
+  items: 1,
+  remarks: 2,
+  attachments: 3,
+}
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -358,9 +429,14 @@ export const useStatics = {
   formApprovedQuotation,
   SoIndexStatus,
   SoIndexDateType,
+  invIndexStatus,
+  invIndexDateType,
   formTabProduct,
   formTabSalesOrder,
   formStatusSalesOrder,
+  formStatusInventory,
+  formTabInventory,
+  orderTypes,
   POIndexStatus,
   POIndexDateType,
   formTabPurchaseOrder,

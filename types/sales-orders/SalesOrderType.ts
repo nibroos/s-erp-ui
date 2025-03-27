@@ -102,11 +102,27 @@ export type FormSalesOrderType = {
   expired_at: string
   so_dts: SoDtType[]
 
+  schedule: FormScheduleType
+  attachments: any[]
+
   email?: string
   phone?: string
   address?: string
 
   summary?: Record<string, SummaryPartType>
+}
+
+export type FormScheduleType = {
+  id: number | null
+  sales_order_id: number | null
+  assignee_id: number | null
+  schedule_no: string
+  title: string
+  start_at: string
+  end_at: string
+  color: string
+  status: string
+  remark: string | null
 }
 
 export type SoDtType = {
@@ -155,6 +171,7 @@ export type SoDtType = {
   quo_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
   boms?: SoDtBomType[]
 
+  product_id?: number
   code?: string
   name?: string
   unit_name?: string
@@ -244,26 +261,13 @@ export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory
 export type ModalIndexQuotationFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexQuotationFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
 
-export type QIndexType = {
+export type QSoIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
   global: string
   order_column: string
   order_direction: string
-}
-
-export type QIndexProductsType = {
-  page: number
-  per_page: number
-  item_group_ids?: number[] | null
-  item_sub_group_ids?: number[] | null
-  code?: string
-  name?: string
-  sku?: string
-  factory_code?: string
-  order_column?: string
-  order_direction?: string
 }
 
 export type QIndexQuotationsType = {
@@ -343,7 +347,7 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
 
 export type FormSoDtBomListType = ProductListType & SoDtBomType
 
-export type OptionalRefType = {
+export type OptionalSoRefType = {
   ref_id?: number | null
   item_type: SoDtItemType
   item_id?: number | null

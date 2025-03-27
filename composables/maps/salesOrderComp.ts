@@ -1,5 +1,5 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
-import type { FormSoDtProductListType, FormSoDtRefType, OptionalRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType } from "~/types/sales-orders/SalesOrderType"
+import type { FormSoDtProductListType, FormSoDtRefType, OptionalSoRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType } from "~/types/sales-orders/SalesOrderType"
 
 export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: SoDtBomType | ProductBomListType) => {
@@ -23,6 +23,7 @@ export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], produc
       item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
       item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
       product_id: productId,
+      qty: bomItem.qty ?? 1,
     }
   })
 }
@@ -40,13 +41,18 @@ export function convertSoItemRefProduct(
   // console.log('convertSoItemRefProduct-item', item);
 
   let productUuid = randomId()
+
+  console.log('convertSoItemRefProduct-item', item);
+
   let productId = item.product_id ?? item.ref_id
 
+  console.log('convertSoItemRefProduct-productId', productId);
   if (!!item.boms) {
     item.boms = generateSoBoms(item.boms, productUuid, 'bom', productId)
   }
 
   if (!!item.so_dts_boms) {
+    productId = item.item_id
     item.so_dts_boms = generateSoBoms(item.so_dts_boms, productUuid, 'bom', productId)
   }
 
@@ -54,7 +60,7 @@ export function convertSoItemRefProduct(
     item.quo_dts_boms = generateSoBoms(item.quo_dts_boms, productUuid, 'bom', productId)
   }
 
-  let optional: OptionalRefType = {
+  let optional: OptionalSoRefType = {
     ref_id: null,
     item_id: null,
     product_id: null,
@@ -65,7 +71,7 @@ export function convertSoItemRefProduct(
     optional.ref_id = item.product_id
     optional.item_id = item.product_id
   } else if (refType == 'quotations') {
-    optional.ref_id = item.quo_dt_id
+    optional.ref_id = item.quo_dt_id ?? item.ref_id
     optional.item_id = item.item_id
   }
 
@@ -93,7 +99,7 @@ export function convertSoItemRefProduct(
     vat_perc: item.vat_perc || 0,
     vat_perc_am: item.vat_perc_am || 0,
     item_type: optional.item_type,
-    qty: item.qty || 0,
+    qty: item.qty || 1,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
     subtotal_sell: item.subtotal_sell || 0,
@@ -121,7 +127,7 @@ export function convertSoItemRefProduct(
 }
 
 export function generateSoDt(
-  data:
+  checkSelected:
     | FormSoDtRefType[],
   checkOpened:
     | SoDtRefType,
@@ -144,7 +150,7 @@ export function generateSoDt(
   })
 
   // filter new ref items
-  newRefItems = data.map((dt: FormSoDtRefType): SoDtType => {
+  newRefItems = checkSelected.map((dt: FormSoDtRefType): SoDtType => {
     return convertSoItemRefProduct(dt, checkOpened)
   })
   if (checkOpened == 'products') {
