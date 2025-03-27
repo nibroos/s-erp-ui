@@ -172,7 +172,7 @@ export type PoDtDiscType = 'percentage' | 'amount' | 'all' | null
 
 export type PoDtRefType = 'products' | 'so' | 'ro'
 
-export type PoDtProductType = 'item' | 'product'
+export type PoDtProductType = 'item' | 'product' | 'bom'
 
 export type FormPoDtRefType = FormPoDtProductListType
 

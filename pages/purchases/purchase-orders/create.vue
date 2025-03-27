@@ -536,7 +536,7 @@ watchEffect(() => {
       <template #content>
         <div
           v-if="tabFormIndex == useStatics.formTabPurchaseOrder.payments"
-          class="grid grid-cols-6 sm:grid-cols-1 gap-4 items-center mt-1"
+          class="grid grid-cols-8 sm:grid-cols-1 gap-4 items-center mt-1"
         >
           <div class="sm:col-span-1">
             <d-autocomplete
@@ -567,21 +567,17 @@ watchEffect(() => {
             />
           </div>
           <div class="sm:col-span-1">
-            <d-select-table
-              api="/v1/vats/index-vat"
-              detail-api="/v1/vats/index-vat"
-              method-api="post"
-              detail-method-api="post"
-              mapping-detail="data[0]"
-              total-prop="meta.total"
-              label="VAT"
+            <d-autocomplete
               v-model="form.vat_id"
-              class="col-span-2 lg:col-span-1"
-              is-quick-select
-              modal-parent-class="!z-[2500]"
-              modal-custom-class="!w-4/5"
-              :display-single-multiple-keys="['name', 'num']"
-              is-display-multiple-key
+              api="/v1/vats/index-vat"
+              single-api="/v1/vats/show-vat"
+              page-end-prop="meta.next_page_url"
+              :item-title="(item: any) => `${item.name} - ${item.num}`"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="VAT"
+              :errors="errors.vat_id"
               @click:selected="
                 (data) => {
                   purchaseOrderStore.autocompleteVat(data);
@@ -589,41 +585,21 @@ watchEffect(() => {
                 }
               "
               @click:clear="purchaseOrderStore.removeVat()"
-              :fields="headersVAT"
-              :filters="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                },
-              ]"
-            />
+            >
+            </d-autocomplete>
           </div>
           <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.vat_percentage"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="VAT (%)"
-              :errors="errors.vat_percentage"
-              disabled
-            />
-          </div>
-
-          <div class="sm:col-span-1">
-            <d-select-table
-              api="/v1/pph23s/index-pph23"
-              detail-api="/v1/pph23s/index-pph23"
-              method-api="post"
-              detail-method-api="post"
-              mapping-detail="data[0]"
-              total-prop="meta.total"
-              label="PPH"
+            <d-autocomplete
               v-model="form.pph23_id"
-              class="col-span-2 lg:col-span-1"
-              is-quick-select
+              api="/v1/pph23s/index-pph23"
+              single-api="/v1/pph23s/show-pph23"
+              page-end-prop="meta.next_page_url"
+              :item-title="(item: any) => `${item.name} - ${item.num}`"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="PPH"
+              :errors="errors.pph23_id"
               @click:selected="
                 (data) => {
                   purchaseOrderStore.autocompletePph(data);
@@ -631,46 +607,8 @@ watchEffect(() => {
                 }
               "
               @click:clear="purchaseOrderStore.removePph()"
-              modal-parent-class="!z-[2500]"
-              modal-custom-class="!w-4/5"
-              :display-single-multiple-keys="['name', 'num']"
-              is-display-multiple-key
-              :fields="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                  value: 'name',
-                  align: 'start',
-                  sortable: true,
-                },
-                {
-                  title: 'Percentage',
-                  key: 'num',
-                  value: 'num',
-                  align: 'start',
-                  sortable: true,
-                },
-              ]"
-              :filters="[
-                {
-                  title: 'Name',
-                  key: 'name',
-                },
-              ]"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.pph23_percentage"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="PPH (%)"
-              :errors="errors.pph23_percentage"
-              disabled
-            />
+            >
+            </d-autocomplete>
           </div>
           <div class="sm:col-span-1">
             <d-num-v-format
@@ -777,7 +715,7 @@ watchEffect(() => {
               <span class="capitalize">{{ item.ref_type }} </span>
             </template>
             <template #item.item_type="{ item }">
-              <span class="capitalize">{{ item.product_type }} </span>
+              <span class="uppercase">{{ item.product_type }}</span>
             </template>
             <template #item.remark="{ item }">
               <d-text-input

@@ -531,8 +531,10 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
                     discount_percentage: 0,
                     subtotal: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
                     total_amount: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
-                    product_type: 'product',
-                    parent_product_ref_id: product.ref_id
+                    product_type: 'bom',
+                    parent_product_ref_id: product.ref_id,
+                    is_vat: product.is_vat || 0,
+                    is_pph23: product.is_pph23 || 0
                   } as FormPoDtProductListType);
                 });
               }
@@ -547,6 +549,23 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
           });
           
           this.itemsCheck.checkMain = generatePoDt(flattenedItems, 'products', this.itemsCheck.checkMain);
+
+          if (this.form.vat_id) {
+            this.itemsCheck.checkMain.forEach(item => {
+              if (item.is_vat) {
+                item.vat_id = this.form.vat_id;
+              }
+            });
+          }
+          
+          if (this.form.pph23_id) {
+            this.itemsCheck.checkMain.forEach(item => {
+              if (item.is_pph23) {
+                item.pph23_id = this.form.pph23_id;
+              }
+            });
+          }
+
           this.isOpenModal.products = false;
         }
       
@@ -659,13 +678,15 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
   
       autocompleteVat(data: FormVatType) {
         this.form.vat_percentage = Number(data.num);
-  
+        this.headAutocomplete.vat_id = this.form.vat_id;
+        this.headAutocomplete.vat_percentage = this.form.vat_percentage;
+
         this.itemsCheck.checkMain.forEach((item: PoDtType) => {
-          if (!!item.is_vat) {
+          if (item.is_vat) {
             item.vat_id = data.id as number;
           }
         });
-  
+
         this.calculateTotalAmount();
       },
   
@@ -730,13 +751,15 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
   
       autocompletePph(data: FormPph23Type) {
         this.form.pph23_percentage = Number(data.num);
-  
+        this.headAutocomplete.pph23_id = this.form.pph23_id;
+        this.headAutocomplete.pph23_percentage = this.form.pph23_percentage;
+      
         this.itemsCheck.checkMain.forEach((item: PoDtType) => {
-          if (!!item.is_pph23) {
+          if (item.is_pph23) {
             item.pph23_id = data.id as number;
           }
         });
-  
+      
         this.calculateTotalAmount();
       },
   
@@ -754,20 +777,35 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       },
   
       onClickUpdateProductsModal() {
+        const currentValues = {
+          purchase_type_id: this.form.purchase_type_id,
+          currency_id: this.form.currency_id,
+          exchange_rate: this.form.exchange_rate,
+          vat_id: this.form.vat_id,
+          vat_percentage: this.form.vat_percentage,
+          pph23_id: this.form.pph23_id,
+          pph23_percentage: this.form.pph23_percentage,
+          discount_amount: this.form.discount_amount,
+          discount_percentage: this.form.discount_percentage,
+          remark: this.form.remark
+        };
+
+        const existingItems = [...this.itemsCheck.checkMain];
+      
         this.selectItemRefModal();
         this.countSelectedReferences();
         this.closeAllModal();
-  
-        this.form.purchase_type_id = this.headAutocomplete.purchase_type_id;
-        this.form.currency_id = this.headAutocomplete.currency_id;
-        this.form.exchange_rate = this.headAutocomplete.exchange_rate;
-        this.form.vat_id = this.headAutocomplete.vat_id;
-        this.form.vat_percentage = this.headAutocomplete.vat_percentage as number;
-        this.form.pph23_id = this.headAutocomplete.pph23_id;
-        this.form.pph23_percentage = this.headAutocomplete.pph23_percentage as number;
-        this.form.discount_amount = this.headAutocomplete.discount_amount as number;
-        this.form.discount_percentage = this.headAutocomplete.discount_percentage as number;
-        this.form.remark = this.headAutocomplete.remark;
+      
+        this.form.purchase_type_id = currentValues.purchase_type_id;
+        this.form.currency_id = currentValues.currency_id;
+        this.form.exchange_rate = currentValues.exchange_rate;
+        this.form.vat_id = currentValues.vat_id;
+        this.form.vat_percentage = currentValues.vat_percentage;
+        this.form.pph23_id = currentValues.pph23_id;
+        this.form.pph23_percentage = currentValues.pph23_percentage;
+        this.form.discount_amount = currentValues.discount_amount;
+        this.form.discount_percentage = currentValues.discount_percentage;
+        this.form.remark = currentValues.remark;
         
         this.calculateTotalAmount();
       },
@@ -924,7 +962,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         );
         
         if (this.form.discount_type === 'percentage' && this.form.discount_percentage) {
-          this.form.discount_percentage_amount = (this.form.subtotal * this.form.discount_percentage) / 100;
+          this.form.discount_percentage_amount = (this.form.total_amount_products * this.form.discount_percentage) / 100;
           this.form.discount_final_header = this.form.discount_percentage_amount;
         } else if (this.form.discount_type === 'amount' && this.form.discount_amount) {
           this.form.discount_final_header = this.form.discount_amount;
@@ -940,7 +978,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         
         this.form.total_discount = this.form.discount_final_header + this.form.discount_amount_product;
         
-        const afterDiscount = this.form.subtotal - this.form.total_discount;
+        const afterDiscount = this.form.total_amount_products - this.form.discount_final_header;
         
         if (this.form.vat_id) {
           const vatableAmount = this.itemsCheck.checkMain.reduce(
@@ -979,7 +1017,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
           this.formLayout.summary.total_vat.value = this.form.total_vat;
           this.formLayout.summary.total_pph23.value = this.form.total_pph23;
           this.formLayout.summary.grand_total.value = this.form.grand_total;
-  
+      
           if (this.currencySymbolLabel) {
             this.formLayout.summary.total_amount_products.symbol = this.currencySymbolLabel;
             this.formLayout.summary.total_discount.symbol = this.currencySymbolLabel;
@@ -989,7 +1027,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
             this.formLayout.summary.grand_total.symbol = this.currencySymbolLabel;
           }
         }
-  
+      
         return {
           summary: {
             total_amount_products: this.form.total_amount_products,

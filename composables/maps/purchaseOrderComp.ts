@@ -11,7 +11,14 @@ export function defineItemTypePurchaseOrder(
   return (item.boms && item.boms.length > 0) || (item.po_dts_boms && item.po_dts_boms.length > 0) ? 'product' : 'item'
 }
 
-export const generatePoBoms = (bom: PoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
+export const generatePoBoms = (
+  bom: PoDtBomType[] | ProductBomListType[], 
+  productUuid: string, 
+  type: 'product' | 'bom' = 'product', 
+  productId: number,
+  parentIsVat: number = 0,
+  parentIsPph23: number = 0
+): any[] => {
   return bom.map((bomItem: PoDtBomType | ProductBomListType) => {
     const randomUuid = randomId()
 
@@ -33,10 +40,13 @@ export const generatePoBoms = (bom: PoDtBomType[] | ProductBomListType[], produc
       item_factory_code: bomItem.item_factory_code ?? bomItem.factory_code,
       item_unit_name: bomItem.unit_name ?? bomItem.item_unit_name,
       product_id: productId,
+      is_vat: parentIsVat,
+      is_pph23: parentIsPph23,
+      parent_product_ref_id: productId,
+      product_type: 'bom'
     }
   })
 }
-
 export function convertPoItemRefProduct(
   item: FormPoDtProductListType,
   refType: PoDtRefType
@@ -45,7 +55,14 @@ export function convertPoItemRefProduct(
   let productId = item.product_id ?? item.ref_id
 
   if (!!item.boms) {
-    item.boms = generatePoBoms(item.boms, productUuid, 'bom', productId)
+    item.boms = generatePoBoms(
+      item.boms, 
+      productUuid, 
+      'bom', 
+      productId, 
+      item.is_vat, 
+      item.is_pph23
+    )
   }
 
   const productType = defineItemTypePurchaseOrder(item)
