@@ -8,13 +8,6 @@ export const topMenuMasterTab = [
     permissions: ["r_users"],
   },
   {
-    title: "Account Setting",
-    number: 'account-settings',
-    icon: "mdi-account-cog",
-    link: "/masters/account-settings",
-    permissions: ["r_roles"],
-  },
-  {
     title: "Company Profile",
     number: 'company-profiles',
     icon: "mdi-domain",
@@ -303,6 +296,54 @@ const formTabSalesOrder = {
   attachments: 4,
 }
 
+const POIndexStatus = [
+  {
+    value: 'PROCESS',
+    title: 'Process',
+    color: 'blue',
+  },
+  {
+    value: 'FINISH',
+    title: 'Finish',
+    color: 'green',
+  },
+  {
+    value: 'PARTIAL',
+    title: 'Partial',
+    color: 'Orange',
+  },
+  {
+    value: 'CANCELED',
+    title: 'Canceled',
+    color: 'red',
+  },
+]
+
+const formStatusPurchaseOrder = [
+  { id: 'PROCESS', name: 'PROCESS' },
+  { id: 'FINISH', name: 'FINISH' },
+  { id: 'PARTIAL', name: 'PARTIAL' },
+  { id: 'CANCELED', name: 'CANCELED' },
+]
+
+const POIndexDateType = [
+  {
+    value: 'po_date',
+    title: 'PO Date',
+  },
+  {
+    value: 'delivery_date',
+    title: 'Delivery Date',
+  },
+]
+
+const formTabPurchaseOrder = {
+  payments: 0,
+  items: 1,
+  remarks: 2,
+  attachments: 3,
+}
+
 const formTabProduct = {
   boms: 0,
   units: 1,
@@ -320,4 +361,8 @@ export const useStatics = {
   formTabProduct,
   formTabSalesOrder,
   formStatusSalesOrder,
+  POIndexStatus,
+  POIndexDateType,
+  formTabPurchaseOrder,
+  formStatusPurchaseOrder
 }

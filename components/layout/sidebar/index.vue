@@ -74,19 +74,19 @@ const itemPurchase = [
   {
     title: "Purchase Order",
     icon: "mdi-credit-card-outline",
-    link: "/purchase/purchase-order",
+    link: "/purchases/purchase-orders",
     permissions: ["r_pos"],
   },
   {
     title: "Purchase Invoice",
     icon: "mdi-credit-card-outline",
-    link: "/purchase/purchase-invoice",
+    link: "/purchases/purchase-invoice",
     permissions: ["r_pos"],
   },
   {
     title: "Purchase Adjustment",
     icon: "mdi-credit-card-outline",
-    link: "/purchase/purchase-adjustment",
+    link: "/purchases/purchase-adjustment",
     permissions: ["r_pos"],
   },
 ];

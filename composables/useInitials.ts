@@ -211,6 +211,96 @@ const formSalesOrderCreateEdit = {
   address: "",
 } as FormSalesOrderType
 
+const formPurchaseOrderCreateEdit = {
+  id: null,
+  customer_id: null,
+  purchase_type_id: null,
+  currency_id: null,
+  vat_id: null,
+  payment_term_id: null,
+  shipping_term_id: null,
+  pph23_id: null,
+  branch_id: null,
+  po_no: 'PO-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.floor(100000 + Math.random() * 900000),
+  po_date: new Date().toISOString().split('T')[0],
+  delivery_date: '',
+  shipping_destination: '',
+  remark: null,
+  status: 'PROCESS',
+  exchange_rate: 0,
+  discount_percentage: 0,
+  discount_amount: 0,
+  discount_percentage_amount: 0,
+  discount_final_header: 0,
+  discount_amount_product: 0,
+  discount_type: null,
+  pph23_percentage: 0,
+  vat_percentage: 0,
+  total_amount_products: 0,
+  total_qty: 0,
+  subtotal: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  po_dts: [],
+  email: '',
+  phone: '',
+  address: '',
+  summary: {
+    total_amount_products: {
+      label: "Sub Amount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_discount: {
+      label: "Total Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    subtotal: {
+      label: "After Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_vat: {
+      label: "Total VAT",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_pph23: {
+      label: "Total PPH23",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    grand_total: {
+      label: "Grand Total",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+  }
+} as FormPurchaseOrderType
+
 const productFieldsFilterConfig = {
   fields: [
     {
@@ -366,5 +456,6 @@ export const useInitials: any = {
   formPurchaseTypeCreateEdit,
   formIOTypeCreateEdit,
   formWarehouseCreateEdit,
-  formAccountSettingEdit
+  formAccountSettingEdit,
+  formPurchaseOrderCreateEdit,
 }
