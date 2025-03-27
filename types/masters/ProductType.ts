@@ -139,3 +139,16 @@ export type ProductBomListType = {
 
 
 export type ModalIndexMasterFilterTextType = 'code' | 'name'
+
+export type QIndexProductsType = {
+  page: number
+  per_page: number
+  item_group_ids?: number[] | null
+  item_sub_group_ids?: number[] | null
+  code?: string
+  name?: string
+  sku?: string
+  factory_code?: string
+  order_column?: string
+  order_direction?: string
+}

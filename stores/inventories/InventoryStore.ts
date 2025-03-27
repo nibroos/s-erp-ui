@@ -1,4 +1,4 @@
-import { generateSoBoms, initCheckedSoDt } from '~/composables/maps/salesOrderComp'
+import { initCheckedInvDt } from '~/composables/maps/inventoryComp'
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
@@ -8,22 +8,32 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType } from '~/types/sales-orders/SalesOrderType'
+import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType } from '~/types/inventories/InventoryType'
 
-const useSalesOrderStore = defineStore('SalesOrderStore', {
+const useInventoryStore = defineStore('InventoryStore', {
   state: () => ({
     form: {
       id: null,
-    } as FormSalesOrderType,
+    } as FormInventoryType,
     queryModal: {
-      qIndex: {
+      qIndexIn: {
         page: 1,
         per_page: 100,
+        in_type: 'IN',
         parent_ids: [],
         global: '',
-        order_column: 'order_at',
+        order_column: 'ingoing_at',
         order_direction: 'desc'
-      } as QSoIndexType,
+      } as QInvIndexType,
+      qIndexOut: {
+        page: 1,
+        per_page: 100,
+        in_type: 'OUT',
+        parent_ids: [],
+        global: '',
+        order_column: 'ingoing_at',
+        order_direction: 'desc'
+      } as QInvIndexType,
 
       qIndexProducts: {
         page: 1,
@@ -37,12 +47,12 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         order_column: 'name',
         order_direction: 'desc'
       } as QIndexProductsType,
-      qIndexQuotations: {
+      qIndexSalesOrders: {
         page: 1,
         per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
-        quotation_ids: [],
+        sales_order_ids: [],
         customer_id: null,
         code: '',
         name: '',
@@ -50,7 +60,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         factory_code: '',
         order_column: 'due_at',
         order_direction: 'desc'
-      } as QIndexQuotationsType,
+      } as QIndexSalesOrdersType,
       qIndexBoms: {
         page: 1,
         per_page: 100,
@@ -66,25 +76,20 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     metaModal: {
       index: {
-        data: [] as IndexSalesOrderType[],
+        data: [] as IndexInventoryType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
       indexProducts: {
-        data: [] as FormSoDtProductListType[],
+        data: [] as FormInvDtProductListType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
-      indexQuotations: {
-        data: [] as FormSoDtProductListType[],
+      indexSalesOrders: {
+        data: [] as FormInvDtProductListType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
-      indexBoms: {
-        data: [] as FormSoDtBomListType[],
-        loading: false,
-        meta: {} as Meta
-      } as PaginationMeta
     },
     loading: {
       formLoading: false,
@@ -94,15 +99,13 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
     itemsCheck: {
-      checkMain: [] as SoDtType[],
-      checkProducts: [] as FormSoDtProductListType[],
-      checkBoms: [] as SoDtBomType[],
-      checkQuotations: [] as FormSoDtProductListType[],
+      checkMain: [] as InvDtType[],
+      checkProducts: [] as FormInvDtProductListType[],
+      checkSalesOrders: [] as FormInvDtProductListType[],
     },
     isOpenModal: {
       products: false,
-      boms: false,
-      quotations: false,
+      so: false,
     },
     optionRefBtnRef: [
       {
@@ -114,8 +117,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         // textClass: 'text-grey1'
       },
       {
-        cta: "Quotation",
-        key: "quotations",
+        cta: "Sales Order",
+        key: "so",
         icon: "mdi-offer",
         count: 0,
         type: "button",
@@ -132,9 +135,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     currencySymbolLabel: '' as string | null,
     headAutocomplete: {
-      quo: {
+      so: {
         customer_id: null as number | null | undefined,
-        order_type_id: null as number | null | undefined,
+        io_type_id: null as number | null | undefined,
         currency_id: null as number | null | undefined,
         exchange_rate: 0 as number | null | undefined,
         vat_id: null as number | null | undefined,
@@ -149,9 +152,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/orders/sales-orders",
+      parentPath: "/orders/inventories",
       currentTab: 0,
-      tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
+      tabs: ["Items", "Payments", "Remark", "Attachments"],
       button: {
         clear: {
           show: true,
@@ -164,24 +167,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       summary: {
         total_amount: {
           label: "Sub Amount",
-          symbol: '',
-          value: 0,
-
-          format: {
-            precision: 2,
-          },
-        },
-        total_discount: {
-          label: "Total Discount",
-          symbol: '',
-          value: 0,
-
-          format: {
-            precision: 2,
-          },
-        },
-        total_after_disc: {
-          label: "After Discount",
           symbol: '',
           value: 0,
 
@@ -223,7 +208,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
   }),
 
   actions: {
-    async indexSalesOrder() {
+    async indexInventory() {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
@@ -244,33 +229,28 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.loading.editPageLoading = true
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-orders/show-sales-order',
+          '/v1/inventories/show-sales-order',
           {
             id: this.form.id
           }
         )
 
         this.form = response.data.data[0]
-        if (!this.form.schedule) {
-          this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
-          this.form.schedule.title = this.form.po_buyer_no
-        }
-
         if (!this.form.attachments) {
           this.form.attachments = []
         }
-        this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
+        this.itemsCheck.checkMain = initCheckedInvDt(this.form.inv_dts)
 
-        // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
+        // this.itemsCheck.checkProducts = updateInvRefsModalFromMain(
         //   this.itemsCheck.checkMain,
         //   "products",
         //   this.itemsCheck.checkProducts
         // );
 
-        // this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
+        // this.itemsCheck.checkSalesOrders = updateInvRefsModalFromMain(
         //   this.itemsCheck.checkMain,
-        //   "quotations",
-        //   this.itemsCheck.checkQuotations
+        //   "sales_orders",
+        //   this.itemsCheck.checkSalesOrders
         // );
 
         return response
@@ -298,16 +278,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-orders/create-sales-order',
+          '/v1/inventories/create-sales-order',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formSalesOrderCreateEdit)
+          JSON.stringify(useInitials.formInventoryCreateEdit)
         )
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/sales-orders/edit/${response.data.data[0].id}`)
+        navigateTo(`/orders/inventories/edit/${response.data.data[0].id}`)
 
         return response
       } catch (error: any) {
@@ -349,22 +329,20 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         let id = this.form.id
 
         const response = await useMyFetch().post(
-          '/v1/sales-orders/update-sales-order',
+          '/v1/inventories/update-sales-order',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formSalesOrderCreateEdit)
+          JSON.stringify(useInitials.formInventoryCreateEdit)
         )
 
-        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+        // navigateTo(`/masters/customizations/inventories/edit/${response.data.data[0].id}`)
 
         this.form.id = id
         await this.show()
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-
-        navigateTo(`/orders/sales-orders`)
 
         return response
       } catch (error: any) {
@@ -392,7 +370,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-orders/delete-sales-order',
+          '/v1/inventories/delete-sales-order',
           this.form
         )
         this.form = response.data.data[0]
@@ -408,7 +386,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-orders/restore-sales-order',
+          '/v1/inventories/restore-sales-order',
           this.form
         )
         this.form = response.data.data[0]
@@ -426,9 +404,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       let params = this.queryModal.qIndexProducts
 
-      if (this.isOpenModal.boms) {
-        params = this.queryModal.qIndexBoms
-      }
       try {
         const response = await useMyFetch().post(
           '/v1/products/index-product',
@@ -439,8 +414,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.metaModal.indexProducts = response.data
 
           if (this.itemsCheck.checkProducts.length > 0) {
-            this.itemsCheck.checkProducts.forEach((checkProduct: FormSoDtProductListType, iCheckProduct: number) => {
-              (this.metaModal.indexProducts.data as FormSoDtProductListType[]).forEach((resProduct: FormSoDtProductListType, iResProduct: number) => {
+            this.itemsCheck.checkProducts.forEach((checkProduct: FormInvDtProductListType, iCheckProduct: number) => {
+              (this.metaModal.indexProducts.data as FormInvDtProductListType[]).forEach((resProduct: FormInvDtProductListType, iResProduct: number) => {
                 // console.log('checkProduct', iCheckProduct, checkProduct);
 
                 if (resProduct.ref_id === checkProduct.ref_id && checkProduct.ref_type === 'products') {
@@ -459,33 +434,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           }
         }
 
-        if (this.isOpenModal.boms) {
-          this.metaModal.indexBoms = response.data
-
-          if (this.itemsCheck.checkBoms.length > 0) {
-            let generatedBoms = generateSoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
-
-            generatedBoms.forEach((checkBom: SoDtBomType, iCheckBom: number) => {
-              (this.metaModal.indexBoms.data as SoDtBomType[]).forEach((resBom: FormSoDtBomListType, iResBom: number) => {
-
-                if (resBom.ref_id === checkBom.item_id) {
-                  // console.log('checkBom', iCheckBom, checkBom);
-                  // console.log('checkResBom', iResBom, resBom);
-                  // console.log('resBom', iResBom, resBom);
-
-                  const combined = {
-                    ...resBom,
-                    ...checkBom
-                  }
-
-                  this.metaModal.indexBoms.data[iResBom] = combined
-                  this.itemsCheck.checkBoms[iCheckBom] = combined
-                }
-              })
-            })
-          }
-        }
-
         // return this.metaModal.indexProducts
         return response.data
       } catch (error: any) {
@@ -495,81 +443,50 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
-    async indexQuotation() {
+    async indexSalesOrder() {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
-      if (this.itemsCheck.checkQuotations.length > 0) {
-        this.queryModal.qIndexQuotations.quotation_ids = this.itemsCheck.checkQuotations.map((item: FormSoDtProductListType) => (item.quotation_id ?? item.ref_id as number))
+      if (this.itemsCheck.checkSalesOrders.length > 0) {
+        this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
       }
 
-      let params = this.queryModal.qIndexQuotations
-
-      if (this.isOpenModal.boms) {
-        params = this.queryModal.qIndexBoms
-      }
+      let params = this.queryModal.qIndexSalesOrders
 
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-orders/index-ref-quo-dt',
+          '/v1/inventories/index-ref-so-dt',
           params
         )
 
-        if (this.isOpenModal.quotations) {
-          this.metaModal.indexQuotations = response.data
+        if (this.isOpenModal.so) {
+          this.metaModal.indexSalesOrders = response.data
 
-          if (this.itemsCheck.checkQuotations.length > 0) {
-            this.itemsCheck.checkQuotations.forEach((checkQuotation: FormSoDtProductListType, iCheckQuotation: number) => {
-              (this.metaModal.indexQuotations.data as FormSoDtProductListType[]).forEach((resQuotation: FormSoDtProductListType, iResQuotation: number) => {
+          if (this.itemsCheck.checkSalesOrders.length > 0) {
+            this.itemsCheck.checkSalesOrders.forEach((checkSalesOrder: FormInvDtProductListType, iCheckSalesOrder: number) => {
+              (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
-                  resQuotation.quo_dt_id === checkQuotation.quo_dt_id ||
-                  resQuotation.quo_dt_id === checkQuotation.ref_id
+                  resSalesOrder.so_dt_id === checkSalesOrder.so_dt_id ||
+                  resSalesOrder.so_dt_id === checkSalesOrder.ref_id
                 ) {
 
                   const combined = {
-                    ...resQuotation,
-                    ...checkQuotation
+                    ...resSalesOrder,
+                    ...checkSalesOrder
                   }
 
-                  this.metaModal.indexQuotations.data[iResQuotation] = combined
-                  this.itemsCheck.checkQuotations[iCheckQuotation] = combined
+                  this.metaModal.indexSalesOrders.data[iResSalesOrder] = combined
+                  this.itemsCheck.checkSalesOrders[iCheckSalesOrder] = combined
                 }
               })
             })
 
-            this.autocompleteQuotation(this.itemsCheck.checkQuotations[0]);
+            this.autocompleteSalesOrder(this.itemsCheck.checkSalesOrders[0]);
           }
         }
 
-        if (this.isOpenModal.boms) {
-          this.metaModal.indexBoms = response.data
-
-          if (this.itemsCheck.checkBoms.length > 0) {
-            let generatedBoms = generateSoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
-
-            generatedBoms.forEach((checkBom: SoDtBomType, iCheckBom: number) => {
-              (this.metaModal.indexBoms.data as SoDtBomType[]).forEach((resBom: FormSoDtBomListType, iResBom: number) => {
-
-                if (resBom.ref_id === checkBom.item_id) {
-                  // console.log('checkBom', iCheckBom, checkBom);
-                  // console.log('checkResBom', iResBom, resBom);
-                  // console.log('resBom', iResBom, resBom);
-
-                  const combined = {
-                    ...resBom,
-                    ...checkBom
-                  }
-
-                  this.metaModal.indexBoms.data[iResBom] = combined
-                  this.itemsCheck.checkBoms[iCheckBom] = combined
-                }
-              })
-            })
-          }
-        }
-
-        // return this.metaModal.indexQuotations
+        // return this.metaModal.indexSalesOrders
         return response.data
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response?.data);
@@ -580,25 +497,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
     selectItemRefModal() {
       if (this.isOpenModal.products) {
-        this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain)
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain)
         this.isOpenModal.products = false
       }
-      if (this.isOpenModal.quotations) {
-        this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkQuotations, 'quotations', this.itemsCheck.checkMain)
-        this.isOpenModal.quotations = false
+      if (this.isOpenModal.so) {
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
+        this.isOpenModal.so = false
       }
-      if (this.isOpenModal.boms) {
-        // this.itemsCheck.checkMain = generateSoDt(this.itemsCheck.checkProducts, 'boms', this.itemsCheck.checkMain)
 
-        if (this.itemsCheck.checkBoms.length > 0) {
-
-          this.itemsCheck.checkBoms = generateSoBoms(this.itemsCheck.checkBoms, this.openedModal.boms.product_uuid, 'bom', this.openedModal.boms.product_id as number)
-        } else {
-          this.itemsCheck.checkBoms = []
-        }
-        this.itemsCheck.checkMain[this.openedModal.boms.index as number].so_dts_boms = this.itemsCheck.checkBoms
-        this.isOpenModal.boms = false
-      }
     },
 
     clickClearRefs() {
@@ -611,7 +517,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     handleClearQuery() {
       this.queryModal.qIndexProducts = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',
@@ -626,9 +532,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     resetSummary() {
       if (this.formLayout?.summary) {
         this.formLayout.summary.total_amount.value = 0;
-        // this.formLayout.summary.total_qty.value = 0
-        this.formLayout.summary.total_discount.value = 0
-        this.formLayout.summary.total_after_disc.value = 0
         this.formLayout.summary.total_vat.value = 0
         this.formLayout.summary.total_pph23.value = 0
         this.formLayout.summary.grand_total.value = 0
@@ -636,7 +539,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     handleClickClear() {
-      this.form = cloneObject(useInitials.formSalesOrderCreateEdit);
+      this.form = cloneObject(useInitials.formInventoryCreateEdit);
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkProducts = []
       this.errors = {};
@@ -652,9 +555,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "products"
           ).length;
-        } else if (item.key == "quotations") {
+        } else if (item.key == "so") {
           item.count = this.itemsCheck.checkMain.filter(
-            (item) => item.ref_type == "quotations"
+            (item) => item.ref_type == "so"
           ).length;
         }
       });
@@ -673,14 +576,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     autocompleteCustomer(data: any) {
       this.form.email = data.email;
       this.form.phone = data.phone;
-
-      if (!this.form.ship_dest) {
-        this.form.ship_dest = data.address;
-      }
+      this.form.address = data.address;
 
       if (!!data.id) {
-        this.queryModal.qIndexQuotations.customer_id = data.id;
-        this.queryModal.qIndexQuotations.customer_ids = [data.id];
+        this.queryModal.qIndexSalesOrders.customer_id = data.id;
+        this.queryModal.qIndexSalesOrders.customer_ids = [data.id];
       }
     },
 
@@ -688,7 +588,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.vat_perc = Number(data.num);
 
       // apply to all childs
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
         // if (!item.vat_id) {
         if (!!item.is_vat) {
           item.vat_id = data.id as number;
@@ -700,12 +600,12 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
-    autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
+    autocompleteVatDt(data: FormVatType, soDtType: InvDtType) {
       soDtType.vat_perc = Number(data.num);
       this.calculateTotalAmount();
     },
 
-    autocompletePph23Dt(data: FormPph23Type, soDtType: SoDtType) {
+    autocompletePph23Dt(data: FormPph23Type, soDtType: InvDtType) {
       soDtType.pph23_perc = Number(data.num);
       this.calculateTotalAmount();
     },
@@ -721,7 +621,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.vat_perc = 0;
       this.form.total_vat = 0;
 
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
         item.vat_id = null;
         item.vat_perc = 0;
         item.vat_perc_am = 0;
@@ -731,7 +631,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
-    removeVatDt(soDtType: SoDtType) {
+    removeVatDt(soDtType: InvDtType) {
       if (!soDtType.vat_id) {
         soDtType.vat_perc = 0;
         soDtType.vat_perc_am = 0;
@@ -740,7 +640,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
-    removePph23Dt(soDtType: SoDtType) {
+    removePph23Dt(soDtType: InvDtType) {
       if (!soDtType.pph23_id) {
         soDtType.pph23_perc = 0;
         soDtType.pph23_perc_am = 0;
@@ -754,7 +654,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.total_pph23 = 0;
 
       // remove all childs
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
         item.pph23_id = null;
         item.pph23_perc = 0;
         item.pph23_perc_am = 0;
@@ -767,7 +667,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.pph23_id = null;
       this.form.pph23_perc = 0;
 
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
         item.pph23_id = null;
         item.pph23_perc = 0;
         item.pph23_perc_am = 0;
@@ -781,7 +681,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.pph23_perc = Number(data.num);
 
       // apply to all childs
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
         // if (!item.pph23_id) {
         if (!!item.is_pph23) {
           item.pph23_id = data.id as number;
@@ -801,31 +701,23 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     closeAllModal() {
-      this.isOpenModal.quotations = false;
+      this.isOpenModal.so = false;
       this.isOpenModal.products = false;
-      this.isOpenModal.boms = false;
     },
 
     onClickUpdateProductsModal() {
       this.selectItemRefModal();
       this.countSelectedReferences();
-
-      if (this.isOpenModal.quotations) {
-        this.form.order_type_id = this.headAutocomplete.quo.order_type_id;
-        this.form.currency_id = this.headAutocomplete.quo.currency_id;
-        this.form.exchange_rate = this.headAutocomplete.quo.exchange_rate;
-        this.form.vat_id = this.headAutocomplete.quo.vat_id;
-        this.form.vat_perc = this.headAutocomplete.quo.vat_perc as number;
-        this.form.pph23_id = this.headAutocomplete.quo.pph23_id;
-        this.form.pph23_perc = this.headAutocomplete.quo.pph23_perc as number;
-        // this.form.markup_perc = this.headAutocomplete.quo.markup_perc as number;
-        this.form.disc_am = this.headAutocomplete.quo.disc_am as number;
-        this.form.disc_perc = this.headAutocomplete.quo.disc_perc as number;
-        this.form.remark = this.headAutocomplete.quo.remark
-      }
-
       this.closeAllModal();
 
+      this.form.io_type_id = this.headAutocomplete.so.io_type_id;
+      this.form.currency_id = this.headAutocomplete.so.currency_id;
+      this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
+      this.form.vat_id = this.headAutocomplete.so.vat_id;
+      this.form.vat_perc = this.headAutocomplete.so.vat_perc as number;
+      this.form.pph23_id = this.headAutocomplete.so.pph23_id;
+      this.form.pph23_perc = this.headAutocomplete.so.pph23_perc as number;
+      this.form.remark = this.headAutocomplete.so.remark
     },
 
     onClickDeleteSelected(item: any, index: number) {
@@ -845,7 +737,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.isOpenModal.products = false;
 
       if (ref.key == "products") {
-        this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
+        this.itemsCheck.checkProducts = updateInvRefsModalFromMain(
           this.itemsCheck.checkMain,
           "products",
           this.itemsCheck.checkProducts
@@ -853,32 +745,32 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.countSelectedReferences();
         this.isOpenModal.products = true;
-      } else if (ref.key == "quotations") {
-        this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
+      } else if (ref.key == "so") {
+        this.itemsCheck.checkSalesOrders = updateInvRefsModalFromMain(
           this.itemsCheck.checkMain,
-          "quotations",
-          this.itemsCheck.checkQuotations
+          "so",
+          this.itemsCheck.checkSalesOrders
         );
 
         this.countSelectedReferences();
-        this.isOpenModal.quotations = true;
+        this.isOpenModal.so = true;
       }
 
       await this.fetchModalFilter();
     },
 
     async fetchModalFilter() {
-      if (this.isOpenModal.products || this.isOpenModal.boms) {
+      if (this.isOpenModal.products) {
         await this.indexProduct();
-      } else if (this.isOpenModal.quotations) {
+      } else if (this.isOpenModal.so) {
         if (!!this.form.customer_id) {
-          this.queryModal.qIndexQuotations.customer_id = this.form.customer_id;
-          this.queryModal.qIndexQuotations.customer_ids = [this.form.customer_id];
+          this.queryModal.qIndexSalesOrders.customer_id = this.form.customer_id;
+          this.queryModal.qIndexSalesOrders.customer_ids = [this.form.customer_id];
         } else {
-          this.queryModal.qIndexQuotations.customer_id = null;
-          this.queryModal.qIndexQuotations.customer_ids = [];
+          this.queryModal.qIndexSalesOrders.customer_id = null;
+          this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
-        await this.indexQuotation();
+        await this.indexSalesOrder();
       }
       // } else if (showModal.value.listWip) {
       //   // queryModal.value.qListWip.customer_id = form.value.customer_id
@@ -902,30 +794,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         }
       }
 
-      if (this.isOpenModal.boms) {
-        this.queryModal.qIndexBoms.page = options.page;
-        this.queryModal.qIndexBoms.per_page = options.itemsPerPage;
+      if (this.isOpenModal.so) {
+        this.queryModal.qIndexSalesOrders.page = options.page;
+        this.queryModal.qIndexSalesOrders.per_page = options.itemsPerPage;
 
         if (options.sortBy.length > 0) {
-          this.queryModal.qIndexBoms.order_column = options.sortBy[0].key;
-          this.queryModal.qIndexBoms.order_direction = options.sortBy[0].order;
-        } else {
-          this.queryModal.qIndexBoms.order_column = "";
-          this.queryModal.qIndexBoms.order_direction = "";
-        }
-      }
-
-      if (this.isOpenModal.quotations) {
-        this.queryModal.qIndexQuotations.page = options.page;
-        this.queryModal.qIndexQuotations.per_page = options.itemsPerPage;
-
-        if (options.sortBy.length > 0) {
-          this.queryModal.qIndexQuotations.order_column = options.sortBy[0].key;
-          this.queryModal.qIndexQuotations.order_direction =
+          this.queryModal.qIndexSalesOrders.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexSalesOrders.order_direction =
             options.sortBy[0].order;
         } else {
-          this.queryModal.qIndexQuotations.order_column = "";
-          this.queryModal.qIndexQuotations.order_direction = "";
+          this.queryModal.qIndexSalesOrders.order_column = "";
+          this.queryModal.qIndexSalesOrders.order_direction = "";
         }
       }
 
@@ -933,7 +812,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     async onClickOpenModalBOM(
-      item: FormSoDtProductListType,
+      item: FormInvDtProductListType,
       index: number
     ) {
       this.openedModal.boms.index = index;
@@ -941,42 +820,24 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.openedModal.boms.product_id = item.item_id as number;
       this.openedModal.boms.product_uuid = item.product_uuid as string;
 
-      this.itemsCheck.checkBoms = item.so_dts_boms;
-      this.isOpenModal.boms = true;
       await this.indexProduct();
     },
 
-    onClickDeleteBom(
-      index: number,
-      indexBom: number,
-      internalItem: any
-    ) {
-      const item = this.itemsCheck.checkMain[index];
-      if (item && item.so_dts_boms) {
-        item.so_dts_boms.splice(indexBom, 1);
-      }
-
-      this.calculateTotalAmount();
-    },
-
-    autocompleteQuotation(data: FormSoDtProductListType) {
+    autocompleteSalesOrder(data: FormInvDtProductListType) {
       this.form.customer_id = data.customer_id;
-      this.headAutocomplete.quo.order_type_id = data.order_type_id;
-      this.headAutocomplete.quo.currency_id = data.currency_id;
-      this.headAutocomplete.quo.exchange_rate = data.exchange_rate;
-      this.headAutocomplete.quo.vat_id = data.head_vat_id;
-      this.headAutocomplete.quo.vat_perc = data.head_vat_perc as number;
-      this.headAutocomplete.quo.pph23_id = data.head_pph23_id;
-      this.headAutocomplete.quo.pph23_perc = data.head_pph23_perc as number;
-      // this.headAutocomplete.quo.markup_perc = data.head_markup_perc as number;
-      this.headAutocomplete.quo.disc_am = data.head_disc_am as number;
-      this.headAutocomplete.quo.disc_perc = data.head_disc_perc as number;
-      this.headAutocomplete.quo.remark = data.head_remark
+      this.headAutocomplete.so.io_type_id = data.io_type_id;
+      this.headAutocomplete.so.currency_id = data.currency_id;
+      this.headAutocomplete.so.exchange_rate = data.exchange_rate;
+      this.headAutocomplete.so.vat_id = data.head_vat_id;
+      this.headAutocomplete.so.vat_perc = data.head_vat_perc as number;
+      this.headAutocomplete.so.pph23_id = data.head_pph23_id;
+      this.headAutocomplete.so.pph23_perc = data.head_pph23_perc as number;
+      this.headAutocomplete.so.remark = data.head_remark
     },
 
-    removeQuotation() {
+    removeSalesOrder() {
       // this.form.customer_id = null;
-      // this.form.order_type_id = null;
+      // this.form.io_type_id = null;
       // this.form.currency_id = null;
       // this.form.exchange_rate = 1;
       // this.form.vat_id = null;
@@ -987,203 +848,50 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       // this.form.disc_am = 0;
       // this.form.disc_perc = 0;
       // this.form.remark = '';
-      this.queryModal.qIndexQuotations.quotation_ids = [];
-      this.indexQuotation();
-    },
-
-    autocompleteMarkup(value: number) {
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
-        if (!item.is_lock_markup) {
-          item.markup_perc = value;
-        }
-      });
-    },
-
-    calculateMarkup(soDt: SoDtType) {
-      if (!soDt.is_lock_price_sell) {
-        soDt.markup_perc_am = soDt.price_buy * (soDt.markup_perc ?? 0) / 100;
-        soDt.price_sell = soDt.price_buy + (soDt.price_buy * (soDt.markup_perc ?? 0) / 100);
-      }
-    },
-
-    onClickLockMarkup(quoDt: SoDtType) {
-      if (!!quoDt.is_lock_markup) {
-        quoDt.is_lock_markup = 0;
-      } else {
-        quoDt.is_lock_markup = 1;
-      }
-    },
-
-    onClickLockPriceSell(quoDt: SoDtType) {
-      if (!!quoDt.is_lock_price_sell) {
-        quoDt.is_lock_price_sell = 0;
-      } else {
-        quoDt.is_lock_price_sell = 1;
-      }
-    },
-
-    calculateDtPrice(soDt: SoDtType) {
-      if (!!soDt.so_dts_boms && soDt.so_dts_boms.length > 0) {
-        soDt.price_buy = soDt.so_dts_boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-      else if (!!soDt.quo_dts_boms && soDt.quo_dts_boms.length > 0) {
-        soDt.price_buy = soDt.quo_dts_boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-      else if (!!soDt.boms && soDt.boms.length > 0) {
-        soDt.price_buy = soDt.boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-
-      this.calculateMarkup(soDt);
-    },
-
-    calculatePrice(soDtBom: SoDtBomType, soDt: SoDtType) {
-      soDtBom.subtotal_buy = soDtBom.price_buy * soDtBom.qty;
-
-      if (!!soDt.so_dts_boms && soDt.so_dts_boms.length > 0) {
-        soDt.price_buy = soDt.so_dts_boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-      else if (!!soDt.quo_dts_boms && soDt.quo_dts_boms.length > 0) {
-        soDt.price_buy = soDt.quo_dts_boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-      else if (!!soDt.boms && soDt.boms.length > 0) {
-        soDt.price_buy = soDt.boms.reduce(
-          (acc: number, item: SoDtBomType) => acc + item.subtotal_buy,
-          0
-        );
-      }
-
-      this.calculateMarkup(soDt);
+      this.queryModal.qIndexSalesOrders.sales_order_ids = [];
+      this.indexSalesOrder();
     },
 
     calculateTotalAmount() {
-      this.itemsCheck.checkMain.forEach((item: SoDtType) => {
-        // if (!!item.so_dts_boms) {
-        //   item.so_dts_boms.forEach((bom: SoDtBomType) => {
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
+        // if (!!item.inv_dts_boms) {
+        //   item.inv_dts_boms.forEach((bom: InvDtBomType) => {
         //     this.calculatePrice(bom, item);
         //   });
         // }
 
-        if (!!item.disc_perc && item.disc_perc > 0) {
-          item.disc_am = 0;
-        } else if (!!item.disc_am && item.disc_am > 0) {
-          item.disc_perc = 0;
-        }
-
-        const discPercentage = Number((item.disc_perc ?? 0) / 100);
-        const discAmount = Number(item.disc_am);
         const priceSell = Number(item.price_sell);
         const priceBuy = Number(item.price_buy);
         const qty = Number(item.qty);
         const subtotalSell = Number(priceSell * qty);
         const subtotalBuy = Number(priceBuy * qty);
 
-        const discPercPriceSell = Number(priceSell * discPercentage);
-        const discPercNum = Number(priceSell - discPercPriceSell);
-        // const subDiscPercAm = Number(qty * discPercNum);
-        const discPercAm = Number(subtotalSell * discPercentage);
-        const subDiscPercAm = Number(subtotalSell - discPercAm);
-
         item.subtotal_sell = subtotalSell;
         item.subtotal_buy = subtotalBuy;
 
-        let discType: SoDtDiscType = null;
-
-        let discFinal = 0;
-        if (!!discAmount && discAmount > 0) {
-          discType = "a";
-          //   discFinal = subtotalSell - discAmount;
-        } else if (!!discPercentage && discPercentage > 0) {
-          discType = "p";
-          //   discFinal = subDiscPercAm;
-        } else if (
-          !!discAmount &&
-          discAmount > 0 &&
-          !!discPercentage &&
-          discPercentage > 0
-        ) {
-          discType = "all";
-          // discFinal = subDiscPercAm - discAmount;
-        }
-
-        // discFinal = subDiscPercAm;
-        discFinal = subDiscPercAm - discAmount;
-        if (discFinal <= 0) {
-          discFinal = subtotalSell;
-        }
-
-        item.disc_perc_num = 0;
-        item.disc_perc_am = 0;
-        item.disc_final = discFinal
-        if (discPercentage) {
-          item.disc_perc_num = discPercNum;
-          item.disc_perc_am = discPercAm;
-        }
+        let discFinal = subtotalSell;
 
         item.vat_perc_am = 0;
 
         item.pph23_perc_am = 0;
 
-        item.total_am = item.disc_final + item.vat_perc_am - item.pph23_perc_am;
+        item.total_am = discFinal + item.vat_perc_am - item.pph23_perc_am;
       });
 
       // header calculation
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.subtotal_sell,
+        (acc: number, item: InvDtType) => acc + item.subtotal_sell,
         0
       );
 
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.qty,
+        (acc: number, item: InvDtType) => acc + item.qty,
         0
       );
 
-      this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + (item.disc_perc_am + item.disc_am),
-        0
-      ));
-
-      this.form.disc_perc_am = 0
-
-      if (!!this.form.disc_perc) {
-        // this.form.disc_perc_am = this.form.disc_final * (((this.form.disc_perc ?? 0) / 100));
-
-        let discPercAm = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SoDtType) => {
-            return acc + (item.total_am * (this.form.disc_perc / 100));
-          },
-          0
-        );
-
-        this.form.disc_perc_am = discPercAm;
-      }
-
-      // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
-      this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
-
-      this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
-      if (this.form.total_after_disc < 0) {
-        this.form.total_after_disc = this.form.subtotal;
-      }
-
-      this.form.disc_type = null;
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SoDtType) => {
+          (acc: number, item: InvDtType) => {
             if (!!item.is_vat) {
               return acc + item.total_am;
             }
@@ -1192,26 +900,12 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           0
         );
 
-        let discPercAmVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SoDtType) => {
-            if (!!item.is_vat) {
-              return acc + (item.total_am * (this.form.disc_perc / 100));
-            }
-            return acc;
-          },
-          0
-        );
-
-        this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.disc_am)) * ((this.form.vat_perc ?? 0) / 100)
-
-        if (this.form.total_vat < 0) {
-          this.form.total_vat = 0;
-        }
+        this.form.total_vat = totalAmIsVat * ((this.form.vat_perc ?? 0) / 100)
       }
 
       if (!!this.form.pph23_id) {
         let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SoDtType) => {
+          (acc: number, item: InvDtType) => {
             if (!!item.is_pph23) {
               return acc + item.subtotal_sell;
             }
@@ -1223,20 +917,13 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       this.form.grand_total =
-        this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
+        this.form.subtotal - this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
         this.formLayout.summary.total_amount.value = this.form.subtotal;
-        this.formLayout.summary.total_after_disc.value = this.form.total_after_disc;
-        this.formLayout.summary.total_discount.value = this.form.total_discount;
         this.formLayout.summary.total_vat.value = this.form.total_vat;
         this.formLayout.summary.total_pph23.value = this.form.total_pph23;
         this.formLayout.summary.grand_total.value = this.form.grand_total;
-
-        // if (this.form.grand_total < 0) {
-        //   this.form.grand_total = 0;
-        //   this.formLayout.summary.grand_total.value = 0;
-        // }
 
         // TODO foreach currency symbol
       }
@@ -1244,8 +931,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       let response = {
         summary: {
           total_amount: this.form.subtotal,
-          total_after_disc: this.form.total_after_disc,
-          total_discount: this.form.total_discount,
           total_vat: this.form.total_vat,
           total_pph23: this.form.total_pph23,
           grand_total: this.form.grand_total,
@@ -1268,10 +953,10 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
   },
   persist: [
     {
-      paths: ['queryModal', 'formTabSalesOrder'],
+      paths: ['queryModal', 'formTabInventory'],
       storage: localStorage
     }
   ]
 })
 
-export default useSalesOrderStore
+export default useInventoryStore

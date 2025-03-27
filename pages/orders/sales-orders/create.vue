@@ -133,37 +133,6 @@ const headersBOMModal = ref<FieldSelectableType[]>([
   { key: "remark", title: "Remark", sortable: true },
 ]) as Ref<FieldSelectableType[]>;
 
-const headersVAT = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Percentage",
-    key: "num",
-    value: "num",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Multiplier",
-    key: "multiplier",
-    value: "multiplier",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Divider",
-    key: "divider",
-    value: "divider",
-    align: "start",
-    sortable: true,
-  },
-]);
-
 const headersCustomer = ref<FieldSelectableType[]>([
   {
     title: "Name",
@@ -767,13 +736,15 @@ watchEffect(() => {
               disabled
             />
           </div>
+
           <div class="sm:col-span-1">
-            <d-text-input
-              v-model="form.address"
-              :label="`Address`"
-              :placeholder="`Address`"
-              :errors="errors.address"
-              disabled
+            <d-autocomplete-client
+              v-model="form.status"
+              :items="useStatics.formStatusSalesOrder"
+              label="Status"
+              item-value="id"
+              item-title="name"
+              :clearable="false"
             />
           </div>
 
@@ -817,14 +788,12 @@ watchEffect(() => {
               label="Due Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete-client
-              v-model="form.status"
-              :items="useStatics.formStatusSalesOrder"
-              label="Status"
-              item-value="id"
-              item-title="name"
-              :clearable="false"
+          <div class="sm:col-span-1 col-span-4">
+            <d-text-area-input
+              v-model="form.ship_dest"
+              :label="``"
+              :placeholder="`Shipping Address`"
+              class=""
             />
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>

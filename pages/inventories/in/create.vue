@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
+import useInventoryStore from "~/stores/inventories/InventoryStore";
 import type {
   OptionRefBtnType,
   RefBtnType,
@@ -14,29 +14,27 @@ import type { FormVatType } from "~/types/masters/VatType";
 import type { FormPph23Type } from "~/types/masters/Pph23Type";
 import type { FormCurrencyType } from "~/types/masters/CurrencyType";
 import type {
-  FormSoDtProductListType,
+  FormInvDtProductListType,
   ModalIndexProductFilterAutoCompleteType,
-  ModalIndexQuotationFilterAutoCompleteType,
   ModalIndexProductFilterTextType,
-  ModalIndexQuotationFilterTextType,
-  SoDtDiscType,
-  SoDtType,
+  ModalIndexSalesOrderFilterAutoCompleteType,
+  ModalIndexSalesOrderFilterTextType,
+  InvDtDiscType,
+  InvDtType,
   VatModeType,
-  SoDtBomType,
-} from "~/types/sales-orders/SalesOrderType";
-import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
+} from "~/types/inventories/InventoryType";
+import { updateInvRefsModalFromMain } from "~/composables/maps/inventoryComp";
 import type {
-  FormQuoDtBomListType,
-  QuoDtType,
-} from "~/types/quotations/QuotationType";
+  FormSoDtBomListType,
+  SoDtType,
+} from "~/types/sales-orders/SalesOrderType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
 import { debounce } from "lodash-es";
 
-const router = useRouter();
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
-const salesOrderStore = useSalesOrderStore();
+const inventoryStore = useInventoryStore();
 const {
   tabFormIndex,
   form,
@@ -46,11 +44,9 @@ const {
   queryModal,
   metaModal,
   optionRefBtnRef,
-  loading,
   openedModal,
-  formLayout: summaryLayout,
-  currencySymbolLabel,
-} = storeToRefs(salesOrderStore);
+  formLayout: formLayoutStore,
+} = storeToRefs(inventoryStore);
 
 definePageMeta({
   layout: "auth",
@@ -58,10 +54,8 @@ definePageMeta({
 });
 
 useHead({
-  title: "Edit Sales Order",
+  title: "Create Inventory IN",
 });
-
-const id = ref(router.currentRoute.value.params.id);
 
 const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
@@ -80,13 +74,8 @@ const headers = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  // { key: "sku", title: "SKU", sortable: true },
-  // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
-  // { key: "markup_perc", title: "Markup (%)", sortable: true, align: "end" },
-  { key: "price_sell", title: "Price", sortable: true, align: "end" },
+  { key: "price", title: "Price", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "disc_perc", title: "Disc (%)", sortable: true, align: "end" },
-  { key: "disc_am", title: "Disc (Am)", sortable: true, align: "end" },
   { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
@@ -97,80 +86,6 @@ const headers = ref<FieldSelectableType[]>([
     cellProps: {
       class: "action-table sticky-right",
     },
-  },
-]);
-
-const headersBOM = ref([
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
-  // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
-  { key: "qty", title: "Qty", sortable: true, align: "end" },
-  // { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
-  { key: "remark", title: "Remark", sortable: true },
-  {
-    key: "action",
-    title: "Action",
-    sortable: false,
-    headerProps: { class: "cursor-pointer action-table sticky-right" },
-    cellProps: {
-      class: "action-table sticky-right",
-    },
-  },
-]);
-
-const headersBOMModal = ref<FieldSelectableType[]>([
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
-  { key: "item_sku", title: "SKU", align: "start", sortable: true },
-  { key: "item_barcode", title: "Barcode", align: "start", sortable: true },
-  {
-    key: "item_specification",
-    title: "Specification",
-    align: "start",
-    sortable: true,
-  },
-  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
-  { key: "qty", title: "Qty", align: "end", sortable: true },
-  {
-    title: "Total Amount",
-    key: "subtotal_buy",
-    value: "subtotal_buy",
-    align: "end",
-    sortable: true,
-  },
-  { key: "remark", title: "Remark", sortable: true },
-]) as Ref<FieldSelectableType[]>;
-
-const headersVAT = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Percentage",
-    key: "num",
-    value: "num",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Multiplier",
-    key: "multiplier",
-    value: "multiplier",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Divider",
-    key: "divider",
-    value: "divider",
-    align: "start",
-    sortable: true,
   },
 ]);
 
@@ -316,13 +231,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  // {
-  //   title: "Stock",
-  //   key: "qty_stock",
-  //   value: "qty_stock",
-  //   align: "end",
-  //   sortable: true,
-  // },
   {
     title: "Price Buy",
     key: "price_buy",
@@ -360,12 +268,12 @@ const headersModalProducts = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersModalQuotations = ref<FieldSelectableType[]>([
+const headersModalSalesOrders = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
-    title: "Quotation No",
-    key: "quo_no",
-    value: "quo_no",
+    title: "PO Buyer No",
+    key: "po_buyer_no",
+    value: "po_buyer_no",
     align: "start",
     sortable: true,
   },
@@ -516,7 +424,7 @@ const filtersOptionsProducts = ref([
   },
 ]);
 
-const filtersOptionsQuotations = ref([
+const filtersOptionsSalesOrders = ref([
   {
     title: "Group",
     key: "item_group_ids",
@@ -580,16 +488,43 @@ const filtersTextProducts = ref([
   },
 ]);
 
-const filtersTextQuotations = ref([
+const filtersTextSalesOrders = ref([
   {
-    title: "Quo No",
-    key: "quo_no",
+    title: "PO Buyer No",
+    key: "po_buyer_no",
   },
   {
     title: "Global",
     key: "global",
   },
 ]);
+
+const formLayout = ref({
+  title: "Basic Information",
+  parentPath: "/inventories/in",
+  currentTab: tabFormIndex.value,
+  tabs: ["Payments", "Items", "Remark", "Attachments"],
+  button: {
+    clear: {
+      show: true,
+    },
+  },
+  // permission: {
+  //   name: ["c_ms"],
+  //   isActive: true,
+  // },
+  summary: formLayoutStore.value.summary,
+} as FormLayoutType);
+
+const initialFormLayout = () => {
+  formLayout.value.currentTab = tabFormIndex.value;
+  formLayout.value.mode = "create";
+  formLayout.value.button = {
+    clear: {
+      show: true,
+    },
+  };
+};
 
 const handleSubmit = async () => {
   // const validatedForm = formSchema.safeParse(form.value);
@@ -605,54 +540,20 @@ const handleSubmit = async () => {
   //   return;
   // }
 
-  form.value.so_dts = itemsCheck.value.checkMain;
+  form.value.inv_dts = itemsCheck.value.checkMain;
 
-  await salesOrderStore.update();
+  await inventoryStore.store();
 };
 
 const fetchInitialData = async () => {
-  form.value.id = Number(id.value);
-  await Promise.all([
-    salesOrderStore.show(),
-    // salesOrderStore.indexProduct(),
-    // salesOrderStore.indexQuotation(),
-  ]);
+  // await inventoryStore.indexProduct();
 };
 
-const formLayout = ref({
-  title: "Basic Information",
-  parentPath: "/orders/sales-orders",
-  currentTab: tabFormIndex.value,
-  tabs: ["Payments", "Items", "Remark", "Schedule", "Attachments"],
-  mode: "edit",
-  button: {
-    create: {
-      path: "/orders/sales-orders/create",
-    },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
-    clear: {
-      show: true,
-    },
-  },
-  // permission: {
-  //   name: ["c_ms"],
-  //   isActive: true,
-  // },
-  summary: summaryLayout.value.summary,
-} as FormLayoutType);
-
 const calculateTotalAmountLocal = () => {
-  salesOrderStore.calculateTotalAmount();
+  inventoryStore.calculateTotalAmount();
 
   if (formLayout.value.summary) {
     formLayout.value.summary.total_amount.value = form.value.subtotal;
-    formLayout.value.summary.total_after_disc.value =
-      form.value.total_after_disc;
-    formLayout.value.summary.total_discount.value = form.value.total_discount;
     formLayout.value.summary.total_vat.value = form.value.total_vat;
     formLayout.value.summary.total_pph23.value = form.value.total_pph23;
     formLayout.value.summary.grand_total.value = form.value.grand_total;
@@ -661,41 +562,23 @@ const calculateTotalAmountLocal = () => {
   }
 };
 
-const initialFormLayout = () => {
-  formLayout.value.currentTab = tabFormIndex.value;
-  formLayout.value.mode = "edit";
-  formLayout.value.button = {
-    create: {
-      path: "/orders/sales-orders/create",
-    },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
-    clear: {
-      show: true,
-    },
-  };
-};
-
 watch(
-  () => itemsCheck.value.checkQuotations,
+  () => itemsCheck.value.checkSalesOrders,
   (newVal) => {
     if (newVal.length === 1) {
-      salesOrderStore.indexQuotation();
+      inventoryStore.indexSalesOrder();
     } else if (newVal.length === 0) {
-      salesOrderStore.removeQuotation();
+      inventoryStore.removeSalesOrder();
     }
   }
 );
 
 watch(
-  () => isOpenModal.value.quotations,
+  () => isOpenModal.value.so,
   (oldVal, newVal) => {
     if (oldVal != newVal) {
       if (!oldVal) {
-        itemsCheck.value.checkQuotations = [];
+        itemsCheck.value.checkSalesOrders = [];
       }
     }
   },
@@ -715,16 +598,14 @@ watch(
 );
 
 onMounted(async () => {
-  salesOrderStore.handleClickClear();
+  inventoryStore.handleClickClear();
   await fetchInitialData();
-  formLayout.value.currentTab = tabFormIndex.value;
   initialFormLayout();
-  // salesOrderStore.updateRefsModal();
 });
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "Sales Orders";
+  topTitle.value = "Inventory IN";
 });
 </script>
 
@@ -733,17 +614,9 @@ watchEffect(() => {
     <d-form-layout
       :config="formLayout"
       @click:save="handleSubmit()"
-      @click:clear="salesOrderStore.handleClickClear()"
+      @click:clear="inventoryStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
-      <template #title-append>
-        <span
-          class="text-sm text-dark3 bg-grey2 dark:bg-dark2 p-1 rounded-lg dark:text-primary1"
-        >
-          #{{ form.sales_order_no }}
-        </span>
-      </template>
-
       <template #header>
         <form
           :class="
@@ -756,15 +629,15 @@ watchEffect(() => {
         >
           <div class="sm:col-span-1">
             <d-text-input
-              v-model="form.po_buyer_no"
-              :label="`PO Buyer No`"
-              :placeholder="`PO Buyer No`"
-              :errors="errors.po_buyer_no"
+              v-model="form.do_no"
+              :label="`DO No`"
+              :placeholder="`DO No`"
+              :errors="errors.do_no"
             />
           </div>
           <div class="sm:col-span-1">
             <d-autocomplete
-              v-model="form.order_type_id"
+              v-model="form.io_type_id"
               api="/v1/order-types/index-order-type"
               single-api="/v1/order-types/show-order-type"
               page-end-prop="meta.next_page_url"
@@ -772,8 +645,8 @@ watchEffect(() => {
               item-value="id"
               method-api="post"
               inner-search-key="global"
-              label="Order Type"
-              :errors="errors.order_type_id"
+              label="IN Type"
+              :errors="errors.io_type_id"
             ></d-autocomplete>
           </div>
           <div class="sm:col-span-1">
@@ -789,7 +662,7 @@ watchEffect(() => {
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
-                (data) => salesOrderStore.autocompleteCustomer(data)
+                (data) => inventoryStore.autocompleteCustomer(data)
               "
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
@@ -816,64 +689,42 @@ watchEffect(() => {
               disabled
             />
           </div>
-
           <div class="sm:col-span-1">
-            <d-autocomplete-client
-              v-model="form.status"
-              :items="useStatics.formStatusSalesOrder"
-              label="Status"
-              item-value="id"
-              item-title="name"
-              :clearable="false"
+            <d-text-input
+              v-model="form.address"
+              :label="`Address`"
+              :placeholder="`Address`"
+              :errors="errors.address"
+              disabled
             />
           </div>
 
           <div class="sm:col-span-1">
             <d-date-picker-light
-              v-model="form.order_at"
-              label="Order Date"
+              v-model="form.do_at"
+              label="DO Date"
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
-              v-model="form.shipping_at"
-              label="Shipping Date"
+              v-model="form.ingoing_at"
+              label="IN Date"
             ></d-date-picker-light>
           </div>
-          <div
-            class="sm:col-span-1"
-            v-if="
-              [
-                useStatics.orderTypes.maintenance,
-                useStatics.orderTypes.service,
-              ].includes(form.order_type_id || 0)
-            "
-          >
+          <div class="sm:col-span-1">
             <d-date-picker-light
-              v-model="form.agree_at"
-              label="Agreement Date"
+              v-model="form.invoice_at"
+              label="Invoice Date"
             ></d-date-picker-light>
           </div>
-          <div
-            class="sm:col-span-1"
-            v-if="
-              [
-                useStatics.orderTypes.maintenance,
-                useStatics.orderTypes.service,
-              ].includes(form.order_type_id || 0)
-            "
-          >
-            <d-date-picker-light
-              v-model="form.due_at"
-              label="Due Date"
-            ></d-date-picker-light>
-          </div>
-          <div class="sm:col-span-1 col-span-4">
-            <d-text-area-input
-              v-model="form.ship_dest"
-              :label="``"
-              :placeholder="`Shipping Address`"
-              class=""
+          <div class="sm:col-span-1">
+            <d-autocomplete-client
+              v-model="form.status"
+              :items="useStatics.formStatusInventory"
+              label="Status"
+              item-value="id"
+              item-title="name"
+              :clearable="false"
             />
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
@@ -881,14 +732,14 @@ watchEffect(() => {
       </template>
       <template #content>
         <div
-          v-if="tabFormIndex == useStatics.formTabSalesOrder.items"
+          v-if="tabFormIndex == useStatics.formTabInventory.items"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <d-option-ref-btn
             :refs="optionRefBtnRef"
             class="col-span-2"
             @click:ref="
-              (ref) => salesOrderStore.onClickOpenModalOptionRefBtn(ref)
+              (ref) => inventoryStore.onClickOpenModalOptionRefBtn(ref)
             "
           >
             <!-- <template #append-cta-product>
@@ -912,7 +763,7 @@ watchEffect(() => {
             type="button"
             @click="
               () => {
-                salesOrderStore.clickClearRefs();
+                inventoryStore.clickClearRefs();
                 calculateTotalAmountLocal();
               }
             "
@@ -1006,18 +857,9 @@ watchEffect(() => {
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt
-                  v-if="item.item_type == 'product'"
-                  @click="salesOrderStore.onClickOpenModalBOM((item as unknown as FormSoDtProductListType), index)"
-                  class="px-2 py-1 bg-scLighter hover:bg-scDarker hover:text-primary1 rounded-lg ease-in-out transition-all hover:dark:!bg-scDarker3 dark:!bg-sc"
-                  text-class="text-primary1 dark:text-white"
-                  rounded="xl"
-                  cta="+ Add BOM"
-                  no-icon
-                ></d-bt>
-                <d-bt
                   @click="
                     () => {
-                      salesOrderStore.onClickDeleteSelected(item, index);
+                      inventoryStore.onClickDeleteSelected(item, index);
                       calculateTotalAmountLocal();
                     }
                   "
@@ -1034,144 +876,10 @@ watchEffect(() => {
                 ></d-bt>
               </div>
             </template>
-
-            <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-              <button
-                v-if="
-                  !!internalItem.raw.so_dts_boms &&
-                  internalItem.raw.so_dts_boms.length > 0
-                "
-                class="cursor-pointer"
-                @click="toggleExpand(internalItem)"
-                @submit.prevent
-              >
-                <v-icon
-                  icon="mdi-chevron-down"
-                  class="transition-transform"
-                  :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
-                />
-              </button>
-            </template>
-            <template
-              #expanded-row="{
-            columns,
-            item,
-            internalItem,
-            index
-          }: {
-            columns: any
-            item: any
-            internalItem: any
-            index: number
-          }"
-            >
-              <tr v-if="item.so_dts_boms.length > 0">
-                <td :colspan="columns.length" class="!p-0">
-                  <div class="">
-                    <v-data-table-virtual
-                      :headers="headersBOM"
-                      :items="item.so_dts_boms || []"
-                      item-value="uid"
-                      density="compact"
-                      return-object
-                      fixed-header
-                      class="table-hover"
-                      :height="item.so_dts_boms.length > 1 ? '170' : '100'"
-                      :header-props="{
-                        class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                      }"
-                      :row-props="{
-                        class: 'whitespace-nowrap',
-                      }"
-                    >
-                      <template #item.remark="{ item }">
-                        <d-text-area-input
-                          v-model="(item as SoDtType).remark"
-                          :label="``"
-                          :placeholder="`Remark`"
-                          class="w-full"
-                        />
-                      </template>
-
-                      <template #item.qty="{ item }">
-                        <d-num-v-format
-                          v-model="(item as SoDtType).qty"
-                          :precision="{
-                            min: 3,
-                            max: 3,
-                          }"
-                          hide-currency-display
-                          label=""
-                          class="w-full"
-                          @update:modelValue="
-                            () => {
-                              salesOrderStore.calculatePrice(
-                                item,
-                                internalItem.raw
-                              );
-                              calculateTotalAmountLocal();
-                            }
-                          "
-                        />
-                      </template>
-                      <template #item.price_buy="{ item }">
-                        <d-num-v-format
-                          v-model="(item as SoDtType).price_buy"
-                          :precision="{
-                            min: 3,
-                            max: 3,
-                          }"
-                          hide-currency-display
-                          label=""
-                          class="w-full"
-                          @update:modelValue="
-                            () => {
-                              salesOrderStore.calculatePrice(
-                                item,
-                                internalItem.raw
-                              );
-                              calculateTotalAmountLocal();
-                            }
-                          "
-                        />
-                      </template>
-                      <template #item.subtotal_buy="{ item }">
-                        <d-num-layout :value="item.subtotal_buy" />
-                      </template>
-                      <template #item.action="{ item: itemBom, index: iBom }">
-                        <div class="action-button">
-                          <d-bt
-                            @click="
-                              () => {
-                                salesOrderStore.onClickDeleteBom(
-                                  index,
-                                  iBom,
-                                  internalItem
-                                );
-                                calculateTotalAmountLocal();
-                              }
-                            "
-                            icon="mdi-delete"
-                            is-no-text
-                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                            icon-class="text-cancel dark:text-primary1"
-                            rounded="xl"
-                            cta="delete"
-                            icon-size="16"
-                            :is-notif="true"
-                            :notif-text="`${(itemBom as SoDtBomType).item_name} deleted`"
-                          ></d-bt>
-                        </div>
-                      </template>
-                    </v-data-table-virtual>
-                  </div>
-                </td>
-              </tr>
-            </template>
           </v-data-table-virtual>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabSalesOrder.payments"
+          v-if="tabFormIndex == useStatics.formTabInventory.payments"
           class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
         >
           <div class="sm:col-span-1">
@@ -1187,7 +895,7 @@ watchEffect(() => {
               label="Currency"
               :errors="errors.currency_id"
               @click:selected="
-                (data: FormCurrencyType) => salesOrderStore.autocompleteCurrency(data)
+                (data: FormCurrencyType) => inventoryStore.autocompleteCurrency(data)
               "
             ></d-autocomplete>
           </div>
@@ -1216,7 +924,7 @@ watchEffect(() => {
               :errors="errors.vat_id"
               @click:selected="
                 (data) => {
-                  salesOrderStore.autocompleteVat(data);
+                  inventoryStore.autocompleteVat(data);
                   calculateTotalAmountLocal();
                 }
               "
@@ -1238,55 +946,14 @@ watchEffect(() => {
               :errors="errors.pph23_id"
               @click:selected="
                 (data) => {
-                  salesOrderStore.autocompletePph(data);
+                  inventoryStore.autocompletePph(data);
                   calculateTotalAmountLocal();
                 }
               "
             ></d-autocomplete>
           </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc (%)"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_am"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc Amount"
-            />
-          </div>
-          <!-- <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.markup_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="
-                (value) => {
-                  salesOrderStore.autocompleteMarkup(value);
-                  calculateTotalAmountLocal();
-                }
-              "
-              label="Markup (%)"
-            />
-          </div> -->
         </div>
-        <div v-if="tabFormIndex == useStatics.formTabSalesOrder.remarks">
+        <div v-if="tabFormIndex == useStatics.formTabInventory.remarks">
           <div class="sm:col-span-1">
             <d-text-area-input
               v-model="form.remark"
@@ -1297,48 +964,7 @@ watchEffect(() => {
           </div>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
-          class="grid grid-cols-5 gap-2"
-        >
-          <div class="sm:col-span-1">
-            <d-text-input
-              v-model="form.schedule.title"
-              :label="`Title`"
-              :placeholder="`Title`"
-              :errors="errors.title"
-            />
-          </div>
-
-          <!-- assignee_id -->
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.schedule.assignee_id"
-              api="/v1/users/index-user"
-              single-api="/v1/users/show-user"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Assignee"
-            ></d-autocomplete>
-          </div>
-
-          <div class="sm:col-span-1">
-            <d-date-picker-light
-              v-model="form.schedule.start_at"
-              label="Start Date"
-            ></d-date-picker-light>
-          </div>
-          <div class="sm:col-span-1">
-            <d-date-picker-light
-              v-model="form.schedule.end_at"
-              label="End Date"
-            ></d-date-picker-light>
-          </div>
-        </div>
-        <div
-          v-if="tabFormIndex == useStatics.formTabSalesOrder.attachments"
+          v-if="tabFormIndex == useStatics.formTabInventory.attachments"
           class="grid grid-cols-3 md:grid-cols-1 gap-2"
         >
           <div class="md:col-span-1">
@@ -1348,7 +974,7 @@ watchEffect(() => {
               density="compact"
               variant="compact"
               multiple
-              @update:modelValue="salesOrderStore.handleUploadFile"
+              @update:modelValue="inventoryStore.handleUploadFile"
             >
               <template #item="{ props: itemProps }">
                 <v-file-upload-item v-bind="itemProps" lines="one" nav>
@@ -1400,7 +1026,7 @@ watchEffect(() => {
                   icon-size="16"
                 ></d-bt>
                 <d-bt
-                  @click="salesOrderStore.handleDeleteFile(index)"
+                  @click="inventoryStore.handleDeleteFile(index)"
                   icon="mdi-delete"
                   is-no-text
                   class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1428,7 +1054,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="salesOrderStore.fetchModalFilter()"
+          @submit.prevent="inventoryStore.fetchModalFilter()"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsProducts"
@@ -1456,8 +1082,8 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="salesOrderStore.fetchModalFilter()"
-            @click:clear="salesOrderStore.handleClearQuery()"
+            @click:submit="inventoryStore.fetchModalFilter()"
+            @click:clear="inventoryStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
@@ -1484,14 +1110,14 @@ watchEffect(() => {
         return-object
         multiple
         show-select
-        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
+        @update:options="(data:any) => inventoryStore.fetchDataServerFetch(data)"
         fixed-header
         height="450"
         hover
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
+            >{{ defineItemTypeInventory(item as InvDtType) }}
           </span>
         </template>
         <template #item.price_sell="{ item }">
@@ -1532,151 +1158,13 @@ watchEffect(() => {
             />
           </button>
         </template>
-        <template
-          #expanded-row="{
-            columns,
-            item,
-            internalItem,
-            index
-          }: {
-            columns: any
-            item: any
-            internalItem: any
-            index: number
-          }"
-        >
-          <tr v-if="!!item.quo_dts_boms && item.quo_dts_boms.length > 0">
-            <td :colspan="columns.length" class="!p-0">
-              <div class="">
-                <v-data-table-virtual
-                  :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
-                  item-value="uid"
-                  density="compact"
-                  return-object
-                  fixed-header
-                  class="table-hover"
-                  :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
-                  :header-props="{
-                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                  }"
-                  :row-props="{
-                    class: 'whitespace-nowrap',
-                  }"
-                >
-                  <template #item.price_buy="{ item }">
-                    <d-num-v-format
-                      v-model="item.price_buy"
-                      :precision="{
-                        min: 3,
-                        max: 3,
-                      }"
-                      hide-currency-display
-                      label=""
-                      class="w-[9rem]"
-                      @update:modelValue="
-                        () => {
-                          salesOrderStore.calculatePrice(
-                            item,
-                            internalItem.raw
-                          );
-                        }
-                      "
-                    />
-                  </template>
-
-                  <template #item.qty="{ item }">
-                    <d-num-v-format
-                      v-model="item.qty"
-                      :precision="{
-                        min: 3,
-                        max: 3,
-                      }"
-                      hide-currency-display
-                      label=""
-                      class="w-[9rem]"
-                      @update:modelValue="
-                        salesOrderStore.calculatePrice(item, internalItem.raw)
-                      "
-                    />
-                  </template>
-                  <template #item.subtotal_buy="{ item }">
-                    <d-num-layout :value="item.subtotal_buy" />
-                  </template>
-                </v-data-table-virtual>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="item.boms.length > 0">
-            <td :colspan="columns.length" class="!p-0">
-              <div class="">
-                <v-data-table-virtual
-                  :headers="headersBOMModal"
-                  :items="item.boms || []"
-                  item-value="uid"
-                  density="compact"
-                  return-object
-                  fixed-header
-                  class="table-hover"
-                  :height="item.boms.length > 1 ? '170' : '100'"
-                  :header-props="{
-                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                  }"
-                  :row-props="{
-                    class: 'whitespace-nowrap',
-                  }"
-                >
-                  <template #item.price_buy="{ item }">
-                    <d-num-v-format
-                      v-model="item.price_buy"
-                      :precision="{
-                        min: 3,
-                        max: 3,
-                      }"
-                      hide-currency-display
-                      label=""
-                      class="w-[9rem]"
-                      @update:modelValue="
-                        () => {
-                          salesOrderStore.calculatePrice(
-                            item,
-                            internalItem.raw
-                          );
-                        }
-                      "
-                    />
-                  </template>
-
-                  <template #item.qty="{ item }">
-                    <d-num-v-format
-                      v-model="item.qty"
-                      :precision="{
-                        min: 3,
-                        max: 3,
-                      }"
-                      hide-currency-display
-                      label=""
-                      class="w-[9rem]"
-                      @update:modelValue="
-                        salesOrderStore.calculatePrice(item, internalItem.raw)
-                      "
-                    />
-                  </template>
-                  <template #item.subtotal_buy="{ item }">
-                    <d-num-layout :value="item.subtotal_buy" />
-                  </template>
-                </v-data-table-virtual>
-              </div>
-            </td>
-          </tr>
-        </template>
       </v-data-table-server>
 
       <template #footer>
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="salesOrderStore.onClickUpdateProductsModal()"
+            @click="inventoryStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -1686,17 +1174,17 @@ watchEffect(() => {
     </modals-final-modal>
 
     <modals-final-modal
-      :is-open="isOpenModal.quotations"
+      :is-open="isOpenModal.so"
       size="xl"
       custom-class="overflow-y-auto"
-      label="List of Quotations"
+      label="List of SalesOrders"
       parent-class="!z-[1500]"
-      @update:is-open="isOpenModal.quotations = $event"
+      @update:is-open="isOpenModal.so = $event"
     >
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="salesOrderStore.fetchModalFilter()"
+          @submit.prevent="inventoryStore.fetchModalFilter()"
         >
           <d-select-table
             api="/v1/customers/index-customer"
@@ -1710,7 +1198,7 @@ watchEffect(() => {
             class=""
             is-quick-select
             @click:selected="
-              (data) => salesOrderStore.autocompleteCustomer(data)
+              (data) => inventoryStore.autocompleteCustomer(data)
             "
             modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
@@ -1725,7 +1213,7 @@ watchEffect(() => {
             mapping-detail="data[0]"
             total-prop="meta.total"
             label="Product"
-            v-model="queryModal.qIndexQuotations.product_id"
+            v-model="queryModal.qIndexSalesOrders.product_id"
             class=""
             is-quick-select
             modal-parent-class="!z-[2500]"
@@ -1734,9 +1222,9 @@ watchEffect(() => {
             :filters="useInitials.productFieldsFilterConfig.filters"
           />
           <d-autocomplete
-            v-for="filter in filtersOptionsQuotations"
+            v-for="filter in filtersOptionsSalesOrders"
             :key="filter.key"
-            v-model="queryModal.qIndexQuotations[filter.key as ModalIndexQuotationFilterAutoCompleteType]"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
             :api="filter.api"
             :single-api="filter.singleApi"
             :method-api="filter.methodApi"
@@ -1750,31 +1238,31 @@ watchEffect(() => {
           ></d-autocomplete>
 
           <d-text-input
-            v-for="filter in filtersTextQuotations"
+            v-for="filter in filtersTextSalesOrders"
             :key="filter.key"
-            v-model="queryModal.qIndexQuotations[filter.key as ModalIndexQuotationFilterTextType]"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterTextType]"
             :label="filter.title"
             :placeholder="filter.title"
             append-inner-icon="mdi-magnify"
           />
 
           <d-submit-button
-            @click:submit="salesOrderStore.fetchModalFilter()"
-            @click:clear="salesOrderStore.handleClearQuery()"
+            @click:submit="inventoryStore.fetchModalFilter()"
+            @click:clear="inventoryStore.handleClearQuery()"
             class="grid-cols-1"
           />
         </form>
       </template>
 
       <v-data-table-server
-        v-model="itemsCheck.checkQuotations"
-        v-model:page="queryModal.qIndexQuotations.page"
-        :items="metaModal.indexQuotations.data ?? []"
-        :headers="headersModalQuotations"
-        :items-per-page="queryModal.qIndexQuotations.per_page"
-        :items-length="metaModal.indexQuotations.meta.total ?? 0"
+        v-model="itemsCheck.checkSalesOrders"
+        v-model:page="queryModal.qIndexSalesOrders.page"
+        :items="metaModal.indexSalesOrders.data ?? []"
+        :headers="headersModalSalesOrders"
+        :items-per-page="queryModal.qIndexSalesOrders.per_page"
+        :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
         :items-per-page-options="useInitials.perPageOptions"
-        :loading="metaModal.indexQuotations.loading"
+        :loading="metaModal.indexSalesOrders.loading"
         density="compact"
         :header-props="{
           class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
@@ -1787,14 +1275,14 @@ watchEffect(() => {
         return-object
         multiple
         show-select
-        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
+        @update:options="(data:any) => inventoryStore.fetchDataServerFetch(data)"
         fixed-header
         height="450"
         hover
       >
         <template #item.item_type="{ item }">
           <span class="capitalize"
-            >{{ item.item_type ?? defineItemTypeSalesOrder(item as QuoDtType) }}
+            >{{ item.item_type ?? defineItemTypeInventory(item) }}
           </span>
         </template>
         <template #item.qty="{ item }">
@@ -1821,228 +1309,16 @@ watchEffect(() => {
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
         </template>
-        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-          <button
-            v-if="
-              !!internalItem.raw.quo_dts_boms &&
-              internalItem.raw.quo_dts_boms.length > 0
-            "
-            class="cursor-pointer"
-            @click="toggleExpand(internalItem)"
-            @submit.prevent
-          >
-            <v-icon
-              icon="mdi-chevron-down"
-              class="transition-transform"
-              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
-            />
-          </button>
-        </template>
-        <template
-          #expanded-row="{
-            columns,
-            item,
-            internalItem,
-            index
-          }: {
-            columns: any
-            item: any
-            internalItem: any
-            index: number
-          }"
-        >
-          <tr v-if="!!item.so_dts_boms && item.so_dts_boms.length > 0">
-            <td :colspan="columns.length" class="!p-0">
-              <div class="">
-                <v-data-table-virtual
-                  :headers="headersBOMModal"
-                  :items="item.so_dts_boms || []"
-                  item-value="uid"
-                  density="compact"
-                  return-object
-                  fixed-header
-                  class="table-hover"
-                  :height="item.so_dts_boms.length > 1 ? '170' : '100'"
-                  :header-props="{
-                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                  }"
-                  :row-props="{
-                    class: 'whitespace-nowrap',
-                  }"
-                >
-                  <template #item.qty="{ item }">
-                    <d-num-layout :value="item.qty" />
-                  </template>
-                  <template #item.price_buy="{ item }">
-                    <d-num-layout :value="item.price_buy" />
-                  </template>
-                  <template #item.subtotal_buy="{ item }">
-                    <d-num-layout :value="item.subtotal_buy" />
-                  </template>
-                </v-data-table-virtual>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="!!item.quo_dts_boms && item.quo_dts_boms.length > 0">
-            <td :colspan="columns.length" class="!p-0">
-              <div class="">
-                <v-data-table-virtual
-                  :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
-                  item-value="uid"
-                  density="compact"
-                  return-object
-                  fixed-header
-                  class="table-hover"
-                  :height="item.quo_dts_boms.length > 1 ? '170' : '100'"
-                  :header-props="{
-                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                  }"
-                  :row-props="{
-                    class: 'whitespace-nowrap',
-                  }"
-                >
-                  <!-- <template #item.qty="{ item }">
-                    <d-num-v-format
-                      v-model="item.qty"
-                      :precision="{
-                        min: 3,
-                        max: 3,
-                      }"
-                      hide-currency-display
-                      label=""
-                      class=""
-                      @update:modelValue="
-                        salesOrderStore.calculatePrice(item, internalItem.raw);
-                        calculateTotalAmountLocal();
-                      "
-                    />
-                  </template> -->
-                  <template #item.qty="{ item }">
-                    <d-num-layout :value="item.qty" />
-                  </template>
-                  <template #item.price_buy="{ item }">
-                    <d-num-layout :value="item.price_buy" />
-                  </template>
-                  <template #item.subtotal_buy="{ item }">
-                    <d-num-layout :value="item.subtotal_buy" />
-                  </template>
-                </v-data-table-virtual>
-              </div>
-            </td>
-          </tr>
-        </template>
       </v-data-table-server>
 
       <template #footer>
         <div class="flex h-max w-full justify-end">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="salesOrderStore.onClickUpdateProductsModal()"
+            @click="inventoryStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected Quotation ({{ itemsCheck.checkQuotations.length }})
-          </button>
-        </div>
-      </template>
-    </modals-final-modal>
-
-    <modals-final-modal
-      :is-open="isOpenModal.boms"
-      size="xl"
-      custom-class="overflow-y-auto"
-      parent-class="!z-[2499]"
-      label="List of Boms"
-      @update:is-open="isOpenModal.boms = $event"
-    >
-      <template #top>
-        <form
-          class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="salesOrderStore.fetchModalFilter()"
-        >
-          <d-autocomplete
-            v-for="filter in filtersOptionsProducts"
-            :key="filter.key"
-            v-model="queryModal.qIndexBoms[filter.key as ModalIndexProductFilterAutoCompleteType]"
-            :api="filter.api"
-            :single-api="filter.singleApi"
-            :method-api="filter.methodApi"
-            inner-search-key="global"
-            :page-end-prop="filter.pageEndProp"
-            :label="filter.title"
-            :item-value="filter.itemValue"
-            :item-title="filter.itemTitle"
-            multiple
-            :placeholder="`Type ${filter.title} ...`"
-          ></d-autocomplete>
-
-          <d-text-input
-            v-for="filter in filtersTextProducts"
-            :key="filter.key"
-            v-model="queryModal.qIndexBoms[filter.key as ModalIndexProductFilterTextType]"
-            :label="filter.title"
-            :placeholder="filter.title"
-            append-inner-icon="mdi-magnify"
-          />
-
-          <d-submit-button
-            @click:submit="salesOrderStore.fetchModalFilter()"
-            @click:clear="salesOrderStore.handleClearQuery()"
-            class="grid-cols-1"
-          />
-        </form>
-      </template>
-
-      <v-data-table-server
-        v-model="itemsCheck.checkBoms"
-        v-model:page="queryModal.qIndexBoms.page"
-        :items="metaModal.indexBoms.data ?? []"
-        :headers="headersModalProducts"
-        :items-per-page="queryModal.qIndexBoms.per_page"
-        :items-length="metaModal.indexBoms.meta.total ?? 0"
-        :items-per-page-options="useInitials.perPageOptions"
-        :loading="metaModal.indexBoms.loading"
-        density="compact"
-        :header-props="{
-          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
-        }"
-        :row-props="{
-          class: 'cursor-pointer',
-        }"
-        item-value="ref_id"
-        show-current-page
-        return-object
-        multiple
-        show-select
-        @update:options="(data:any) => salesOrderStore.fetchDataServerFetch(data)"
-        fixed-header
-        height="450"
-        hover
-      >
-        <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ defineItemTypeSalesOrder(item as SoDtType) }}
-          </span>
-        </template>
-        <template #item.price_sell="{ item }">
-          <d-num-layout :value="item.price_sell" />
-        </template>
-        <template #item.price_buy="{ item }">
-          <d-num-layout :value="item.price_buy" />
-        </template>
-        <template #item.status="{ item }">
-          <d-active-status :value="item.status" />
-        </template>
-      </v-data-table-server>
-
-      <template #footer>
-        <div class="flex h-max w-full justify-end">
-          <button
-            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="salesOrderStore.onClickUpdateBomsModal()"
-          >
-            <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected Boms ({{ itemsCheck.checkBoms.length }})
+            Add Selected SalesOrder ({{ itemsCheck.checkSalesOrders.length }})
           </button>
         </div>
       </template>

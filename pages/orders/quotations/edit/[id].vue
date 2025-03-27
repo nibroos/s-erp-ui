@@ -660,6 +660,13 @@ watchEffect(() => {
       @click:clear="quotationStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
+      <template #title-append>
+        <span
+          class="text-sm text-dark3 bg-grey2 dark:bg-dark2 p-1 rounded-lg dark:text-primary1"
+        >
+          #{{ form.quo_no }}
+        </span>
+      </template>
       <template #header>
         <form
           :class="

@@ -1,5 +1,6 @@
 // import Form from 'vform'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
+import type { FormInventoryType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
 import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
@@ -366,6 +367,43 @@ const productFieldsFilterConfig = {
     },
   ] as FilterSelectableType[],
 }
+const formInventoryCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: null,
+  vat_id: null,
+  payment_id: null,
+  pph23_id: null,
+  branch_id: null,
+  remark: "",
+  status: "DELIVERY",
+  exchange_rate: null,
+  vat_perc: 0,
+  vat_perc_am: 0,
+  pph23_perc: 0,
+  total_qty: 0,
+  subtotal: 0,
+  total_discount: 0,
+  total_after_disc: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  ingoing_at: new Date().toISOString().split('T')[0],
+  do_at: new Date().toISOString().split('T')[0],
+  invoice_at: new Date().toISOString().split('T')[0],
+  agree_at: "",
+  due_at: "",
+  expired_at: "",
+
+  inv_dts: [],
+
+  attachments: [],
+
+
+  email: "",
+  phone: "",
+  address: "",
+} as FormInventoryType
 
 export const useInitials: any = {
   pagination,
@@ -380,6 +418,7 @@ export const useInitials: any = {
   formPaymentTermCreateEdit,
   formShippingTermCreateEdit,
   formPurchaseTypeCreateEdit,
+  formInventoryCreateEdit,
   formIOTypeCreateEdit,
   formWarehouseCreateEdit,
   formAccountSettingEdit
