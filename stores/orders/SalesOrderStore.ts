@@ -673,6 +673,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     autocompleteCustomer(data: any) {
       this.form.email = data.email;
       this.form.phone = data.phone;
+      this.form.customer_code = data.code;
 
       if (!this.form.ship_dest) {
         this.form.ship_dest = data.address;

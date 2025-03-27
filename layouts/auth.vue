@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
               <slot name="titleHeader" />
             </h1>
             <div class="flex flex-col">
-              <h1 class="text-xl font-semibold capitalize">
+              <h1 class="text-xl font-semibold capitalize whitespace-nowrap">
                 {{ topTitle.replace(/-/g, " ") }}
               </h1>
               <div class="flex w-full items-center">
@@ -129,7 +129,7 @@ onBeforeUnmount(() => {
                   <template #title="{ item }">
                     <span
                       v-if="!!item.active"
-                      class="text-sm capitalize"
+                      class="text-sm capitalize whitespace-nowrap"
                       :class="
                         classMerge(
                           'text-scDarker2 dark:!text-scDarker2 font-bold opacity-100'
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
                     <nuxt-link
                       v-else
                       :to="item.href"
-                      class="text-sm capitalize"
+                      class="text-sm capitalize whitespace-nowrap"
                       role="button"
                       :class="classMerge('!text-dark2 dark:!text-primary1')"
                     >

@@ -297,11 +297,11 @@ const formStatusSalesOrder = [
 ]
 
 const formTabSalesOrder = {
-  payments: 0,
-  items: 1,
-  remarks: 2,
-  schedules: 3,
-  attachments: 4,
+  // payments: 0,
+  items: 0,
+  remarks: 1,
+  schedules: 2,
+  attachments: 3,
 }
 
 const POIndexStatus = [
@@ -346,10 +346,10 @@ const POIndexDateType = [
 ]
 
 const formTabPurchaseOrder = {
-  payments: 0,
-  items: 1,
-  remarks: 2,
-  attachments: 3,
+  // payments: 0,
+  items: 0,
+  remarks: 1,
+  attachments: 2,
 }
 
 const formTabProduct = {
@@ -415,10 +415,14 @@ const formStatusInventory = [
 ]
 
 const formTabInventory = {
-  payments: 0,
-  items: 1,
-  remarks: 2,
-  attachments: 3,
+  items: 0,
+  remarks: 1,
+  attachments: 2,
+}
+
+const defaultForm = {
+  currency_id: 116,
+  order_type_id: 129,
 }
 
 export const useStatics = {

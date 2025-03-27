@@ -503,7 +503,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/inventories/in",
   currentTab: tabFormIndex.value,
-  tabs: ["Payments", "Items", "Remark", "Attachments"],
+  tabs: ["Items", "Remark", "Attachments"],
   button: {
     clear: {
       show: true,
@@ -638,8 +638,8 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.io_type_id"
-              api="/v1/order-types/index-order-type"
-              single-api="/v1/order-types/show-order-type"
+              api="/v1/io-types/index-io-type"
+              single-api="/v1/io-types/show-io-type"
               page-end-prop="meta.next_page_url"
               item-title="name"
               item-value="id"
@@ -725,6 +725,34 @@ watchEffect(() => {
               item-value="id"
               item-title="name"
               :clearable="false"
+            />
+          </div>
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.currency_id"
+              api="/v1/currencies/index-currency"
+              single-api="/v1/currencies/show-currency"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Currency"
+              :errors="errors.currency_id"
+              @click:selected="
+                (data: FormCurrencyType) => inventoryStore.autocompleteCurrency(data)
+              "
+            ></d-autocomplete>
+          </div>
+          <div class="sm:col-span-1">
+            <d-num-v-format
+              v-model="form.exchange_rate"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              label="Exchange Rate"
             />
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
@@ -875,83 +903,50 @@ watchEffect(() => {
                   :notif-text="`${item.name ?? item.item_name} deleted`"
                 ></d-bt>
               </div>
+              <div class="sm:col-span-1 hidden">
+                <d-autocomplete
+                  v-model="form.vat_id"
+                  api="/v1/vats/index-vat"
+                  single-api="/v1/vats/show-vat"
+                  page-end-prop="meta.next_page_url"
+                  item-title="name"
+                  item-value="id"
+                  method-api="post"
+                  inner-search-key="global"
+                  label="VAT"
+                  :errors="errors.vat_id"
+                  @click:selected="
+                    (data) => {
+                      inventoryStore.autocompleteVat(data);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                ></d-autocomplete>
+              </div>
+              <div class="sm:col-span-1 hidden">
+                <d-autocomplete
+                  v-model="form.pph23_id"
+                  api="/v1/pph23s/index-pph23"
+                  single-api="/v1/pph23s/show-pph23"
+                  page-end-prop="meta.next_page_url"
+                  item-title="name"
+                  item-value="id"
+                  method-api="post"
+                  inner-search-key="global"
+                  label="PPH (%)"
+                  :display-multiple-keys="['name', 'num']"
+                  is-display-multiple-key
+                  :errors="errors.pph23_id"
+                  @click:selected="
+                    (data) => {
+                      inventoryStore.autocompletePph(data);
+                      calculateTotalAmountLocal();
+                    }
+                  "
+                ></d-autocomplete>
+              </div>
             </template>
           </v-data-table-virtual>
-        </div>
-        <div
-          v-if="tabFormIndex == useStatics.formTabInventory.payments"
-          class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
-        >
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.currency_id"
-              api="/v1/currencies/index-currency"
-              single-api="/v1/currencies/show-currency"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Currency"
-              :errors="errors.currency_id"
-              @click:selected="
-                (data: FormCurrencyType) => inventoryStore.autocompleteCurrency(data)
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.exchange_rate"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="Exchange Rate"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.vat_id"
-              api="/v1/vats/index-vat"
-              single-api="/v1/vats/show-vat"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="VAT"
-              :errors="errors.vat_id"
-              @click:selected="
-                (data) => {
-                  inventoryStore.autocompleteVat(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.pph23_id"
-              api="/v1/pph23s/index-pph23"
-              single-api="/v1/pph23s/show-pph23"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="PPH (%)"
-              :display-multiple-keys="['name', 'num']"
-              is-display-multiple-key
-              :errors="errors.pph23_id"
-              @click:selected="
-                (data) => {
-                  inventoryStore.autocompletePph(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
         </div>
         <div v-if="tabFormIndex == useStatics.formTabInventory.remarks">
           <div class="sm:col-span-1">

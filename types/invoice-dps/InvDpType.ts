@@ -1,10 +1,10 @@
 import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductBomListType, ProductListType } from "../masters/ProductType"
-import type { QuoDtsType } from "../quotations/QuotationType"
+import type { SoDtsType } from "../sales-orders/SalesOrderType"
 
-export type IndexSalesOrderType = {
+export type IndexInvoiceDpType = {
   id: number
-  sales_order_id: number | null
+  invoice_dp_id: number | null
   customer_id: number | null
   order_type_id: number | null
   currency_id: number | null
@@ -13,7 +13,7 @@ export type IndexSalesOrderType = {
   payment_id: number | null
   pph23_id: number | null
   branch_id: number | null
-  sales_order_no: string
+  invoice_dp_no: string
   po_buyer_no: string
   ship_dest: string
   remark: string | null
@@ -22,14 +22,12 @@ export type IndexSalesOrderType = {
   vat_perc: number | null
   pph23_perc: number | null
   markup_perc: number | null
-  is_vat?: number
-  is_pph23?: number
 
   disc_am: number | null
   disc_perc: number | null
   disc_perc_am: number | null
   disc_final: number | null
-  disc_type: SoDtDiscType | null
+  disc_type: InvDpDtDiscType | null
 
   total_qty: number | null
   subtotal: number | null
@@ -54,7 +52,7 @@ export type IndexSalesOrderType = {
 
   product_id: string | null
   item_id: string | null
-  so_dt_vat_id: string | null
+  inv_dp_dt_vat_id: string | null
 
   currency_name: string | null
   warehouse_name?: string | null
@@ -62,11 +60,11 @@ export type IndexSalesOrderType = {
   item_name: string | null
   vat_name: string | null
   pph23_name: string | null
-  so_dt_remark: string | null
-  so_dt_bom_remark: string | null
+  inv_dp_dt_remark: string | null
+  inv_dp_dt_bom_remark: string | null
 }
 
-export type FormSalesOrderType = {
+export type FormInvoiceDpType = {
   id?: number | null | undefined | string | string[]
   customer_id?: number | null
   order_type_id?: number | null
@@ -76,8 +74,7 @@ export type FormSalesOrderType = {
   payment_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
-  rev_no?: number | null
-  sales_order_no?: string
+  invoice_dp_no?: string
   po_buyer_no: string
   ship_dest?: string
   remark?: string | null
@@ -85,14 +82,12 @@ export type FormSalesOrderType = {
   exchange_rate?: number | null
   vat_perc: number
   pph23_perc: number
-  is_vat?: number
-  is_pph23?: number
   // markup_perc: number
   disc_am: number
   disc_perc: number
   disc_perc_am: number
   disc_final: number
-  disc_type: SoDtDiscType | null
+  disc_type: InvDpDtDiscType | null
   total_qty: number
   subtotal: number
   total_discount: number
@@ -105,7 +100,7 @@ export type FormSalesOrderType = {
   agree_at: string
   due_at: string
   expired_at: string
-  so_dts: SoDtType[]
+  inv_dp_dts: InvDpDtType[]
 
   schedule: FormScheduleType
   attachments: any[]
@@ -115,13 +110,11 @@ export type FormSalesOrderType = {
   address?: string
 
   summary?: Record<string, SummaryPartType>
-
-  customer_code?: string
 }
 
 export type FormScheduleType = {
   id: number | null
-  sales_order_id: number | null
+  invoice_dp_id: number | null
   assignee_id: number | null
   schedule_no: string
   title: string
@@ -132,18 +125,18 @@ export type FormScheduleType = {
   remark: string | null
 }
 
-export type SoDtType = {
+export type InvDpDtType = {
   uid?: string
   id?: number | null | undefined | string | string[]
-  sales_order_id?: number | null
+  invoice_dp_id?: number | null
   item_unit_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
   ref_id: number
   item_id: number
   product_uuid: string
-  ref_type: SoDtRefType
-  item_type: SoDtItemType
+  ref_type: InvDpDtRefType
+  item_type: InvDpDtItemType
   gen_code?: string | null
   remark?: string
   // is_lock_vat?: number
@@ -169,14 +162,14 @@ export type SoDtType = {
   disc_perc_num?: number
   disc_perc_am: number
   disc_final: number
-  disc_type?: SoDtDiscType | null
+  disc_type?: InvDpDtDiscType | null
   // head_disc_am?: number | null
   // head_disc_perc?: number | null
   // disc_end?: number | null
   total_am: number
-  so_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
-  quo_dts_boms?: (SoDtBomType | ProductBomListType)[] | null
-  boms?: SoDtBomType[]
+  inv_dp_dts_boms?: (InvDpDtBomType | ProductBomListType)[] | null
+  so_dts_boms?: (InvDpDtBomType | ProductBomListType)[] | null
+  boms?: InvDpDtBomType[]
 
   product_id?: number
   code?: string
@@ -188,12 +181,12 @@ export type SoDtType = {
   item_code?: string
 }
 
-export type SoDtBomType = {
+export type InvDpDtBomType = {
   uid?: string
   id?: number | null | undefined | string | string[]
   product_uuid: string
-  sales_order_id?: number | null
-  so_dt_id?: number | null
+  invoice_dp_id?: number | null
+  inv_dp_dt_id?: number | null
   product_id?: number
   item_id?: number
   item_unit_id?: number
@@ -224,7 +217,7 @@ export type SoDtBomType = {
   item_unit_name?: string
 }
 
-export type SoDtsType = {
+export type InvDpDtsType = {
   id?: number | null | undefined | string | string[]
   item_unit_id: number
   vat_id: number
@@ -251,22 +244,22 @@ export type SoDtsType = {
   disc_am: number
   disc_perc: number
   total_am: number
-  so_dts_boms: SoDtBomType[]
+  inv_dp_dts_boms: InvDpDtBomType[]
 }
 
-export type SoDtDiscType = 'p' | 'a' | 'all' | null
+export type InvDpDtDiscType = 'p' | 'a' | 'all' | null
 
-export type SoDtRefType = 'products' | 'quotations'
+export type InvDpDtRefType = 'products' | 'sales_orders'
 
-export type SoDtItemType = 'item' | 'product'
+export type InvDpDtItemType = 'item' | 'product'
 
-export type FormSoDtRefType = FormSoDtProductListType
+export type FormInvDpDtRefType = FormInvDpDtProductListType
 
 export type ModalIndexProductFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
 
-export type ModalIndexQuotationFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
-export type ModalIndexQuotationFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
+export type ModalIndexSalesOrderFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
+export type ModalIndexSalesOrderFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
 
 export type QSoIndexType = {
   page: number
@@ -277,12 +270,12 @@ export type QSoIndexType = {
   order_direction: string
 }
 
-export type QIndexQuotationsType = {
+export type QIndexSalesOrdersType = {
   page: number
   per_page: number
   item_group_ids?: number[] | null
   item_sub_group_ids?: number[] | null
-  quotation_ids?: number[] | null
+  sales_order_ids?: number[] | null
   customer_ids?: number[] | null
   product_ids?: number[] | null
   customer_id?: number | null
@@ -298,41 +291,13 @@ export type QIndexQuotationsType = {
 export type VatModeType = 'header' | 'detail' | null
 
 
-export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType & {
-  ref_type: 'products' | 'quotations'
-  customer_id?: number | null
-  sales_order_id?: number | null
-  so_dt_id?: number | null
-  vat_id?: number
-  pph23_id?: number
-  vat_perc?: number
-  vat_perc_am?: number
-  pph23_perc?: number
-  pph23_perc_am?: number
-  markup_perc?: number // n
-  markup_perc_am?: number // n
-  is_vat?: number
-  is_pph23?: number
-  is_lock_markup?: number
-  is_lock_price_sell?: number
-  ref_id?: number
-  qty_so?: number
-  qty?: number
-  subtotal_sell?: number
-  subtotal_buy?: number
-  disc_am?: number
-  disc_perc?: number
-  disc_perc_num?: number
-  disc_perc_am?: number
-  disc_final?: number
-  disc_type?: SoDtDiscType | null
-  total_am?: number
+export type FormInvDpDtProductListType = ProductListType & InvDpDtsType & SoDtsType & {
   subtotal?: number
 
+  inv_dp_dts_boms?: ProductBomListType[]
   so_dts_boms?: ProductBomListType[]
-  quo_dts_boms?: ProductBomListType[]
 
-  quotation_id?: number | null
+  sales_order_id?: number | null
   order_type_id?: number | null
   currency_id?: number | null
   exchange_rate?: number | null
@@ -352,11 +317,11 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   unit_name?: string
 }
 
-export type FormSoDtBomListType = ProductListType & SoDtBomType
+export type FormInvDpDtBomListType = ProductListType & InvDpDtBomType
 
 export type OptionalSoRefType = {
   ref_id?: number | null
-  item_type: SoDtItemType
+  item_type: InvDpDtItemType
   item_id?: number | null
   product_id?: number | null
 }

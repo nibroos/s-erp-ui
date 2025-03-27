@@ -356,7 +356,7 @@ const useProductStore = defineStore('ProductStore', {
     },
 
     handleClickClear() {
-      this.form = cloneObject(useInitials.formQuotationCreateEdit);
+      this.form = cloneObject(useInitials.formProductCreateEdit);
       this.itemsCheck.checkMainUnits = []
       this.itemsCheck.checkUnits = []
       this.itemsCheck.checkMainBoms = []

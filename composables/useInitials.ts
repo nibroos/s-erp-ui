@@ -5,6 +5,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
 import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
+import type { FormPurchaseOrderType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
 import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
 import type { FieldSelectableType, FilterSelectableType } from '~/types/SelectTableType'
@@ -140,9 +141,11 @@ const formQuotationCreateEdit = {
   branch_id: null,
   quo_no: "",
   title: "",
-  remark: "",
+  remark: "Price not include VAT",
   status: "WAITING",
   is_approved: 0,
+  is_vat: 0,
+  is_pph23: 0,
   exchange_rate: null,
   vat_perc: 0,
   vat_perc_am: 0,
@@ -161,7 +164,7 @@ const formQuotationCreateEdit = {
   total_vat: 0,
   grand_total: 0,
   due_at: new Date().toISOString().split('T')[0],
-  expired_at: "",
+  expired_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 
   quo_dts: [],
 
@@ -181,7 +184,7 @@ const formSalesOrderCreateEdit = {
   branch_id: null,
   sales_order_no: "",
   po_buyer_no: "",
-  remark: "",
+  remark: "Price not include VAT",
   status: "PROCESS",
   exchange_rate: null,
   vat_perc: 0,
@@ -192,6 +195,8 @@ const formSalesOrderCreateEdit = {
   disc_final: 0,
   disc_type: null,
   pph23_perc: 0,
+  is_vat: 0,
+  is_pph23: 0,
   total_qty: 0,
   subtotal: 0,
   total_discount: 0,
@@ -200,10 +205,11 @@ const formSalesOrderCreateEdit = {
   total_vat: 0,
   grand_total: 0,
   order_at: new Date().toISOString().split('T')[0],
-  shipping_at: new Date().toISOString().split('T')[0],
+  // shipping default 7 days
+  shipping_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   agree_at: "",
-  due_at: "",
-  expired_at: "",
+  due_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  expired_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 
   so_dts: [],
 
@@ -214,7 +220,7 @@ const formSalesOrderCreateEdit = {
     schedule_no: "",
     title: "",
     start_at: new Date().toISOString().split('T')[0],
-    end_at: new Date().toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     color: "",
     status: "WAITING",
     remark: "",

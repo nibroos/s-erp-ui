@@ -117,7 +117,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         // textClass: 'text-grey1'
       },
       {
-        cta: "Sales Order",
+        cta: "Purchase Order",
         key: "so",
         icon: "mdi-offer",
         count: 0,

@@ -22,11 +22,11 @@ const handleLogout = async () => {
     <template v-slot:activator="{ props }">
       <div class="mr-5 flex items-center gap-2">
         <u-theme-switch />
-        <button
+        <!-- <button
           class="rounded-full p-2 opacity-70 transition-all delay-200 duration-300 hover:bg-slate-300 hover:opacity-60"
         >
           <v-icon icon="mdi-bell"></v-icon>
-        </button>
+        </button> -->
         <button
           class="rounded-full p-2 opacity-70 transition-all delay-200 duration-300 hover:bg-slate-300 hover:opacity-60"
           @click="handleLogout"
