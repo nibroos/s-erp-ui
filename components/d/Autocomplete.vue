@@ -239,6 +239,8 @@ const getList = async () => {
   //   options.value = removeDuplicates(options.value)
   // }
 
+  emit("after:fetch", options.value);
+
   paginationDone.value = !property(props.pageEndProp)(resData);
   loadingData.value = false;
 };
@@ -359,6 +361,7 @@ const emit = defineEmits([
   "update:modelValue",
   "click:clear",
   "click:selected",
+  "after:fetch",
 ]);
 
 const onSelectOpt = (param?: string) => {

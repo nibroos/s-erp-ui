@@ -229,9 +229,8 @@ const formApprovedQuotation = [
 ]
 
 const formTabQuotation = {
-  payments: 0,
-  items: 1,
-  remarks: 2,
+  items: 0,
+  remarks: 1,
 }
 
 const SoIndexStatus = [

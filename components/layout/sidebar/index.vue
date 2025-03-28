@@ -32,13 +32,13 @@ const itemOrders = [
   {
     title: "Quotations",
     icon: "mdi-cart-outline",
-    link: "/orders/quotations",
+    link: "/sales/quotations",
     permissions: ["r_sos"],
   },
   {
     title: "Sales Order",
     icon: "mdi-cart-outline",
-    link: "/orders/sales-orders",
+    link: "/sales/sales-orders",
     permissions: ["r_sos"],
   },
 ];

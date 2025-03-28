@@ -49,7 +49,9 @@ watch(
 <template>
   <v-switch
     :label="props.label"
-    :class="classMerge('text-dark3 dark:text-primary1', props.class)"
+    :class="
+      classMerge('text-dark3 dark:text-primary1 whitespace-nowrap', props.class)
+    "
     :modelValue="switchActive"
     @update:modelValue="toggleSwitch"
     hide-details

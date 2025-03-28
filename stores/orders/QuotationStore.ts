@@ -99,6 +99,9 @@ const useQuotationStore = defineStore('QuotationStore', {
       }
     },
     currencySymbolLabel: '',
+    referenceOptions: {
+      vats: [] as FormVatType[],
+    }
   }),
 
   actions: {
@@ -167,7 +170,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/quotations`)
+        navigateTo(`/sales/quotations`)
 
         return response
       } catch (error: any) {
@@ -222,7 +225,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         this.form.id = id
         // await this.show()
-        navigateTo(`/orders/quotations`)
+        navigateTo(`/sales/quotations`)
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
@@ -544,6 +547,11 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.form.email = data.email;
       this.form.phone = data.phone;
       this.form.address = data.address;
+      this.form.customer_code = data.shortname
+
+      if (!!data.currency_id && !this.form.currency_id) {
+        this.form.currency_id = data.currency_id
+      }
     },
 
     // calculatePriceSell(priceSell: number, iQuoDt: number) {
@@ -578,7 +586,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
     autocompleteMarkup(value: number) {
       this.itemsCheck.checkMain.forEach((item: QuoDtType) => {
-        if (!item.is_lock_markup) {
+        if (!item.is_lock_markup && value != 0) {
           item.markup_perc = value;
         }
       });
@@ -631,6 +639,16 @@ const useQuotationStore = defineStore('QuotationStore', {
       this.selectItemRefModal();
       this.countSelectedReferences();
       this.closeAllModal();
+    },
+
+    onClickSwitchVAT(data: any) {
+      if (!data) {
+        this.form.vat_id = null;
+        this.form.vat_perc = 0;
+        this.form.total_vat = 0;
+      } else {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      }
     },
 
     calculateTotalAmount() {
@@ -751,6 +769,10 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
       this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
+      if (this.form.total_discount < 0) {
+        this.form.total_discount = 0;
+      }
+
       this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
 
       this.form.disc_type = null;
@@ -775,7 +797,12 @@ const useQuotationStore = defineStore('QuotationStore', {
           },
           0
         );
+
         this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.disc_am)) * ((this.form.vat_perc ?? 0) / 100)
+
+        if (this.form.total_vat < 0) {
+          this.form.total_vat = 0;
+        }
       }
 
       if (!!this.form.pph23_id) {

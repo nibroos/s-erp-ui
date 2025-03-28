@@ -344,6 +344,7 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   head_disc_perc?: number | null
   head_markup_perc?: number | null
   head_remark?: string | null
+  head_is_vat?: number
 
   item_name?: string
   item_code?: string

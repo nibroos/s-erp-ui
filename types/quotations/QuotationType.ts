@@ -96,6 +96,8 @@ export type FormQuotationType = {
   address?: string
 
   summary?: Record<string, SummaryPartType>
+
+  customer_code?: string
 }
 
 export type QuoDtType = {

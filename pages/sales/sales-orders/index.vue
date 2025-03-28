@@ -279,7 +279,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     >
       <d-datatable
         api="/v1/sales-orders/index-sales-order"
-        detail-link="/orders/sales-orders"
+        detail-link="/sales/sales-orders"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -288,13 +288,13 @@ const filtersConfig = ref<FilterSelectableType[]>([
         search-placeholder="Search anything related to Order.."
         is-quick-select
         no-title
-        edit-link="/orders/sales-orders/edit"
+        edit-link="/sales/sales-orders/edit"
         delete-api="/v1/sales-orders/delete-sales-order"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/orders/sales-orders/create',
+          link: '/sales/sales-orders/create',
           show: true,
           cta: '+ Create',
         }"

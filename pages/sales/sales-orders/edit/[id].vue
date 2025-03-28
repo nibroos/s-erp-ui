@@ -621,13 +621,13 @@ const fetchInitialData = async () => {
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/orders/sales-orders",
+  parentPath: "/sales/sales-orders",
   currentTab: tabFormIndex.value,
-  tabs: ["Payments", "Items", "Remark", "Schedule", "Attachments"],
+  tabs: ["Items", "Remark", "Schedule", "Attachments"],
   mode: "edit",
   button: {
     create: {
-      path: "/orders/sales-orders/create",
+      path: "/sales/sales-orders/create",
     },
     save: {
       show: true,
@@ -666,7 +666,7 @@ const initialFormLayout = () => {
   formLayout.value.mode = "edit";
   formLayout.value.button = {
     create: {
-      path: "/orders/sales-orders/create",
+      path: "/sales/sales-orders/create",
     },
     save: {
       show: true,
@@ -736,25 +736,17 @@ watchEffect(() => {
       @click:clear="salesOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
-      <template #title-append>
-        <span
-          class="text-sm text-dark3 bg-grey2 dark:bg-dark2 p-1 rounded-lg dark:text-primary1"
-        >
-          #{{ form.sales_order_no }}
-        </span>
-      </template>
-
       <template #header>
         <form
           :class="
             classMerge(
-              'grid grid-cols-6 lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-2',
+              'grid grid-cols-6 lg:grid-cols-1 gap-2',
               Object.keys(errors).length > 0 ? '!items-start' : '!items-center'
             )
           "
           @submit.prevent="handleSubmit"
         >
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-text-input
               v-model="form.po_buyer_no"
               :label="`PO Buyer No`"
@@ -762,7 +754,7 @@ watchEffect(() => {
               :errors="errors.po_buyer_no"
             />
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.order_type_id"
               api="/v1/order-types/index-order-type"
@@ -776,7 +768,7 @@ watchEffect(() => {
               :errors="errors.order_type_id"
             ></d-autocomplete>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-select-table
               api="/v1/customers/index-customer"
               detail-api="/v1/customers/index-customer"
@@ -798,7 +790,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-text-input
               v-model="form.email"
               :label="`Email`"
@@ -807,7 +799,7 @@ watchEffect(() => {
               disabled
             />
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-text-input
               v-model="form.phone"
               :label="`Phone`"
@@ -817,7 +809,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-autocomplete-client
               v-model="form.status"
               :items="useStatics.formStatusSalesOrder"
@@ -828,13 +820,13 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.order_at"
               label="Order Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.shipping_at"
               label="Shipping Date"
@@ -868,13 +860,104 @@ watchEffect(() => {
               label="Due Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1 col-span-4">
+          <div class="lg:col-span-6">
+            <d-autocomplete
+              v-model="form.currency_id"
+              api="/v1/currencies/index-currency"
+              single-api="/v1/currencies/show-currency"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Currency"
+              :errors="errors.currency_id"
+              @click:selected="
+                (data: FormCurrencyType) => salesOrderStore.autocompleteCurrency(data)
+              "
+            ></d-autocomplete>
+          </div>
+          <div class="lg:col-span-6">
+            <d-num-v-format
+              v-model="form.exchange_rate"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              label="Exchange Rate"
+            />
+          </div>
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.pph23_id"
+              api="/v1/pph23s/index-pph23"
+              single-api="/v1/pph23s/show-pph23"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="PPH (%)"
+              :display-multiple-keys="['name', 'num']"
+              is-display-multiple-key
+              :errors="errors.pph23_id"
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompletePph(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+            ></d-autocomplete>
+          </div>
+          <div class="lg:col-span-6 flex gap-2">
+            <d-switch-status v-model="form.is_vat" :label="`VAT`" />
+          </div>
+
+          <div class="lg:col-span-6 col-span-6">
             <d-text-area-input
               v-model="form.ship_dest"
               :label="``"
               :placeholder="`Shipping Address`"
               class=""
+              :auto-grow="false"
             />
+          </div>
+          <div class="sm:col-span-1 hidden">
+            <d-autocomplete
+              v-model="form.vat_id"
+              api="/v1/vats/index-vat"
+              single-api="/v1/vats/show-vat"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="VAT"
+              :errors="errors.vat_id"
+              :query="{
+                date_at: form.due_at,
+                order_column: 'date_at',
+                order_direction: 'desc',
+              }"
+              @after:fetch="
+                (data) => {
+                  if (form.is_vat) {
+                    form.vat_id = data[0].id;
+                  } else {
+                    form.vat_id = null;
+                  }
+
+                  salesOrderStore.referenceOptions.vats = data;
+                }
+              "
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompleteVat(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+            ></d-autocomplete>
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
@@ -969,6 +1052,32 @@ watchEffect(() => {
                 label=""
                 class="w-[9rem]"
                 @update:modelValue="calculateTotalAmountLocal"
+              />
+            </template>
+            <template #header.disc_perc="{ column }">
+              <d-num-v-format
+                v-model="form.disc_perc"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="calculateTotalAmountLocal"
+                label="Disc (%)"
+                class="pt-2 min-w-[7rem] w-full"
+              />
+            </template>
+            <template #header.disc_am="{ column }">
+              <d-num-v-format
+                v-model="form.disc_am"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="calculateTotalAmountLocal"
+                label="Disc Amount"
+                class="pt-2 min-w-[7rem] w-full"
               />
             </template>
             <template #item.disc_am="{ item }">
@@ -1170,124 +1279,8 @@ watchEffect(() => {
             </template>
           </v-data-table-virtual>
         </div>
-        <div
-          v-if="tabFormIndex == useStatics.formTabSalesOrder.payments"
-          class="grid grid-cols-6 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
-        >
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.currency_id"
-              api="/v1/currencies/index-currency"
-              single-api="/v1/currencies/show-currency"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Currency"
-              :errors="errors.currency_id"
-              @click:selected="
-                (data: FormCurrencyType) => salesOrderStore.autocompleteCurrency(data)
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.exchange_rate"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="Exchange Rate"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.vat_id"
-              api="/v1/vats/index-vat"
-              single-api="/v1/vats/show-vat"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="VAT"
-              :errors="errors.vat_id"
-              @click:selected="
-                (data) => {
-                  salesOrderStore.autocompleteVat(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.pph23_id"
-              api="/v1/pph23s/index-pph23"
-              single-api="/v1/pph23s/show-pph23"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="PPH (%)"
-              :display-multiple-keys="['name', 'num']"
-              is-display-multiple-key
-              :errors="errors.pph23_id"
-              @click:selected="
-                (data) => {
-                  salesOrderStore.autocompletePph(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc (%)"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_am"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc Amount"
-            />
-          </div>
-          <!-- <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.markup_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="
-                (value) => {
-                  salesOrderStore.autocompleteMarkup(value);
-                  calculateTotalAmountLocal();
-                }
-              "
-              label="Markup (%)"
-            />
-          </div> -->
-        </div>
         <div v-if="tabFormIndex == useStatics.formTabSalesOrder.remarks">
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-text-area-input
               v-model="form.remark"
               :label="`Remark`"
@@ -1300,7 +1293,7 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="grid grid-cols-5 gap-2"
         >
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-text-input
               v-model="form.schedule.title"
               :label="`Title`"
@@ -1310,7 +1303,7 @@ watchEffect(() => {
           </div>
 
           <!-- assignee_id -->
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.schedule.assignee_id"
               api="/v1/users/index-user"
@@ -1324,13 +1317,13 @@ watchEffect(() => {
             ></d-autocomplete>
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.schedule.start_at"
               label="Start Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.schedule.end_at"
               label="End Date"
@@ -1341,7 +1334,7 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.attachments"
           class="grid grid-cols-3 md:grid-cols-1 gap-2"
         >
-          <div class="md:col-span-1">
+          <div class="lg:col-span-6">
             <v-file-upload
               v-model="form.attachments"
               clearable
