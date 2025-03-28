@@ -101,9 +101,6 @@ const handleCancel = () => {
 
 <template>
   <div class="flex flex-col gap-2">
-    <l-top-menu :top-menu="topMenuMasterTab" :parent_link="parentLink">
-    </l-top-menu>
-
     <d-index-layout
       :config="{
         permission: {
