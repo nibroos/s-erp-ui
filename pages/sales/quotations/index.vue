@@ -258,7 +258,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     >
       <d-datatable
         api="/v1/quotations/index-quotation"
-        detail-link="/orders/quotations"
+        detail-link="/sales/quotations"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -268,13 +268,13 @@ const filtersConfig = ref<FilterSelectableType[]>([
         search-placeholder="Search anything related to Quotations.."
         is-quick-select
         no-title
-        edit-link="/orders/quotations/edit"
+        edit-link="/sales/quotations/edit"
         delete-api="/v1/quotations/delete-quotation"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/orders/quotations/create',
+          link: '/sales/quotations/create',
           show: true,
           cta: '+ Create',
         }"

@@ -644,7 +644,7 @@ onMounted(async () => {
           class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
         }"
         :row-props="{
-          class: 'cursor-pointer',
+          class: 'cursor-pointer whitespace-nowrap',
         }"
         :item-value="props.itemValue"
         show-current-page

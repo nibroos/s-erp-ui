@@ -11,6 +11,7 @@ export type IndexQuotationType = {
   payment_id: number | null
   pph23_id: number | null
   branch_id: number | null
+  rev_no?: string
   quo_no: string
   title: string
   remark: string | null
@@ -62,11 +63,14 @@ export type FormQuotationType = {
   payment_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  rev_no?: string
   quo_no: string
   title: string
   remark?: string | null
   status: string
   is_approved: number
+  is_vat: number
+  is_pph23: number
   exchange_rate?: number | null
   vat_perc: number
   disc_am: number
@@ -92,6 +96,8 @@ export type FormQuotationType = {
   address?: string
 
   summary?: Record<string, SummaryPartType>
+
+  customer_code?: string
 }
 
 export type QuoDtType = {

@@ -23,9 +23,7 @@ import type {
   VatModeType,
 } from "~/types/quotations/QuotationType";
 import { updateQuoRefsModalFromMain } from "~/composables/maps/quotationComp";
-import type { ProductBomListType } from "~/types/masters/ProductType";
 
-const router = useRouter();
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
@@ -39,7 +37,6 @@ const {
   queryModal,
   metaModal,
   optionRefBtnRef,
-  loading,
   openedModal,
 } = storeToRefs(quotationStore);
 
@@ -49,10 +46,8 @@ definePageMeta({
 });
 
 useHead({
-  title: "Edit Quotation",
+  title: "Create Quotation",
 });
-
-const id = ref(router.currentRoute.value.params.id);
 
 const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
@@ -135,6 +130,13 @@ const headersCustomer = ref<FieldSelectableType[]>([
     title: "Name",
     key: "name",
     value: "name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Shortname",
+    key: "shortname",
+    value: "shortname",
     align: "start",
     sortable: true,
   },
@@ -296,13 +298,13 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  {
-    title: "Stock",
-    key: "qty_stock",
-    value: "qty_stock",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Stock",
+  //   key: "qty_stock",
+  //   value: "qty_stock",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Price Buy",
     key: "price_buy",
@@ -467,19 +469,10 @@ const summaryLayout = ref({
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/orders/quotations",
+  parentPath: "/sales/quotations",
   currentTab: tabFormIndex.value,
-  tabs: ["Payments", "Items", "Remark"],
-  mode: "edit",
+  tabs: ["Items", "Remark"],
   button: {
-    create: {
-      path: "/orders/quotations/create",
-    },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
     clear: {
       show: true,
     },
@@ -515,7 +508,7 @@ const handleSubmit = async () => {
 
   form.value.quo_dts = itemsCheck.value.checkMain;
 
-  await quotationStore.update();
+  await quotationStore.store();
 };
 
 const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
@@ -552,8 +545,7 @@ const fetchModalFilter = async () => {
 };
 
 const fetchInitialData = async () => {
-  form.value.id = Number(id.value);
-  await Promise.all([quotationStore.show(), quotationStore.indexProduct()]);
+  await quotationStore.indexProduct();
 };
 
 const fetchDataServerFetch = async (options: { [key: string]: any }) => {
@@ -568,9 +560,7 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
       queryModal.value.qIndexProducts.order_column = "";
       queryModal.value.qIndexProducts.order_direction = "";
     }
-  }
-
-  if (isOpenModal.value.boms) {
+  } else if (isOpenModal.value.boms) {
     queryModal.value.qIndexBoms.page = options.page;
     queryModal.value.qIndexBoms.per_page = options.itemsPerPage;
 
@@ -643,7 +633,6 @@ const clickClearForm = () => {
 onMounted(async () => {
   clickClearForm();
   await fetchInitialData();
-  // quotationStore.updateRefsModal();
 });
 
 watchEffect(() => {
@@ -660,24 +649,17 @@ watchEffect(() => {
       @click:clear="quotationStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
-      <template #title-append>
-        <span
-          class="text-sm text-dark3 bg-grey2 dark:bg-dark2 p-1 rounded-lg dark:text-primary1"
-        >
-          #{{ form.quo_no }}
-        </span>
-      </template>
       <template #header>
         <form
           :class="
             classMerge(
-              'grid grid-cols-6 lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-2',
+              'grid grid-cols-6 gap-2',
               Object.keys(errors).length > 0 ? '!items-start' : '!items-center'
             )
           "
           @submit.prevent="handleSubmit"
         >
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-text-input
               v-model="form.title"
               :label="`Title`"
@@ -685,7 +667,7 @@ watchEffect(() => {
               :errors="errors.title"
             />
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-select-table
               api="/v1/customers/index-customer"
               detail-api="/v1/customers/index-customer"
@@ -695,7 +677,7 @@ watchEffect(() => {
               total-prop="meta.total"
               label="Customer"
               v-model="form.customer_id"
-              class="col-span-2 lg:col-span-1"
+              class="col-span-2 lg:col-span-3 sm:col-span-6"
               is-quick-select
               @click:selected="
                 (data) => quotationStore.autocompleteCustomer(data)
@@ -707,7 +689,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-text-input
               v-model="form.email"
               :label="`Email`"
@@ -716,7 +698,7 @@ watchEffect(() => {
               disabled
             />
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-text-input
               v-model="form.phone"
               :label="`Phone`"
@@ -725,7 +707,7 @@ watchEffect(() => {
               disabled
             />
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-text-input
               v-model="form.address"
               :label="`Address`"
@@ -735,7 +717,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-autocomplete
               v-model="form.order_type_id"
               api="/v1/order-types/index-order-type"
@@ -749,19 +731,19 @@ watchEffect(() => {
               :errors="errors.order_type_id"
             ></d-autocomplete>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-date-picker-light
               v-model="form.due_at"
               label="Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-date-picker-light
               v-model="form.expired_at"
               label="Expired Date"
             ></d-date-picker-light>
           </div>
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-autocomplete-client
               v-model="form.status"
               :items="useStatics.formStatusQuotation"
@@ -770,6 +752,103 @@ watchEffect(() => {
               item-title="name"
               :clearable="false"
             />
+          </div>
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-autocomplete
+              v-model="form.currency_id"
+              api="/v1/currencies/index-currency"
+              single-api="/v1/currencies/show-currency"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Currency"
+              :errors="errors.currency_id"
+              @click:selected="
+                (data: FormCurrencyType) => quotationStore.autocompleteCurrency(data)
+              "
+            ></d-autocomplete>
+          </div>
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-num-v-format
+              v-model="form.exchange_rate"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              label="Exchange Rate"
+            />
+          </div>
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-autocomplete
+              v-model="form.pph23_id"
+              api="/v1/pph23s/index-pph23"
+              single-api="/v1/pph23s/show-pph23"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="PPH (%)"
+              :display-multiple-keys="['name', 'num']"
+              is-display-multiple-key
+              :errors="errors.pph23_id"
+              @click:selected="
+                (data) => {
+                  quotationStore.autocompletePph(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+            ></d-autocomplete>
+          </div>
+
+          <div class="lg:col-span-6 col-span-1 flex gap-2">
+            <d-switch-status
+              v-model="form.is_vat"
+              :label="`VAT`"
+              @update:modelValue="
+                (data) => quotationStore.onClickSwitchVAT(data)
+              "
+            />
+          </div>
+
+          <div class="lg:col-span-3 sm:col-span-6 hidden">
+            <d-autocomplete
+              v-model="form.vat_id"
+              api="/v1/vats/index-vat"
+              single-api="/v1/vats/show-vat"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="VAT"
+              :query="{
+                date_at: form.due_at,
+                order_column: 'date_at',
+                order_direction: 'desc',
+              }"
+              :errors="errors.vat_id"
+              @after:fetch="
+                (data) => {
+                  if (form.is_vat) {
+                    form.vat_id = data[0].id;
+                  } else {
+                    form.vat_id = null;
+                  }
+
+                  quotationStore.referenceOptions.vats = data;
+                }
+              "
+              @click:selected="
+                (data) => {
+                  quotationStore.autocompleteVat(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+            ></d-autocomplete>
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
@@ -817,7 +896,7 @@ watchEffect(() => {
             density="compact"
             height="500"
             fixed-header
-            class="col-span-3 sm:col-span-1 table-hover"
+            class="col-span-3 lg:col-span-3 sm:col-span-6 table-hover"
             :header-props="{
               class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
             }"
@@ -825,6 +904,50 @@ watchEffect(() => {
               class: 'whitespace-nowrap',
             }"
           >
+            <template #header.disc_perc="{ column }">
+              <d-num-v-format
+                v-model="form.disc_perc"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="calculateTotalAmountLocal"
+                label="Disc (%)"
+                class="pt-2 min-w-[7rem] w-full"
+              />
+            </template>
+            <template #header.disc_am="{ column }">
+              <d-num-v-format
+                v-model="form.disc_am"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="calculateTotalAmountLocal"
+                label="Disc Amount"
+                class="pt-2 min-w-[7rem] w-full"
+              />
+            </template>
+            <template #header.markup_perc="{ column }">
+              <d-num-v-format
+                v-model="form.markup_perc"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                @update:modelValue="
+                  (value) => {
+                    quotationStore.autocompleteMarkup(value);
+                    calculateTotalAmountLocal();
+                  }
+                "
+                label="Markup (%)"
+                class="pt-2 min-w-[7rem] w-full"
+              />
+            </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
             </template>
@@ -1132,7 +1255,12 @@ watchEffect(() => {
                       <template #item.action="{ item: itemBom, index: iBom }">
                         <div class="action-button">
                           <d-bt
-                            @click="onClickDeleteBom(index, iBom, internalItem)"
+                            @click="
+                              () => {
+                                onClickDeleteBom(index, iBom, internalItem);
+                                calculateTotalAmountLocal();
+                              }
+                            "
                             icon="mdi-delete"
                             is-no-text
                             class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
@@ -1152,124 +1280,8 @@ watchEffect(() => {
             </template>
           </v-data-table-virtual>
         </div>
-        <div
-          v-if="tabFormIndex == useStatics.formTabQuotation.payments"
-          class="grid grid-cols-7 sm:grid-cols-1 gap-x-2 gap-y-4 items-center"
-        >
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.currency_id"
-              api="/v1/currencies/index-currency"
-              single-api="/v1/currencies/show-currency"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Currency"
-              :errors="errors.currency_id"
-              @click:selected="
-                (data) => quotationStore.autocompleteCurrency(data)
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.exchange_rate"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              label="Exchange Rate"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.vat_id"
-              api="/v1/vats/index-vat"
-              single-api="/v1/vats/show-vat"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="VAT"
-              :errors="errors.vat_id"
-              @click:selected="
-                (data) => {
-                  quotationStore.autocompleteVat(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-autocomplete
-              v-model="form.pph23_id"
-              api="/v1/pph23s/index-pph23"
-              single-api="/v1/pph23s/show-pph23"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="PPH (%)"
-              :display-multiple-keys="['name', 'num']"
-              is-display-multiple-key
-              :errors="errors.pph23_id"
-              @click:selected="
-                (data) => {
-                  quotationStore.autocompletePph(data);
-                  calculateTotalAmountLocal();
-                }
-              "
-            ></d-autocomplete>
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc (%)"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.disc_am"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="calculateTotalAmountLocal"
-              label="Disc Amount"
-            />
-          </div>
-          <div class="sm:col-span-1">
-            <d-num-v-format
-              v-model="form.markup_perc"
-              :precision="{
-                min: 3,
-                max: 3,
-              }"
-              hide-currency-display
-              @update:modelValue="
-                (value) => {
-                  quotationStore.autocompleteMarkup(value);
-                  calculateTotalAmountLocal();
-                }
-              "
-              label="Markup (%)"
-            />
-          </div>
-        </div>
         <div v-if="tabFormIndex == useStatics.formTabQuotation.remarks">
-          <div class="sm:col-span-1">
+          <div class="lg:col-span-3 sm:col-span-6">
             <d-text-area-input
               v-model="form.remark"
               :label="`Remark`"
@@ -1514,7 +1526,8 @@ watchEffect(() => {
                       label=""
                       class="w-[9rem]"
                       @update:modelValue="
-                        quotationStore.calculatePrice(item, internalItem.raw)
+                        quotationStore.calculatePrice(item, internalItem.raw);
+                        calculateTotalAmountLocal();
                       "
                     />
                   </template>
@@ -1549,7 +1562,7 @@ watchEffect(() => {
       :is-open="isOpenModal.boms"
       size="xl"
       custom-class="overflow-y-auto"
-      parent-class="!z-[2499]"
+      parent-class="!z-[1500]"
       label="List of Boms"
       @update:is-open="isOpenModal.boms = $event"
     >

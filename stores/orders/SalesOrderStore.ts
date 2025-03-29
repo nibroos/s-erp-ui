@@ -131,12 +131,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
     currencySymbolLabel: '' as string | null,
+    referenceOptions: {
+      vats: [] as FormVatType[],
+    },
     headAutocomplete: {
       quo: {
         customer_id: null as number | null | undefined,
         order_type_id: null as number | null | undefined,
         currency_id: null as number | null | undefined,
         exchange_rate: 0 as number | null | undefined,
+        is_vat: 0 as number | null | undefined,
         vat_id: null as number | null | undefined,
         vat_perc: 0,
         pph23_id: null as number | null | undefined,
@@ -149,7 +153,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/orders/sales-orders",
+      parentPath: "/sales/sales-orders",
       currentTab: 0,
       tabs: ["Items", "Payments", "Remark", "Schedule", "Attachments"],
       button: {
@@ -307,7 +311,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/sales-orders/edit/${response.data.data[0].id}`)
+        navigateTo(`/sales/sales-orders`)
 
         return response
       } catch (error: any) {
@@ -364,7 +368,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
-        navigateTo(`/orders/sales-orders`)
+        navigateTo(`/sales/sales-orders`)
 
         return response
       } catch (error: any) {
@@ -673,6 +677,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     autocompleteCustomer(data: any) {
       this.form.email = data.email;
       this.form.phone = data.phone;
+      this.form.customer_code = data.shortname;
+
+      if (!!data.currency_id && !this.form.currency_id) {
+        this.form.currency_id = data.currency_id
+      }
 
       if (!this.form.ship_dest) {
         this.form.ship_dest = data.address;
@@ -807,13 +816,12 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     onClickUpdateProductsModal() {
-      this.selectItemRefModal();
-      this.countSelectedReferences();
 
       if (this.isOpenModal.quotations) {
         this.form.order_type_id = this.headAutocomplete.quo.order_type_id;
         this.form.currency_id = this.headAutocomplete.quo.currency_id;
         this.form.exchange_rate = this.headAutocomplete.quo.exchange_rate;
+        this.form.is_vat = this.headAutocomplete.quo.is_vat as number;
         this.form.vat_id = this.headAutocomplete.quo.vat_id;
         this.form.vat_perc = this.headAutocomplete.quo.vat_perc as number;
         this.form.pph23_id = this.headAutocomplete.quo.pph23_id;
@@ -822,7 +830,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.disc_am = this.headAutocomplete.quo.disc_am as number;
         this.form.disc_perc = this.headAutocomplete.quo.disc_perc as number;
         this.form.remark = this.headAutocomplete.quo.remark
+
+        console.log('onClickUpdateProductsModal', this.form);
+
       }
+      this.selectItemRefModal();
+      this.countSelectedReferences();
+
+      console.log('onClickUpdateProductsModal-1', this.headAutocomplete.quo);
+      console.log('onClickUpdateProductsModal-isOpenModal', this.isOpenModal.quotations);
 
       this.closeAllModal();
 
@@ -972,6 +988,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.headAutocomplete.quo.disc_am = data.head_disc_am as number;
       this.headAutocomplete.quo.disc_perc = data.head_disc_perc as number;
       this.headAutocomplete.quo.remark = data.head_remark
+      this.headAutocomplete.quo.is_vat = data.head_is_vat as number;
     },
 
     removeQuotation() {
@@ -1068,6 +1085,16 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       this.calculateMarkup(soDt);
+    },
+
+    onClickSwitchVAT(data: any) {
+      if (!data) {
+        this.form.vat_id = null;
+        this.form.vat_perc = 0;
+        this.form.total_vat = 0;
+      } else {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      }
     },
 
     calculateTotalAmount() {
@@ -1174,11 +1201,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       // // this.form.total_discount = item.disc_perc_am + item.disc_am + this.form.disc_am + this.form.disc_perc_am;
       this.form.total_discount = this.form.disc_final + this.form.disc_perc_am + this.form.disc_am;
+      if (this.form.total_discount < 0) {
+        this.form.total_discount = 0
+      }
 
       this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
-      if (this.form.total_after_disc < 0) {
-        this.form.total_after_disc = this.form.subtotal;
-      }
 
       this.form.disc_type = null;
       if (!!this.form.vat_id) {
@@ -1203,6 +1230,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         );
 
         this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.disc_am)) * ((this.form.vat_perc ?? 0) / 100)
+        console.log('calculateTotalAmount-total_vat', this.form.total_vat);
 
         if (this.form.total_vat < 0) {
           this.form.total_vat = 0;
@@ -1226,6 +1254,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
+        console.log('calculateTotalAmount-summary-total_vat', this.form.total_vat);
         this.formLayout.summary.total_amount.value = this.form.subtotal;
         this.formLayout.summary.total_after_disc.value = this.form.total_after_disc;
         this.formLayout.summary.total_discount.value = this.form.total_discount;
