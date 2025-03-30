@@ -11,3 +11,11 @@ export type UnitType = {
   created_at?: string
   updated_at?: string
 }
+
+export type FormUnitType = {
+  id?: number | null | undefined | string | string[]
+  name: string
+  description?: string | null
+  remark?: string | null
+  status?: number
+}

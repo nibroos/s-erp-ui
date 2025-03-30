@@ -80,6 +80,8 @@ const filtersConfig = ref<FilterSelectableType[]>([
       <d-datatable
         api="/v1/units/index-unit"
         detail-link="/masters/units"
+        edit-link="/masters/units/edit"
+        delete-api="/v1/units/delete-unit"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -93,7 +95,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         :filters="filtersConfig"
         :query-modal="queryModal.qListIndex"
         :create-option="{
-          link: '/masters/customizations/units/create',
+          link: '/masters/units/create',
           show: true,
           cta: '+ Create',
         }"

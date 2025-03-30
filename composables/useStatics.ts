@@ -180,6 +180,15 @@ export const topMenuCustomizationTab = [
     link2: "/masters/customizations/purchase-types/create",
     permissions: ["r_ms"],
   },
+  {
+    title: "Tasks",
+    number: 'tasks',
+    icon: "mdi-book-edit-outline",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/tasks",
+    link2: "/masters/customizations/tasks/create",
+    permissions: ["r_ms"],
+  },
 ]
 
 const QuoIndexStatus = [

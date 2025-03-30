@@ -1,9 +1,9 @@
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
-import type { FormUnitType } from '~/types/masters/UnitType'
+import type { FormTaskType } from '~/types/masters/TaskType'
 
-const useUnitStore = defineStore('UnitStore', {
+const useTaskStore = defineStore('TaskStore', {
   state: () => ({
     form: {
       id: null,
@@ -11,7 +11,7 @@ const useUnitStore = defineStore('UnitStore', {
       description: '',
       remark: '',
       status: 1
-    } as FormUnitType,
+    } as FormTaskType,
     queryModal: {
       qListIndex: {
         page: 1,
@@ -35,7 +35,7 @@ const useUnitStore = defineStore('UnitStore', {
   }),
 
   actions: {
-    async indexUnit() {
+    async indexTask() {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
@@ -54,7 +54,7 @@ const useUnitStore = defineStore('UnitStore', {
     async show() {
       try {
         const response = await useMyFetch().post(
-          '/v1/units/show-unit',
+          '/v1/tasks/show-task',
           this.form
         )
         this.form = response.data.data[0]
@@ -81,16 +81,16 @@ const useUnitStore = defineStore('UnitStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/units/create-unit',
+          '/v1/tasks/create-task',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formUnitCreateEdit)
+          JSON.stringify(useInitials.formTaskCreateEdit)
         )
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/masters/units/edit/${response.data.data[0].id}`)
+        navigateTo(`/masters/customizations/tasks/edit/${response.data.data[0].id}`)
 
         return response
       } catch (error: any) {
@@ -132,14 +132,14 @@ const useUnitStore = defineStore('UnitStore', {
         let id = this.form.id
 
         const response = await useMyFetch().post(
-          '/v1/units/update-unit',
+          '/v1/tasks/update-task',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formUnitCreateEdit)
+          JSON.stringify(useInitials.formTaskCreateEdit)
         )
 
-        // navigateTo(`/masters/units/edit/${response.data.data[0].id}`)
+        // navigateTo(`/masters/customizations/tasks/edit/${response.data.data[0].id}`)
 
         this.form.id = id
         this.show()
@@ -173,7 +173,7 @@ const useUnitStore = defineStore('UnitStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/units/delete-unit',
+          '/v1/tasks/delete-task',
           this.form
         )
         this.form = response.data.data[0]
@@ -189,7 +189,7 @@ const useUnitStore = defineStore('UnitStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/units/restore-unit',
+          '/v1/tasks/restore-task',
           this.form
         )
         this.form = response.data.data[0]
@@ -210,4 +210,4 @@ const useUnitStore = defineStore('UnitStore', {
   ]
 })
 
-export default useUnitStore
+export default useTaskStore

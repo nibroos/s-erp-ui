@@ -45,6 +45,22 @@ const formItemGroupCreateEdit = {
   item_group_id: null,
 } as FormItemGroupType
 
+const formTaskCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  task_id: null,
+} as FormItemGroupType
+
+const formUnitCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  unit_id: null,
+} as FormItemGroupType
+
 const formCurrencyCreateEdit = {
   name: '',
   num: 0,
@@ -52,7 +68,7 @@ const formCurrencyCreateEdit = {
   remark: '',
   symbol: '',
   status: 1,
-  item_group_id: null,
+  currency_id: null,
 } as FormCurrencyType
 
 const formPaymentTermCreateEdit = {
@@ -501,7 +517,29 @@ const formInventoryCreateEdit = {
   address: "",
 } as FormInventoryType
 
-export const useInitials: any = {
+type UseInitialsType = {
+  pagination: typeof pagination;
+  perPageOptions: typeof perPageOptions;
+  formItemSubGroupCreateEdit: typeof formItemSubGroupCreateEdit;
+  formItemGroupCreateEdit: typeof formItemGroupCreateEdit;
+  formCurrencyCreateEdit: typeof formCurrencyCreateEdit;
+  formProductCreateEdit: typeof formProductCreateEdit;
+  formQuotationCreateEdit: typeof formQuotationCreateEdit;
+  formSalesOrderCreateEdit: typeof formSalesOrderCreateEdit;
+  productFieldsFilterConfig: typeof productFieldsFilterConfig;
+  formPaymentTermCreateEdit: typeof formPaymentTermCreateEdit;
+  formShippingTermCreateEdit: typeof formShippingTermCreateEdit;
+  formPurchaseTypeCreateEdit: typeof formPurchaseTypeCreateEdit;
+  formInventoryCreateEdit: typeof formInventoryCreateEdit;
+  formIOTypeCreateEdit: typeof formIOTypeCreateEdit;
+  formWarehouseCreateEdit: typeof formWarehouseCreateEdit;
+  formAccountSettingEdit: typeof formAccountSettingEdit;
+  formPurchaseOrderCreateEdit: typeof formPurchaseOrderCreateEdit;
+  formTaskCreateEdit: typeof formTaskCreateEdit;
+  formUnitCreateEdit: typeof formUnitCreateEdit;
+}
+
+export const useInitials: UseInitialsType = {
   pagination,
   perPageOptions,
   formItemSubGroupCreateEdit,
@@ -519,4 +557,6 @@ export const useInitials: any = {
   formWarehouseCreateEdit,
   formAccountSettingEdit,
   formPurchaseOrderCreateEdit,
+  formTaskCreateEdit,
+  formUnitCreateEdit,
 }

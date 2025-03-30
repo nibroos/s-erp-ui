@@ -1304,3 +1304,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 })
 
 export default useSalesOrderStore
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useSalesOrderStore, import.meta.hot))
+}
