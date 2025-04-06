@@ -38,6 +38,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   displayMultipleSeparator: "-",
   maxLengthDisplay: 20,
   isQuickSelect: false,
+  isResetWhenClose: false,
+  isResetWhenOpen: false,
 
   // Modal
   showModal: false,
@@ -121,6 +123,11 @@ let icon = ref<string>(props.icon);
 
 const openModal = (event: boolean) => {
   showModal.value = event;
+
+  if (props.isResetWhenOpen) {
+    itemsCheck.value = [];
+    selectedText.value = "";
+  }
 
   emits("openModal", showModal.value);
 };
@@ -297,6 +304,11 @@ const onSelectItems = async () => {
   }
 
   // selectedText.value = itemsCheck.value.map((item) => item.name).join(', ')
+
+  if (props.isResetWhenClose) {
+    itemsCheck.value = [];
+    selectedText.value = "";
+  }
   openModal(false);
 };
 
@@ -376,7 +388,9 @@ onMounted(async () => {
 
   generateFiltersObj();
 
-  if (!!props.modelValue) {
+  console.log("props.modelValue", props.modelValue);
+
+  if (!!props.modelValue && props.modelValue.length > 0) {
     itemsCheck.value.push(props.modelValue);
   }
 });
@@ -388,60 +402,68 @@ onMounted(async () => {
       :class="classMerge('flex w-full grow', props.class)"
       :title="selectedText"
     >
-      <lazy-d-bt
-        type="button"
-        :cta="selectedText ? `${props.label}: ${selectedText}` : props.cta"
-        :no-icon="!!selectedText"
-        :class="
-          classMerge(
-            'text-none flex w-full grow items-stretch justify-center gap-1 whitespace-nowrap !border-1.5 !border-solid dark:bg-dark1 hover:dark:bg-dark2',
-            !!selectedText
-              ? '!border-zinc-300 dark:!border-zinc-500 p-2.5 rounded-l-md'
-              : '!border-zinc-200 dark:!border-zinc-500 rounded-md p-1.5',
-            props.btnClass
-          )
-        "
-        :text-class="
-          classMerge(
-            'text-sm dark:text-primary1  font-normal dark:!text-primary1',
-            !!selectedText ? '!text-dark3' : '!text-zinc-400',
-            props.disabled ? 'line-through' : '',
-            props.textClass
-          )
-        "
-        :icon="!selectedText ? icon : undefined"
-        :icon-class="
-          classMerge('!text-zinc-400 dark:text-primary1', props.iconClass)
-        "
-        @click="openModal(true)"
-        :max-length-display="props.maxLengthDisplay"
-        :loading="showMetaModal.loading"
-        :disabled="props.disabled"
+      <slot
+        name="btn"
+        :selectedText="selectedText"
+        @openModal="openModal"
+        @clearSelected="clearSelected"
+        @selectItems="onSelectItems"
       >
-        <template #append-cta>
-          <slot name="append-cta" />
-        </template>
-      </lazy-d-bt>
+        <lazy-d-bt
+          type="button"
+          :cta="selectedText ? `${props.label}: ${selectedText}` : props.cta"
+          :no-icon="!!selectedText"
+          :class="
+            classMerge(
+              'text-none flex w-full grow items-stretch justify-center gap-1 whitespace-nowrap !border-1.5 !border-solid dark:bg-dark1 hover:dark:bg-dark2',
+              !!selectedText
+                ? '!border-zinc-300 dark:!border-zinc-500 p-2.5 rounded-l-md'
+                : '!border-zinc-200 dark:!border-zinc-500 rounded-md p-1.5',
+              props.btnClass
+            )
+          "
+          :text-class="
+            classMerge(
+              'text-sm dark:text-primary1  font-normal dark:!text-primary1',
+              !!selectedText ? '!text-dark3' : '!text-zinc-400',
+              props.disabled ? 'line-through' : '',
+              props.textClass
+            )
+          "
+          :icon="!selectedText ? icon : undefined"
+          :icon-class="
+            classMerge('!text-zinc-400 dark:text-primary1', props.iconClass)
+          "
+          @click="openModal(true)"
+          :max-length-display="props.maxLengthDisplay"
+          :loading="showMetaModal.loading"
+          :disabled="props.disabled"
+        >
+          <template #append-cta>
+            <slot name="append-cta" />
+          </template>
+        </lazy-d-bt>
 
-      <d-bt
-        v-if="selectedText"
-        type="button"
-        cta="Clear"
-        :class="
-          classMerge(
-            'text-none m-0 rounded-r-md flex items-center justify-center border-y-1.5 border-r-1.5 border-solid py-0',
-            !!selectedText
-              ? 'border-zinc-300 dark:border-zinc-500'
-              : 'border-zinc-200 dark:border-zinc-500'
-          )
-        "
-        text-class="text-zinc-400"
-        icon="mdi-close"
-        icon-class="text-zinc-400"
-        is-no-text
-        @click="clearSelected"
-        :disabled="props.disabled"
-      />
+        <d-bt
+          v-if="selectedText"
+          type="button"
+          cta="Clear"
+          :class="
+            classMerge(
+              'text-none m-0 rounded-r-md flex items-center justify-center border-y-1.5 border-r-1.5 border-solid py-0',
+              !!selectedText
+                ? 'border-zinc-300 dark:border-zinc-500'
+                : 'border-zinc-200 dark:border-zinc-500'
+            )
+          "
+          text-class="text-zinc-400"
+          icon="mdi-close"
+          icon-class="text-zinc-400"
+          is-no-text
+          @click="clearSelected"
+          :disabled="props.disabled"
+        />
+      </slot>
 
       <!-- Modal Add Style -->
       <lazy-modals-final-modal
@@ -583,11 +605,11 @@ onMounted(async () => {
 
             <button
               type="button"
-              class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+              class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker"
               @click="onSelectItems"
             >
               <Icon name="material-symbols:save-rounded" size="20" />
-              <span>Select {{ props.label }}</span>
+              <span>Select {{ props.label }} ({{ itemsCheck.length }})</span>
             </button>
           </div>
         </template>

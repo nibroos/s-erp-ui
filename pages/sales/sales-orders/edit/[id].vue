@@ -1291,44 +1291,60 @@ watchEffect(() => {
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
-          class="grid grid-cols-5 gap-2"
+          class="flex flex-col gap-2"
         >
-          <div class="lg:col-span-6">
-            <d-text-input
-              v-model="form.schedule.title"
-              :label="`Title`"
-              :placeholder="`Title`"
-              :errors="errors.title"
-            />
-          </div>
+          <div class="grid grid-cols-5 gap-2">
+            <div class="lg:col-span-6">
+              <d-text-input
+                v-model="form.schedule.title"
+                :label="`Title`"
+                :placeholder="`Title`"
+                :errors="errors.title"
+              />
+            </div>
 
-          <!-- assignee_id -->
-          <div class="lg:col-span-6">
-            <d-autocomplete
-              v-model="form.schedule.assignee_id"
-              api="/v1/users/index-user"
-              single-api="/v1/users/show-user"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Assignee"
-            ></d-autocomplete>
-          </div>
+            <!-- assignee_id -->
+            <div class="lg:col-span-6">
+              <d-autocomplete
+                v-model="form.schedule.assignee_id"
+                api="/v1/users/index-user"
+                single-api="/v1/users/show-user"
+                page-end-prop="meta.next_page_url"
+                item-title="name"
+                item-value="id"
+                method-api="post"
+                inner-search-key="global"
+                label="Assignee"
+              ></d-autocomplete>
+            </div>
 
-          <div class="lg:col-span-6">
-            <d-date-picker-light
-              v-model="form.schedule.start_at"
-              label="Start Date"
-            ></d-date-picker-light>
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.schedule.start_at"
+                label="Start Date"
+              ></d-date-picker-light>
+            </div>
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.schedule.end_at"
+                label="End Date"
+              ></d-date-picker-light>
+            </div>
+            <div class="lg:col-span-6">
+              <d-autocomplete-client
+                v-model="form.schedule.steps_id"
+                :items="useInitials.defaultSteps"
+                label="Steps"
+                item-value="id"
+                item-title="name"
+                :clearable="false"
+                disabled
+                max-length-display="90"
+                class="!hidden"
+              />
+            </div>
           </div>
-          <div class="lg:col-span-6">
-            <d-date-picker-light
-              v-model="form.schedule.end_at"
-              label="End Date"
-            ></d-date-picker-light>
-          </div>
+          <schedule-board class="mt-2" />
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabSalesOrder.attachments"

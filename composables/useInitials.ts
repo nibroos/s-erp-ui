@@ -7,7 +7,7 @@ import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormPurchaseOrderType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
-import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSalesOrderType, FormScheduleStepType } from '~/types/sales-orders/SalesOrderType'
 import type { FieldSelectableType, FilterSelectableType } from '~/types/SelectTableType'
 
 const pagination = {
@@ -240,6 +240,7 @@ const formSalesOrderCreateEdit = {
     color: "",
     status: "WAITING",
     remark: "",
+    steps_id: 1,
   },
 
   attachments: [],
@@ -517,6 +518,55 @@ const formInventoryCreateEdit = {
   address: "",
 } as FormInventoryType
 
+const defaultSteps: FormScheduleStepType[] = [
+  {
+    uuid: randomId(),
+    title: 'Backlog',
+    remark: 'These are potential tasks',
+    order_item: 0,
+    stepIndex: 0,
+    schedule_id: null,
+    color: 'text-indigo-600',
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'To Do',
+    remark: "These are ready to be worked on",
+    order_item: 1,
+    stepIndex: 1,
+    schedule_id: null,
+    color: 'text-blue-600',
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'In Progress',
+    remark: 'These are actively being worked on',
+    order_item: 2,
+    stepIndex: 2,
+    schedule_id: null,
+    color: 'text-amber-600',
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Done',
+    remark: 'These are completed tasks',
+    order_item: 3,
+    stepIndex: 3,
+    schedule_id: null,
+    color: 'text-emerald-600',
+    tasks: []
+  },
+]
+
+const defaultListSteps = [{
+  id: 1,
+  name: 'backlog, to do, in progress, done',
+  steps: defaultSteps,
+}]
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -537,6 +587,8 @@ type UseInitialsType = {
   formPurchaseOrderCreateEdit: typeof formPurchaseOrderCreateEdit;
   formTaskCreateEdit: typeof formTaskCreateEdit;
   formUnitCreateEdit: typeof formUnitCreateEdit;
+  defaultListSteps: typeof defaultListSteps;
+  defaultSteps: typeof defaultSteps;
 }
 
 export const useInitials: UseInitialsType = {
@@ -559,4 +611,6 @@ export const useInitials: UseInitialsType = {
   formPurchaseOrderCreateEdit,
   formTaskCreateEdit,
   formUnitCreateEdit,
+  defaultListSteps,
+  defaultSteps,
 }

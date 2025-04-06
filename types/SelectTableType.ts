@@ -113,6 +113,9 @@ export type SelectTableType = {
 
   selectStrategy?: 'single' | 'page' | 'all' | undefined
 
+  isResetWhenClose?: boolean
+  isResetWhenOpen?: boolean
+
   itemsProp?: string
   mappingDetail?: string
   totalProp?: string

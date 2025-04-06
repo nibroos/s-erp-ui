@@ -452,5 +452,6 @@ export const useStatics = {
   POIndexStatus,
   POIndexDateType,
   formTabPurchaseOrder,
-  formStatusPurchaseOrder
+  formStatusPurchaseOrder,
+  defaultForm,
 }
