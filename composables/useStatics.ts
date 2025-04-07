@@ -424,6 +424,31 @@ const defaultForm = {
   order_type_id: 129,
 }
 
+const InvoiceDpIndexStatus = [
+  {
+    value: 'UNPAID',
+    title: 'Unpaid',
+    color: 'red',
+  },
+  {
+    value: 'PAID',
+    title: 'Paid',
+    color: 'green',
+  },
+]
+
+const formTabInvoiceDp = {
+  items: 0,
+  remarks: 1,
+  attachments: 2,
+}
+
+const formStatusInvoiceDp = [
+  { id: 'UNPAID', name: 'UNPAID' },
+  { id: 'PAID', name: 'PAID' },
+]
+
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -443,5 +468,8 @@ export const useStatics = {
   POIndexStatus,
   POIndexDateType,
   formTabPurchaseOrder,
-  formStatusPurchaseOrder
+  formStatusPurchaseOrder,
+  InvoiceDpIndexStatus,
+  formTabInvoiceDp,
+  formStatusInvoiceDp
 }

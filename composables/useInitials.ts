@@ -501,6 +501,105 @@ const formInventoryCreateEdit = {
   address: "",
 } as FormInventoryType
 
+const formInvoiceDpCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: null,
+  payment_term_id: null,
+  vat_id: null,
+  pph23_id: null,
+  branch_id: null,
+  invoice_no: '',
+  invoice_date: new Date().toISOString().split('T')[0],
+  exchange_rate: 1,
+  remark: "Down payment for project",
+  pph23_percentage: 0,
+  vat_percentage: 0,
+  discount_amount: 0,
+  discount_percentage: 0,
+  discount_percentage_amount: 0,
+  discount_final: 0,
+  discount_type: null,
+  dp_percentage: 30,
+  subtotal: 0,
+  total_amount_products: 0,
+  total_dp_products: 0,
+  total_qty: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  invoice_dp_dts: [],
+
+  attachments: [],
+
+  email: "",
+  phone: "",
+  address: "",
+
+  summary: {
+    total_amount: {
+      label: "Sub Amount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_discount: {
+      label: "Total Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_after_disc: {
+      label: "After Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_vat: {
+      label: "Total VAT",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_pph23: {
+      label: "Total PPH23",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_dp: {
+      label: "Total DP",
+      symbol: '',
+      value: 0,
+      percentage: 30,
+      format: {
+        precision: 2,
+      },
+    },
+    grand_total: {
+      label: "Grand Total",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+  }
+} as FormInvoiceDpType
+
 export const useInitials: any = {
   pagination,
   perPageOptions,
@@ -519,4 +618,5 @@ export const useInitials: any = {
   formWarehouseCreateEdit,
   formAccountSettingEdit,
   formPurchaseOrderCreateEdit,
+  formInvoiceDpCreateEdit,
 }
