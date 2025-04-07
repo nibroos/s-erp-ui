@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import qs from "qs";
-import { property, debounce } from "lodash-es";
+import { property, debounce, random } from "lodash-es";
 
 import { useMyFetch } from "~/composables/useMyFetch";
 import type {
   FieldSelectableType,
   FilterSelectableType,
+  FormOptionModeSelectableType,
+  FormOptionSelectableType,
+  MethodAttributeSelectableType,
   SelectTableType,
 } from "~/types/SelectTableType";
 import { type Pagination } from "~/interfaces/LaravelPaginationInterface";
+import { useInitials } from "../../composables/useInitials";
+import type {
+  DisplayColumnType,
+  ModelFormType,
+} from "~/types/DatatableClientType";
 
 const props = withDefaults(defineProps<SelectTableType>(), {
   modelValue: null,
@@ -65,6 +73,15 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   height: "450",
   multiple: false,
   returnObject: false,
+  formOptions: () => ({
+    mode: "",
+    creatable: false,
+    deletable: false,
+    keyDif: random(0, 1000),
+    modal: {
+      show: false,
+    },
+  }),
   filters: (props: SelectTableType) => [],
   fields: (props: SelectTableType) => [
     {
@@ -84,6 +101,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   ],
 });
 
+const slots = useSlots() as Record<string, any>;
+const modelForms = ref<ModelFormType>({});
 const generatedFiltersObj = ref<FilterSelectableType[]>([]);
 
 const defaultFieldProps: FilterSelectableType = {
@@ -109,6 +128,11 @@ const emits = defineEmits([
   "update:modelValue",
   "click:selected",
   "click:clear",
+  "open:modal-form",
+  "submit:create",
+  "submit:edit",
+  "submit:view",
+  "submit:",
 ]);
 
 let headersModal = ref(props.fields);
@@ -358,6 +382,111 @@ const onSelectOption = async (event: any, row: any) => {
   }
 };
 
+const isColumnDisplay = (
+  formOption: FieldSelectableType,
+  type: DisplayColumnType
+): boolean => {
+  if (formOption.type == type) {
+    return true;
+  } else if (formOption.type == "view") {
+    return true;
+  } else if (formOption.type == "disabled") {
+    return true;
+  } else if (formOption.type == "autocomplete-client") {
+    return true;
+  } else if (formOption.type == "autocomplete") {
+    return true;
+  } else if (formOption.type == "date") {
+    return true;
+  } else if (formOption.type == "datetime") {
+    return true;
+  } else if (formOption.type == "currency") {
+    return true;
+  } else if (formOption.type == "number") {
+    return true;
+  } else if (formOption.type == "boolean") {
+    return true;
+  } else if (formOption.type == "image") {
+    return true;
+  }
+  return false;
+};
+
+const filteredModalForms = ref<FieldSelectableType[]>(props.fields) ?? [];
+const genFormOptions = ref<FormOptionSelectableType>({
+  ...useInitials.formOptionDefault,
+  ...props.formOptions,
+});
+
+const toggleOpenModal = (mode: FormOptionModeSelectableType = "") => {
+  genFormOptions.value.mode = mode;
+
+  console.log("toggleOpenModal", mode, genFormOptions.value);
+
+  if (genFormOptions.value.modal) {
+    if (!mode) {
+      return (genFormOptions.value.modal.show = false);
+    }
+
+    genFormOptions.value.modal.show = true;
+    toggleOpenCloseModal(true);
+  }
+};
+
+const toggleOpenCloseModal = (event: boolean = true) => {
+  // if (!!genFormOptions.value.modal) {
+  //   // genFormOptions.value.modal.title = action?.modal?.title;
+  //   genFormOptions.value.modal.show = event;
+  // }
+
+  console.log("genFormOptions", event, genFormOptions.value);
+
+  if (event === false) {
+    if (!!genFormOptions.value.modal) {
+      genFormOptions.value.mode = "";
+    }
+  }
+
+  if (event === true) {
+    genFormOptions.value.modal.show = true;
+  }
+
+  emits(`open:modal-form`, event);
+};
+
+const submitModal = () => {
+  metaModal.value.loading = true;
+
+  if (!!genFormOptions.value?.modal) {
+    genFormOptions.value.modal.show = false;
+  }
+
+  let combinePayload: Record<string, any> = {};
+  let payload: Record<string, any> = {};
+  for (let [key, value] of Object.entries(modelForms.value)) {
+    payload[key] = value.payload;
+  }
+  console.log(modelForms.value, "modelForms");
+
+  combinePayload = { ...payload };
+
+  let args = {
+    action: genFormOptions.value,
+    config: modelForms.value,
+    payload: combinePayload,
+  };
+
+  const key = genFormOptions.value?.mode;
+  console.log(args, "submitModal");
+
+  emits(`submit:${key}`, args);
+  if (key == "create") {
+  } else if (key == "edit") {
+  }
+
+  metaModal.value.loading = false;
+};
+
 watch(
   () => itemsCheck.value,
   (newValue: any, oldValue: any) => {
@@ -465,11 +594,11 @@ onMounted(async () => {
         />
       </slot>
 
-      <!-- Modal Add Style -->
       <lazy-modals-final-modal
         :is-open="showModal"
         :size="'sm'"
         :label="props.modalTitle"
+        :name="randomId()"
         :header-text-class="classMerge('text-lg', props.modalHeaderTextClass)"
         :custom-class="props.modalCustomClass"
         :parent-class="props.modalParentClass"
@@ -594,6 +723,27 @@ onMounted(async () => {
         </div>
         <template #footer>
           <div class="flex h-max w-full items-center justify-end gap-2">
+            {{ genFormOptions.mode }}
+            <slot
+              v-if="!!genFormOptions.creatable"
+              :name="`modal:create`"
+              v-bind="{ modal: genFormOptions?.modal }"
+              class="grow"
+            >
+              <d-bt
+                @click="toggleOpenModal('create')"
+                :class="
+                  classMerge(
+                    'justify-center rounded-lg !border !border-solid !border-sc py-2 transition-all ease-in-out hover:!bg-sc-50 ',
+                    genFormOptions?.class ?? ''
+                  )
+                "
+                :text-class="genFormOptions?.textClass ?? 'text-sc !font-bold'"
+                :cta="genFormOptions?.cta ?? `Create New`"
+                type="submit"
+                :no-icon="true"
+              ></d-bt>
+            </slot>
             <d-bt
               type="button"
               cta="Clear"
@@ -614,6 +764,478 @@ onMounted(async () => {
           </div>
         </template>
       </lazy-modals-final-modal>
+
+      <v-dialog
+        :id="randomId()"
+        v-model="genFormOptions.modal.show"
+        z-index="2510"
+        :key="formOptions.keyDif"
+      >
+        <div class="flex flex-col gap-3 bg-white dark:bg-dark1 p-4 rounded-lg">
+          <slot name="header">
+            <div class="flex flex-row items-center justify-between">
+              <h1
+                class="text-lg font-semibold text-zinc-900 dark:text-primary1"
+              >
+                <slot
+                  :name="`modal:label`"
+                  v-bind="{ modal: genFormOptions?.modal }"
+                >
+                  <div
+                    :class="[
+                      'flex items-center gap-2',
+                      genFormOptions?.modal?.headerClass ?? '',
+                    ]"
+                  >
+                    {{ genFormOptions }}
+                    <span
+                      :class="[
+                        'text-xl capitalize',
+                        genFormOptions?.modal?.headerTextClass ?? '',
+                      ]"
+                    >
+                      {{ genFormOptions.mode }} {{ props.label }}
+                    </span>
+                  </div>
+                </slot>
+              </h1>
+
+              <d-bt
+                icon="mdi-close"
+                @click="genFormOptions.modal.show = false"
+                class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
+              ></d-bt>
+            </div>
+          </slot>
+
+          <div class="max-h-[35rem] overflow-y-auto">
+            <div v-if="genFormOptions?.modal?.show">
+              <slot
+                :name="`modal:content`"
+                v-bind="{ modal: genFormOptions?.modal }"
+              >
+                <form
+                  @submit.prevent="submitModal()"
+                  :class="[
+                    'grid grid-cols-4 md:grid-cols-1 gap-2 pt-1',
+                    genFormOptions?.modal?.contentClass ?? '',
+                  ]"
+                >
+                  <div
+                    v-for="(modelForm, keyModelForm) in filteredModalForms"
+                    :key="keyModelForm"
+                  >
+                    <slot
+                      :name="`modal:${keyModelForm}`"
+                      v-bind="{
+                        item: modelForm,
+                        configKey: filteredModalForms[keyModelForm],
+                        keyModelForm: keyModelForm,
+                        options: modelForm,
+                        methodKey: key,
+                        filteredModalForms: filteredModalForms,
+                      }"
+                    >
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'text')"
+                        :class="classMerge('')"
+                      >
+                        <d-text-input
+                          :model-value="
+                            filteredModalForms[keyModelForm].payload
+                          "
+                          @update:model-value="
+                            filteredModalForms[keyModelForm].payload = $event
+                          "
+                          :label="modelForm.title"
+                        />
+                      </div>
+                      <div v-if="isColumnDisplay(modelForm, 'view')" class="">
+                        {{ modelForm.title }}
+                      </div>
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'disabled')"
+                        class=""
+                      >
+                        <d-text-input
+                          :model-value="
+                            filteredModalForms[keyModelForm].payload
+                          "
+                          @update:model-value="
+                            filteredModalForms[keyModelForm].payload = $event
+                          "
+                          :label="modelForm.title"
+                          :disabled="true"
+                        />
+                      </div>
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'autocomplete-client')"
+                        class=""
+                      >
+                        <d-autocomplete-client
+                          :model-value="
+                            filteredModalForms[keyModelForm].payload
+                          "
+                          @update:model-value="
+                            filteredModalForms[keyModelForm].payload = $event
+                          "
+                          :label="modelForm.title"
+                          :items="modelForm.others?.items"
+                          :item-title="modelForm.others?.itemTitle ?? 'name'"
+                          :item-value="modelForm.others?.itemValue ?? 'id'"
+                          :is-display-multiple-key="
+                            modelForm.others?.isDisplayMultipleKey ?? false
+                          "
+                          :display-multiple-keys="
+                            modelForm.others?.displayMultipleKeys ?? [
+                              'id',
+                              'name',
+                            ]
+                          "
+                          :max-length-display="
+                            modelForm.others?.maxLengthDisplay ?? 70
+                          "
+                        />
+                      </div>
+                      <div v-if="isColumnDisplay(modelForm, 'date')" class="">
+                        <d-date-picker-light
+                          v-model="filteredModalForms[keyModelForm].payload"
+                          :label="modelForm.title"
+                          :dp-class="modelForm.others?.dpClass"
+                          :clearable="modelForm.others?.clearable"
+                          :placeholder="modelForm.placeholder"
+                          :density="modelForm.others?.density"
+                          :variant="modelForm.others?.variant"
+                        ></d-date-picker-light>
+                      </div>
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'datetime')"
+                        class=""
+                      >
+                        <d-date-picker-light
+                          v-model="filteredModalForms[keyModelForm].payload"
+                          :label="modelForm.title"
+                          :dp-class="modelForm.others?.dpClass"
+                          :clearable="modelForm.others?.clearable"
+                          :placeholder="modelForm.placeholder"
+                          :density="modelForm.others?.density"
+                          :variant="modelForm.others?.variant"
+                        ></d-date-picker-light>
+                      </div>
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'currency')"
+                        class=""
+                      >
+                        {{ modelForm.title }}
+                      </div>
+                      <div v-if="isColumnDisplay(modelForm, 'number')" class="">
+                        <d-num-v-format
+                          :label="modelForm.title"
+                          :reverse="false"
+                          :hide-currency-display="true"
+                          v-model="filteredModalForms[keyModelForm].payload"
+                        />
+                      </div>
+                      <div
+                        v-if="isColumnDisplay(modelForm, 'boolean')"
+                        class=""
+                      >
+                        {{ modelForm.title }}
+                      </div>
+                      <div v-if="isColumnDisplay(modelForm, 'image')" class="">
+                        {{ modelForm.title }}
+                      </div>
+                    </slot>
+                  </div>
+
+                  <slot
+                    :name="`modal:append`"
+                    v-bind="{
+                      methodKey: key,
+                      filteredModalForms: filteredModalForms,
+                    }"
+                  ></slot>
+                  <button type="submit" class="hidden"></button>
+                </form>
+              </slot>
+            </div>
+          </div>
+
+          <slot
+            :name="`modal:footer`"
+            v-bind="{ modal: genFormOptions?.modal }"
+          >
+            <div class="flex w-full items-center gap-3 pt-3">
+              <slot
+                v-if="!!genFormOptions.creatable"
+                :name="`modal:create`"
+                v-bind="{ modal: genFormOptions?.modal }"
+                class="grow"
+              >
+                <d-bt
+                  @click="toggleOpenModal('')"
+                  :class="
+                    classMerge(
+                      'grow justify-center items-center rounded-lg !border !border-solid !border-rose-700 py-2 !text-rose-700 transition-all ease-in-out hover:!bg-rose-50',
+                      genFormOptions?.modal?.cancelClass ?? ''
+                    )
+                  "
+                  :text-class="
+                    genFormOptions?.modal?.cancelTextClass ??
+                    'text-rose-700 text-lg'
+                  "
+                  :cta="genFormOptions?.modal?.cancelText"
+                  type="submit"
+                  :no-icon="true"
+                ></d-bt>
+              </slot>
+              <d-bt
+                v-if="!slots[`modal:confirm`]"
+                :class="
+                  classMerge(
+                    'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
+                    genFormOptions?.modal?.confirmClass ?? ''
+                  )
+                "
+                :text-class="
+                  genFormOptions?.modal?.confirmTextClass ??
+                  'text-white text-lg'
+                "
+                :cta="genFormOptions?.modal?.confirmText"
+                @click="submitModal()"
+                type="submit"
+                :no-icon="true"
+              ></d-bt>
+              <slot
+                v-else
+                :name="`modal:confirm`"
+                v-bind="{ modal: genFormOptions?.modal }"
+              ></slot>
+            </div>
+          </slot>
+        </div>
+      </v-dialog>
+      <!-- <lazy-modals-final-modal
+        :id="randomId()"
+        :name="randomId()"
+        :is-open="genFormOptions.modal.show"
+        :size="genFormOptions?.modal?.size ?? 'sm'"
+        :label="genFormOptions?.modal?.title"
+        :header-text-class="[
+          'text-xl',
+          genFormOptions?.modal?.headerTextClass ?? '',
+        ]"
+        :custom-class="['p-6 !w-4/5', genFormOptions?.modal?.customClass ?? '']"
+        :parent-class="genFormOptions?.modal?.show ? '!z-[2501]' : '!z-[1001]'"
+        :resize="false"
+        @update:is-open="toggleOpenCloseModal($event)"
+      >
+        <template #label>
+          <slot :name="`modal:label`" v-bind="{ modal: genFormOptions?.modal }">
+            <div
+              :class="[
+                'flex items-center gap-2',
+                genFormOptions?.modal?.headerClass ?? '',
+              ]"
+            >
+              {{ genFormOptions }}
+              <span
+                :class="[
+                  'text-xl capitalize',
+                  genFormOptions?.modal?.headerTextClass ?? '',
+                ]"
+              >
+                {{ genFormOptions.mode }} {{ props.label }}
+              </span>
+            </div>
+          </slot>
+        </template>
+
+        <div v-if="genFormOptions?.modal?.show">
+          <slot
+            :name="`modal:content`"
+            v-bind="{ modal: genFormOptions?.modal }"
+          >
+            <form
+              @submit.prevent="submitModal()"
+              :class="[
+                'grid grid-cols-4 md:grid-cols-1 gap-2 pt-1',
+                genFormOptions?.modal?.contentClass ?? '',
+              ]"
+            >
+              <div
+                v-for="(modelForm, keyModelForm) in filteredModalForms"
+                :key="keyModelForm"
+              >
+                <slot
+                  :name="`modal:${keyModelForm}`"
+                  v-bind="{
+                    item: modelForm,
+                    configKey: filteredModalForms[keyModelForm],
+                    keyModelForm: keyModelForm,
+                    options: modelForm,
+                    methodKey: key,
+                    filteredModalForms: filteredModalForms,
+                  }"
+                >
+                  <div
+                    v-if="isColumnDisplay(modelForm, 'text')"
+                    :class="classMerge('')"
+                  >
+                    <d-text-input
+                      :model-value="filteredModalForms[keyModelForm].payload"
+                      @update:model-value="
+                        filteredModalForms[keyModelForm].payload = $event
+                      "
+                      :label="modelForm.title"
+                    />
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'view')" class="">
+                    {{ modelForm.title }}
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'disabled')" class="">
+                    <d-text-input
+                      :model-value="filteredModalForms[keyModelForm].payload"
+                      @update:model-value="
+                        filteredModalForms[keyModelForm].payload = $event
+                      "
+                      :label="modelForm.title"
+                      :disabled="true"
+                    />
+                  </div>
+                  <div
+                    v-if="isColumnDisplay(modelForm, 'autocomplete-client')"
+                    class=""
+                  >
+                    <d-autocomplete-client
+                      :model-value="filteredModalForms[keyModelForm].payload"
+                      @update:model-value="
+                        filteredModalForms[keyModelForm].payload = $event
+                      "
+                      :label="modelForm.title"
+                      :items="modelForm.others?.items"
+                      :item-title="modelForm.others?.itemTitle ?? 'name'"
+                      :item-value="modelForm.others?.itemValue ?? 'id'"
+                      :is-display-multiple-key="
+                        modelForm.others?.isDisplayMultipleKey ?? false
+                      "
+                      :display-multiple-keys="
+                        modelForm.others?.displayMultipleKeys ?? ['id', 'name']
+                      "
+                      :max-length-display="
+                        modelForm.others?.maxLengthDisplay ?? 70
+                      "
+                    />
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'date')" class="">
+                    <d-date-picker-light
+                      v-model="filteredModalForms[keyModelForm].payload"
+                      :label="modelForm.title"
+                      :dp-class="modelForm.others?.dpClass"
+                      :clearable="modelForm.others?.clearable"
+                      :placeholder="modelForm.placeholder"
+                      :density="modelForm.others?.density"
+                      :variant="modelForm.others?.variant"
+                    ></d-date-picker-light>
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'datetime')" class="">
+                    <d-date-picker-light
+                      v-model="filteredModalForms[keyModelForm].payload"
+                      :label="modelForm.title"
+                      :dp-class="modelForm.others?.dpClass"
+                      :clearable="modelForm.others?.clearable"
+                      :placeholder="modelForm.placeholder"
+                      :density="modelForm.others?.density"
+                      :variant="modelForm.others?.variant"
+                    ></d-date-picker-light>
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'currency')" class="">
+                    {{ modelForm.title }}
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'number')" class="">
+                    <d-num-v-format
+                      :label="modelForm.title"
+                      :reverse="false"
+                      :hide-currency-display="true"
+                      v-model="filteredModalForms[keyModelForm].payload"
+                    />
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'boolean')" class="">
+                    {{ modelForm.title }}
+                  </div>
+                  <div v-if="isColumnDisplay(modelForm, 'image')" class="">
+                    {{ modelForm.title }}
+                  </div>
+                </slot>
+              </div>
+
+              <slot
+                :name="`modal:append`"
+                v-bind="{
+                  methodKey: key,
+                  filteredModalForms: filteredModalForms,
+                }"
+              ></slot>
+              <button type="submit" class="hidden"></button>
+            </form>
+          </slot>
+        </div>
+
+        <template #footer>
+          <slot
+            :name="`modal:footer`"
+            v-bind="{ modal: genFormOptions?.modal }"
+          >
+            <div class="flex w-full items-center gap-3 pt-3">
+              <slot
+                v-if="!!genFormOptions.creatable"
+                :name="`modal:create`"
+                v-bind="{ modal: genFormOptions?.modal }"
+                class="grow"
+              >
+                <d-bt
+                  @click="toggleOpenModal('')"
+                  :class="
+                    classMerge(
+                      'grow justify-center items-center rounded-lg !border !border-solid !border-rose-700 py-2 !text-rose-700 transition-all ease-in-out hover:!bg-rose-50',
+                      genFormOptions?.modal?.cancelClass ?? ''
+                    )
+                  "
+                  :text-class="
+                    genFormOptions?.modal?.cancelTextClass ??
+                    'text-rose-700 text-lg'
+                  "
+                  :cta="genFormOptions?.modal?.cancelText"
+                  type="submit"
+                  :no-icon="true"
+                ></d-bt>
+              </slot>
+              <d-bt
+                v-if="!slots[`modal:confirm`]"
+                :class="
+                  classMerge(
+                    'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
+                    genFormOptions?.modal?.confirmClass ?? ''
+                  )
+                "
+                :text-class="
+                  genFormOptions?.modal?.confirmTextClass ??
+                  'text-white text-lg'
+                "
+                :cta="genFormOptions?.modal?.confirmText"
+                @click="submitModal()"
+                type="submit"
+                :no-icon="true"
+              ></d-bt>
+              <slot
+                v-else
+                :name="`modal:confirm`"
+                v-bind="{ modal: genFormOptions?.modal }"
+              ></slot>
+            </div>
+          </slot>
+        </template>
+      </lazy-modals-final-modal> -->
     </div>
   </slot>
 </template>

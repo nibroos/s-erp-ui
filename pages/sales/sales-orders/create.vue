@@ -27,6 +27,7 @@ import type {
 import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
 import type {
   FormQuoDtBomListType,
+  QuoDtBomType,
   QuoDtType,
 } from "~/types/quotations/QuotationType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
@@ -92,7 +93,7 @@ const headers = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersBOM = ref([
+const headersBOM = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
@@ -1107,7 +1108,7 @@ watchEffect(() => {
                   <div class="">
                     <v-data-table-virtual
                       :headers="headersBOM"
-                      :items="item.so_dts_boms || []"
+                      :items="(item.so_dts_boms as SoDtBomType[]) || []"
                       item-value="uid"
                       density="compact"
                       return-object
@@ -1123,7 +1124,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="(item as SoDtType).remark"
+                          v-model="item.remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1132,7 +1133,7 @@ watchEffect(() => {
 
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="(item as SoDtType).qty"
+                          v-model="item.qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1153,7 +1154,7 @@ watchEffect(() => {
                       </template>
                       <template #item.price_buy="{ item }">
                         <d-num-v-format
-                          v-model="(item as SoDtType).price_buy"
+                          v-model="item.price_buy"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1471,7 +1472,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
+                  :items="(item.quo_dts_boms as QuoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1533,7 +1534,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.boms || []"
+                  :items="(item.boms as SoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1777,7 +1778,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.so_dts_boms || []"
+                  :items="(item.so_dts_boms as SoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1809,7 +1810,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
+                  :items="(item.quo_dts_boms as QuoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object

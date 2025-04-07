@@ -257,6 +257,7 @@ const handleInsertTasks = async ({
 };
 </script>
 
+
 <template>
   <div class="p-4 dark:bg-dark3 !border-grey3 border-solid !border">
     <div class="flex overflow-x-auto gap-4 pb-4">

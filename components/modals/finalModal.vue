@@ -1,6 +1,7 @@
 <template>
   <vue-final-modal
     v-model="isOpenParent"
+    :key="props.key"
     :name="props.name"
     :class="classMerge(props.parentClass)"
     :classes="['flex justify-center items-center']"
@@ -48,6 +49,7 @@
 
 <script setup lang="ts">
 interface IProps {
+  key?: string | number;
   modelValue?: boolean;
   isOpen?: boolean;
   size?: string;
@@ -61,6 +63,7 @@ interface IProps {
   name?: string;
 }
 const props = withDefaults(defineProps<IProps>(), {
+  key: randomId(),
   modelValue: false,
   isOpen: false,
   size: "w-max",
@@ -70,7 +73,7 @@ const props = withDefaults(defineProps<IProps>(), {
   resize: true,
   label: "",
   headerTextClass: "",
-  name: "modal",
+  name: "modal-" + randomId(),
 });
 
 const emit = defineEmits(["update:isOpen", "update:modelValue"]);

@@ -21,6 +21,23 @@ const headersTask = ref<FieldSelectableType[]>([
     value: "name",
     align: "start",
     sortable: true,
+    type: "text",
+  },
+  {
+    title: "Description",
+    key: "description",
+    value: "description",
+    align: "start",
+    sortable: true,
+    type: "text",
+  },
+  {
+    title: "Remark",
+    key: "remark",
+    value: "remark",
+    align: "start",
+    sortable: true,
+    type: "text",
   },
 ]);
 
@@ -45,6 +62,9 @@ const handleSelectedTasks = (data: any[]) => {
 };
 
 const props = defineProps({
+  key: {
+    type: Number,
+  },
   step: {
     type: Object as () => FormScheduleStepType,
     required: true,
@@ -468,14 +488,15 @@ watch(
     </div>
 
     <div class="px-2 pb-2">
-      <d-select-table
+      <lazy-d-select-table
+        :key="props.stepIndex"
         api="/v1/tasks/index-task"
         detail-api="/v1/tasks/index-task"
         method-api="post"
         detail-method-api="post"
         mapping-detail="data[0]"
         total-prop="meta.total"
-        label="Tasks"
+        :label="`Tasks${props.stepIndex}`"
         v-model="selectedTasks"
         class="col-span-2 lg:col-span-1"
         multiple
@@ -486,6 +507,14 @@ watch(
         is-reset-when-close
         :fields="headersTask"
         :filters="filtersTask"
+        :form-options="{
+          ...useInitials.formOptionDefault,
+          creatable: true,
+          editable: true,
+          mode: '',
+          keyDif: props.stepIndex,
+          cta: 'Create New Task Master',
+        }"
       >
         <template #btn="{ onOpenModal, onClearSelected }">
           <v-btn
@@ -496,13 +525,7 @@ watch(
             + Add Tasks
           </v-btn>
         </template>
-      </d-select-table>
-      <!-- <button
-        @click="emit('add-task', stepIndex)"
-        class="w-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded self-end place-self-end justify-self-end"
-      >
-        + Add Tasks
-      </button> -->
+      </lazy-d-select-table>
     </div>
   </div>
 </template>

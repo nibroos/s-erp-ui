@@ -8,7 +8,7 @@ import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormPurchaseOrderType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
 import type { FormSalesOrderType, FormScheduleStepType } from '~/types/sales-orders/SalesOrderType'
-import type { FieldSelectableType, FilterSelectableType } from '~/types/SelectTableType'
+import type { FieldSelectableType, FilterSelectableType, FormOptionSelectableType } from '~/types/SelectTableType'
 
 const pagination = {
   current_page: 1,
@@ -567,6 +567,40 @@ const defaultListSteps = [{
   steps: defaultSteps,
 }]
 
+const formOptionDefault: FormOptionSelectableType = {
+  creatable: false,
+  editable: false,
+  mode: '',
+  // key?: string
+  // show?: boolean
+  // title?: string
+  // message?: (props: { label: string }) => string
+  // size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  // headerClass?: string
+  // headerTextClass?: string
+  // contentClass?: string
+  // customClass?: string
+  // confirmText?: string
+  // cancelText?: string
+  // confirmClass?: string
+  // cancelClass?: string
+  // confirmTextClass?: string
+  // cancelTextClass?: string
+  modal: {
+    key: randomId(),
+    show: false,
+    title: 'Create',
+    // message: (props: { title: string }) => `Are you sure you want to ${props.title}?`,
+    size: 'md',
+    // headerClass: 'bg-primary text-white',
+    // headerTextClass: 'text-white',
+    // contentClass: 'bg-white',
+    // customClass: 'bg-white',
+    confirmText: 'Create', // Edit
+    cancelText: 'Cancel'
+  }
+}
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -589,6 +623,7 @@ type UseInitialsType = {
   formUnitCreateEdit: typeof formUnitCreateEdit;
   defaultListSteps: typeof defaultListSteps;
   defaultSteps: typeof defaultSteps;
+  formOptionDefault: typeof formOptionDefault;
 }
 
 export const useInitials: UseInitialsType = {
@@ -613,4 +648,5 @@ export const useInitials: UseInitialsType = {
   formUnitCreateEdit,
   defaultListSteps,
   defaultSteps,
+  formOptionDefault,
 }

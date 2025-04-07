@@ -1,6 +1,7 @@
 import type { VAutocomplete, VDataTable } from 'vuetify/components'
 import type {
   DisplayColumnType,
+  Modal,
   ReferenceDisplayType
 } from './DatatableClientType'
 import type {
@@ -16,6 +17,7 @@ import type { MethodAttributeType } from './DatatableClientType'
 // type ReadonlyDataTableHeader = UnwrapReadonlyArray<ReadonlyHeaders>
 
 export type MethodAttributeSelectableType = {
+  payload?: any
   type?: DisplayColumnType
   show?: boolean
   display?: string // column name
@@ -38,9 +40,9 @@ export type FieldSelectableType = {
   class?: string
   cellClass?: string[]
   show?: boolean
-  headerProps?: Record<string, any>,
-  cellProps?: Record<string, any>,
-}
+  headerProps?: Record<string, any>
+  cellProps?: Record<string, any>
+} & MethodAttributeSelectableType
 
 export type GeneratedFieldSelectableType = {
   key: string
@@ -54,7 +56,7 @@ export type GeneratedFieldSelectableType = {
 export type SelectTableType = {
   modelValue?: any
   title?: string
-  key?: string
+  key?: string | number
   value?: string
   label?: string
   align?: 'start' | 'center' | 'end' | undefined
@@ -93,6 +95,7 @@ export type SelectTableType = {
   sortable?: boolean
   editLink?: string
   createOption?: CreateOptionSelectableType
+  formOptions?: FormOptionSelectableType
 
   // Modal
   showModal?: boolean
@@ -139,12 +142,25 @@ export type FilterSelectableType = {
   show?: boolean
 } & MethodAttributeSelectableType
 
-export type CreateOptionSelectableType = {
+export type ButtonOptionSelectableType = {
   title?: string
   cta?: string
   link?: string
   icon?: string
   class?: string
+  textClass?: string
   cellClass?: string[]
   show?: boolean
 }
+
+export type FormOptionSelectableType = {
+  creatable?: boolean
+  editable?: boolean
+  mode: FormOptionModeSelectableType
+  modal: Modal
+  keyDif: number
+} & ButtonOptionSelectableType
+
+export type FormOptionModeSelectableType = 'edit' | 'create' | 'view' | ''
+
+export type CreateOptionSelectableType = ButtonOptionSelectableType
