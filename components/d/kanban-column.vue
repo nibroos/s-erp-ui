@@ -489,7 +489,7 @@ watch(
 
     <div class="px-2 pb-2">
       <lazy-d-select-table
-        :key="props.stepIndex"
+        :key="props.key"
         api="/v1/tasks/index-task"
         detail-api="/v1/tasks/index-task"
         method-api="post"

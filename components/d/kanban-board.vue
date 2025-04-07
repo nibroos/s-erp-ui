@@ -261,21 +261,22 @@ const handleInsertTasks = async ({
 <template>
   <div class="p-4 dark:bg-dark3 !border-grey3 border-solid !border">
     <div class="flex overflow-x-auto gap-4 pb-4">
-      <d-kanban-column
-        v-for="(step, stepIndex) in steps"
-        :key="stepIndex"
-        :step="step"
-        :step-index="stepIndex"
-        :steps="steps"
-        @update-task="handleTaskUpdate"
-        @add-task="handleAddTask"
-        @add-comment="handleAddComment"
-        @delete-task="handleDeleteTask"
-        @delete-step="handleDeleteStep"
-        @delete-tasks="handleDeleteTasks"
-        @move-all-tasks="handleMoveAllTasks"
-        @insert-tasks="handleInsertTasks"
-      />
+      <div v-for="(step, stepIndex) in steps" :key="stepIndex">
+        <d-kanban-column
+          :key="stepIndex"
+          :step="step"
+          :step-index="stepIndex"
+          :steps="steps"
+          @update-task="handleTaskUpdate"
+          @add-task="handleAddTask"
+          @add-comment="handleAddComment"
+          @delete-task="handleDeleteTask"
+          @delete-step="handleDeleteStep"
+          @delete-tasks="handleDeleteTasks"
+          @move-all-tasks="handleMoveAllTasks"
+          @insert-tasks="handleInsertTasks"
+        />
+      </div>
 
       <!-- <div class="flex-shrink-0 w-64">
         <button
