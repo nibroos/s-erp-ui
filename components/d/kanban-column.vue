@@ -3,6 +3,7 @@
 import { mergeProps } from "vue";
 import draggable from "vuedraggable";
 import type {
+  DeleteTaskType,
   KanbanListActionsType,
   KanbanSectionListActionsType,
 } from "~/types/KanbanBoardType";
@@ -136,6 +137,7 @@ const onTaskDragLeave = () => {
 
 const handleChangeOrder = (log: any) => {
   console.log("handleChangeOrder", log);
+  // TODO emit changeOrder
   // emit("tasks-dragged", {
   //   stepIndex: props.stepIndex,
   //   updatedTask: props.step,
@@ -164,12 +166,8 @@ const handleAddComment = ({ taskIndex, payload }: HandleType) => {
   });
 };
 
-const handleDeleteTask = (taskIndex: number) => {
-  console.log("d-kanban-column-handleDeleteTask", taskIndex);
-  emit("delete-task", {
-    stepIndex: props.stepIndex,
-    taskIndex,
-  });
+const handleDeleteTask = (deleteTaskArgs: DeleteTaskType) => {
+  emit("delete-task", deleteTaskArgs);
 };
 
 const handleDeleteComment = ({ taskIndex, payload }: HandleType) => {
@@ -233,7 +231,7 @@ const handleActions = (
   switch (action) {
     case "add-tasks":
       // trigger on open modal
-
+      triggerOpenModal();
       emit("add-tasks", props.stepIndex);
       break;
     case "move-tasks":
@@ -293,7 +291,7 @@ const handleMoveAllTasks = ({
 };
 
 const watchListActionSubMenu = (newVal: FormScheduleStepType[]) => {
-  console.log("steps changed", newVal);
+  // console.log("steps changed", newVal);
   // Update all listActions with the new steps
   // listActions.items.lists[1].lists = newVal
   //   // .filter((stepListAction, index) => index !== props.stepIndex)
@@ -307,7 +305,7 @@ const watchListActionSubMenu = (newVal: FormScheduleStepType[]) => {
   listActions.items.lists.forEach((item, index) => {
     // FIX TODO WATCHER ON PARENT
     if (item.type === "submenu") {
-      console.log("listActions.items.lists-submenu", item);
+      // console.log("listActions.items.lists-submenu", item);
 
       listActions.items.lists[index].lists = newVal
         .filter((step, index) => index !== props.stepIndex)
@@ -319,7 +317,7 @@ const watchListActionSubMenu = (newVal: FormScheduleStepType[]) => {
           type: "action",
         }));
 
-      console.log("listActions.items.lists-submenu-item.lists", item.lists);
+      // console.log("listActions.items.lists-submenu-item.lists", item.lists);
     }
   });
 };
@@ -343,6 +341,23 @@ const toggleDrawer = () => {
     isOpen: true,
     listActions: listActions,
   });
+};
+
+const openModalAddTask = (onOpenModal: (event: boolean) => void) => {
+  onOpenModal(true);
+};
+
+const selectTableRef = ref();
+
+// Trigger the openModal method
+const triggerOpenModal = async () => {
+  if (selectTableRef.value) {
+    selectTableRef.value.openModal(true);
+  } else {
+    console.error("openModal method is not available on selectTableRef");
+  }
+
+  // await openModal(filteredModalForms.value);
 };
 </script>
 
@@ -498,6 +513,7 @@ const toggleDrawer = () => {
             :task-index="taskIndex"
             :step-index="stepIndex"
             @update-task="handleTaskUpdate"
+            @show-task="toggleDrawer"
             @add-comment="handleAddComment"
             @delete-task="handleDeleteTask"
             @delete-comment="handleDeleteComment"
@@ -509,6 +525,7 @@ const toggleDrawer = () => {
     <div class="px-2 pb-2">
       <lazy-d-select-table
         :key="props.key"
+        ref="selectTableRef"
         api="/v1/tasks/index-task"
         detail-api="/v1/tasks/index-task"
         method-api="post"
@@ -539,7 +556,7 @@ const toggleDrawer = () => {
       >
         <template #btn="{ onOpenModal, onClearSelected }">
           <v-btn
-            @click="onOpenModal"
+            @click="openModalAddTask(onOpenModal)"
             class="w-full p-2 font-medium !capitalize !tracking-normal !bg-scLightest dark:!bg-sc dark:text-white text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-dark3 dark:hover:text-white rounded self-end place-self-end justify-self-end"
             variant="flat"
           >

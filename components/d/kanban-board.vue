@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {
+  DeleteTaskType,
   KanbanListActionsType,
   KanbanListTasksType,
   KanbanSectionListActionsType,
@@ -32,23 +33,6 @@ const emit = defineEmits([
   "step-added",
 ]);
 
-const addNewStep = () => {
-  console.log("addNewStep");
-
-  const newStep: FormScheduleStepType = {
-    title: "New Column",
-    stepIndex: steps.value.length,
-    remark: "This item hasn't been started",
-    order_item: steps.value.length,
-    schedule_id: null,
-    color: "text-blue-600",
-    tasks: [],
-  };
-  steps.value.push(newStep);
-  emit("step-added", newStep);
-  emit("update:steps", steps.value);
-};
-
 type HandleType = {
   stepIndex: number;
   taskIndex: number;
@@ -68,41 +52,23 @@ const handleTaskUpdate = ({
 };
 
 const handleAddTask = (stepIndex: number) => {
-  const newTask: FormScheduleTaskType = {
-    id: null,
-    parent_id: steps.value[stepIndex].id ?? null,
-    parent_uuid: steps.value[stepIndex].uuid,
-    schedule_id: steps.value[stepIndex].schedule_id ?? null,
-    order_item: steps.value[stepIndex].tasks.length,
-    title: "New Task",
-    remark: "",
-  };
-
-  console.log("handleAddTask", stepIndex, newTask);
-
-  steps.value[stepIndex].tasks.push(newTask);
-  emit("task-added", { stepIndex, newTask });
-  emit("update:steps", steps.value);
-};
-
-type CommentType = {
-  stepIndex: number;
-  taskIndex: number;
-  payload: any;
-};
-
-const handleAddComment = ({ stepIndex, taskIndex, payload }: CommentType) => {
-  emit("comment-added", { stepIndex, taskIndex, payload });
-  emit("update:steps", steps.value);
-};
-
-type DeleteTaskType = {
-  stepIndex: number;
-  taskIndex: number;
+  // const newTask: FormScheduleTaskType = {
+  //   id: null,
+  //   parent_id: steps.value[stepIndex].id ?? null,
+  //   parent_uuid: steps.value[stepIndex].uuid,
+  //   schedule_id: steps.value[stepIndex].schedule_id ?? null,
+  //   order_item: steps.value[stepIndex].tasks.length,
+  //   title: "New Task",
+  //   remark: "",
+  // };
+  // console.log("handleAddTask", stepIndex, newTask);
+  // steps.value[stepIndex].tasks.push(newTask);
+  // emit("task-added", { stepIndex, newTask });
+  // emit("update:steps", steps.value);
 };
 
 const handleDeleteTask = async ({ stepIndex, taskIndex }: DeleteTaskType) => {
-  console.log("d-kanban-board-handleDeleteTask", stepIndex, taskIndex);
+  console.log("d-kanban-board-handleDeleteTask1", stepIndex, taskIndex);
   console.log(
     "steps.value d-kanban-board-handleDeleteTask",
     steps.value[stepIndex].tasks
@@ -112,9 +78,7 @@ const handleDeleteTask = async ({ stepIndex, taskIndex }: DeleteTaskType) => {
     steps.value[stepIndex].tasks[taskIndex]
   );
 
-  const currentTask = steps.value[stepIndex].tasks[
-    taskIndex
-  ] as FormScheduleTaskType;
+  const currentTask = steps.value[stepIndex].tasks[taskIndex];
 
   const isConfirmed = await useAlert.showPopupConfirmation(
     `Are you sure to delete this task?`,
@@ -297,9 +261,15 @@ const onCloseDetailTasks = () => {
     (currentDetailTaskStep.value as unknown as FormScheduleStepType).stepIndex
   );
 
+  if (!!currentDetailTaskStep.value) {
+    steps.value[currentDetailTaskStep.value.stepIndex].tasks =
+      currentDetailTasks.value;
+  }
+
   currentDetailTaskStep.value = null;
   currentDetailTasks.value = [];
   currentDetailTasksPanel.value = [];
+  emit("update:steps", steps.value);
 };
 
 const onDeleteDetailTask = async (taskIndex: number) => {
@@ -328,6 +298,16 @@ watch(
   },
   { immediate: true }
 );
+
+// watch(
+//   () => steps.value,
+//   (newVal, OldVal) => {
+//     // if (OldVal !== newVal) {
+//       emit("update:steps", steps.value);
+//     // }
+//   },
+//   { immediate: true }
+// );
 </script>
 
 <template>
@@ -341,7 +321,7 @@ watch(
           :steps="steps"
           @update-task="handleTaskUpdate"
           @add-task="handleAddTask"
-          @add-comment="handleAddComment"
+          @add-tasks="handleAddTask"
           @delete-task="handleDeleteTask"
           @delete-step="handleDeleteStep"
           @delete-tasks="handleDeleteTasks"
@@ -355,21 +335,23 @@ watch(
         z-index="2510"
         v-model="drawer"
         :retain-focus="false"
-        :content-class="classMerge('relative h-screen right-0')"
-        width="50vw"
+        :content-class="
+          classMerge('relative h-screen right-0 !w-[50vw] sm:!w-full')
+        "
       >
         <template #default>
           <div
-            class="flex flex-col gap-3 bg-white dark:!bg-zinc-900 p-4 rounded-lg absolute inset-y-0 right-0 w-[50vw]"
+            class="flex flex-col gap-3 bg-white dark:!bg-zinc-900 p-4 rounded-lg absolute inset-y-0 right-0 w-[50vw] sm:w-full"
           >
             <div class="flex items-center justify-between">
-              <h1
-                class="text-lg font-semibold text-zinc-900 dark:text-primary1"
-              >
+              <span class="text-zinc-900 dark:text-primary1">
                 <slot name="label">
-                  {{ `"${currentDetailTaskStep?.title}"` }} task list
+                  <span class="text-lg font-semibold">
+                    {{ `${currentDetailTaskStep?.title ?? ""}` }}
+                  </span>
                 </slot>
-              </h1>
+                <span> task list </span>
+              </span>
               <div
                 @click="drawer = false"
                 class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
@@ -378,7 +360,6 @@ watch(
               </div>
             </div>
             <d-divider></d-divider>
-            <div></div>
             <!-- <v-expansion-panels v-model="currentDetailTasksPanel" multiple>
                 <v-expansion-panel
                   v-for="(task, taskIndex) in currentDetailTasks"
@@ -402,44 +383,55 @@ watch(
                 </v-expansion-panel>
               </v-expansion-panels> -->
 
-            <div class="overflow-y-auto flex flex-col gap-3">
+            <div class="">
               <div
-                v-for="(task, taskIndex) in currentDetailTasks"
-                :key="taskIndex"
+                v-if="currentDetailTasks.length > 0"
+                class="overflow-y-auto flex flex-col gap-3"
               >
-                <div class="flex flex-col">
-                  <div
-                    class="flex items-center justify-between p-2 rounded-t-lg border border-solid border-brown-500 bg-brown-100 dark:bg-dark1"
-                  >
-                    <input
-                      v-model="task.title"
-                      class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 font-medium"
-                    />
-                    <!-- delete task -->
-                    <d-button
-                      @click="onDeleteDetailTask(taskIndex)"
-                      icon="mdi-delete"
-                      is-no-text
-                      class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                      icon-class="text-cancel dark:text-primary1"
-                      rounded="xl"
-                      size=""
-                      cta="select"
-                      icon-size="16"
-                    ></d-button>
-                  </div>
-                  <div
-                    class="flex flex-col p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
-                  >
-                    <input
-                      v-model="task.remark"
-                      class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 text-rose-600 text-sm"
-                    />
-                  </div>
-                  <!-- <div class="text-lg font-semibold">{{ task.title }}</div> -->
+                <div
+                  v-for="(task, taskIndex) in currentDetailTasks"
+                  :key="taskIndex"
+                >
+                  <div class="flex flex-col">
+                    <div
+                      class="flex items-center text-zinc-900 dark:text-primary1 justify-between p-2 rounded-t-lg border border-solid border-brown-500 bg-brown-100 dark:bg-dark1"
+                    >
+                      <input
+                        v-model="task.title"
+                        class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 font-medium"
+                      />
+                      <!-- delete task -->
+                      <d-button
+                        @click="onDeleteDetailTask(taskIndex)"
+                        icon="mdi-delete"
+                        is-no-text
+                        class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                        icon-class="text-cancel dark:text-primary1"
+                        rounded="xl"
+                        size=""
+                        cta="select"
+                        icon-size="16"
+                      ></d-button>
+                    </div>
+                    <div
+                      class="flex flex-col text-zinc-900 dark:text-primary1 p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
+                    >
+                      <input
+                        v-model="task.remark"
+                        class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 text-sm"
+                      />
+                    </div>
+                    <!-- <div class="text-lg font-semibold">{{ task.title }}</div> -->
 
-                  <!-- <div class="text-sm text-gray-500">{{ task.remark }}</div> -->
+                    <!-- <div class="text-sm text-gray-500">{{ task.remark }}</div> -->
+                  </div>
                 </div>
+                <d-divider-end />
+              </div>
+
+              <div v-else>
+                <!-- <span class="text-grey3"> No tasks available </span> -->
+                <d-divider-end />
               </div>
             </div>
           </div>

@@ -301,6 +301,7 @@ const formStatusSalesOrder = [
   { id: 'SCHEDULE', name: 'SCHEDULE' },
   { id: 'INVOICE', name: 'INVOICE' },
   { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'HOLDING', name: 'HOLDING' },
   { id: 'FINISH', name: 'FINISH' },
 ]
 

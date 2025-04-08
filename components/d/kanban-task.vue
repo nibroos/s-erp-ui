@@ -66,6 +66,10 @@ const listActions: KanbanListActionsType[] = [
   },
 ];
 
+const handleShowTask = () => {
+  emit("show-task", props.stepIndex);
+};
+
 const handleDeleteTask = () => {
   console.log("-task handleDeleteTask", props.taskIndex, props.stepIndex);
 
@@ -77,6 +81,9 @@ const handleDeleteTask = () => {
 
 const handleActions = (action: string, list?: KanbanListActionsType) => {
   switch (action) {
+    case "show-task":
+      handleShowTask();
+      break;
     case "delete-task":
       handleDeleteTask();
       break;

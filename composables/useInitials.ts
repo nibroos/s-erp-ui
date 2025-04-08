@@ -528,6 +528,8 @@ const defaultSteps: FormScheduleStepType[] = [
     stepIndex: 0,
     schedule_id: null,
     color: 'text-indigo-600',
+    entity_id: null,
+    entity_type: 'steps',
     tasks: []
   },
   {
@@ -538,26 +540,44 @@ const defaultSteps: FormScheduleStepType[] = [
     stepIndex: 1,
     schedule_id: null,
     color: 'text-blue-600',
+    entity_id: null,
+    entity_type: 'steps',
     tasks: []
   },
   {
     uuid: randomId(),
-    title: 'In Progress',
+    title: 'Non-tech In-Progress',
     remark: 'These are actively being worked on',
     order_item: 2,
     stepIndex: 2,
     schedule_id: null,
     color: 'text-amber-600',
+    entity_id: null,
+    entity_type: 'steps',
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Tech In-Progress',
+    remark: 'These are actively being worked on',
+    order_item: 3,
+    stepIndex: 3,
+    schedule_id: null,
+    color: 'text-amber-600',
+    entity_id: null,
+    entity_type: 'steps',
     tasks: []
   },
   {
     uuid: randomId(),
     title: 'Done',
     remark: 'These are completed tasks',
-    order_item: 3,
-    stepIndex: 3,
+    order_item: 4,
+    stepIndex: 4,
     schedule_id: null,
     color: 'text-emerald-600',
+    entity_id: null,
+    entity_type: 'steps',
     tasks: []
   },
 ]

@@ -14,6 +14,11 @@ export type KanbanListActionsType = {
 
 export type KanbanListTasksType = KanbanListActionsType & FormTaskType & FormScheduleTaskType
 
+export type DeleteTaskType = {
+  stepIndex: number;
+  taskIndex: number;
+};
+
 export type KanbanSectionListActionsType = {
   [key in ActionTypeType]: {
     title: string;

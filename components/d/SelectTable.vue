@@ -665,6 +665,10 @@ onMounted(async () => {
     itemsCheck.value.push(props.modelValue);
   }
 });
+
+defineExpose({
+  openModal,
+});
 </script>
 
 <template>

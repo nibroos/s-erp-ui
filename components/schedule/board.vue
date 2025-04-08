@@ -16,10 +16,19 @@ const props = defineProps({
 });
 
 const { form } = storeToRefs(salesOrderStore);
+
+const updateSteps = (steps: FormScheduleStepType[]) => {
+  console.log("kanbanboardstep", steps);
+
+  form.value.schedule.steps = steps;
+};
 </script>
 
 <template>
   <div :class="classMerge('', props.class)">
-    <d-kanban-board :initial-steps="form.schedule.steps" />
+    <d-kanban-board
+      :initial-steps="form.schedule.steps"
+      @update:steps="updateSteps"
+    />
   </div>
 </template>
