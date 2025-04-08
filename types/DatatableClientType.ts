@@ -87,6 +87,7 @@ export type Modal = {
   key?: string
   show?: boolean
   title?: string
+  desc?: string
   message?: (props: { title: string }) => string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   headerClass?: string

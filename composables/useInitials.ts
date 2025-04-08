@@ -1,4 +1,5 @@
 // import Form from 'vform'
+import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 import type { FormInventoryType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
@@ -571,6 +572,9 @@ const formOptionDefault: FormOptionSelectableType = {
   creatable: false,
   editable: false,
   mode: '',
+  keyDif: random(0, 1000),
+  editApi: '',
+  createApi: '',
   // key?: string
   // show?: boolean
   // title?: string

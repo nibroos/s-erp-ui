@@ -2,6 +2,7 @@
 import type {
   KanbanListActionsType,
   KanbanListTasksType,
+  KanbanSectionListActionsType,
 } from "~/types/KanbanBoardType";
 import type {
   FormScheduleStepType,
@@ -255,8 +256,79 @@ const handleInsertTasks = async ({
     console.error("Error showing loading:", error);
   }
 };
-</script>
+const drawer = ref(false);
 
+// stepIndex: props.stepIndex,
+// tasks: props.step.tasks,
+// isOpen: drawer.value,
+
+const currentDetailTaskStep = ref<FormScheduleStepType | null>(null);
+const currentDetailTasks = ref<KanbanListTasksType[]>([]);
+const currentDetailTasksPanel = ref<string[]>([]);
+const currentDetailTasksListActions = ref<KanbanSectionListActionsType | null>(
+  null
+);
+
+const handleToggleDetailTasks = ({
+  stepIndex,
+  tasks,
+  isOpen,
+  listActions,
+}: {
+  stepIndex: number;
+  tasks: KanbanListTasksType[];
+  isOpen: boolean;
+  listActions: KanbanSectionListActionsType;
+}) => {
+  console.log("handleToggleDetailTasks", stepIndex, tasks, isOpen);
+  drawer.value = isOpen;
+  currentDetailTasksListActions.value = listActions;
+  currentDetailTaskStep.value = steps.value[stepIndex];
+  currentDetailTasksPanel.value = tasks.map((task) => {
+    task.uuid = randomId();
+    return task.uuid;
+  });
+  currentDetailTasks.value = tasks;
+};
+
+const onCloseDetailTasks = () => {
+  // update tasks api
+  console.log(
+    (currentDetailTaskStep.value as unknown as FormScheduleStepType).stepIndex
+  );
+
+  currentDetailTaskStep.value = null;
+  currentDetailTasks.value = [];
+  currentDetailTasksPanel.value = [];
+};
+
+const onDeleteDetailTask = async (taskIndex: number) => {
+  console.log("onDeleteDetailTask", taskIndex);
+
+  const isConfirmed = await useAlert.showPopupConfirmation(
+    `Are you sure to delete this task?`,
+    `"${currentDetailTasks.value[taskIndex].title}" task will be deleted.`
+  );
+
+  if (!isConfirmed) {
+    return;
+  }
+
+  currentDetailTasks.value.splice(taskIndex, 1);
+};
+
+watch(
+  () => drawer.value,
+  (newVal, oldVal) => {
+    if (oldVal !== newVal && oldVal !== undefined && !newVal) {
+      console.log("closeDetailTasks", newVal, oldVal);
+
+      onCloseDetailTasks();
+    }
+  },
+  { immediate: true }
+);
+</script>
 
 <template>
   <div class="p-4 dark:bg-dark3 !border-grey3 border-solid !border">
@@ -275,9 +347,104 @@ const handleInsertTasks = async ({
           @delete-tasks="handleDeleteTasks"
           @move-all-tasks="handleMoveAllTasks"
           @insert-tasks="handleInsertTasks"
+          @detail-tasks="handleToggleDetailTasks"
         />
       </div>
 
+      <v-dialog
+        z-index="2510"
+        v-model="drawer"
+        :retain-focus="false"
+        :content-class="classMerge('relative h-screen right-0')"
+        width="50vw"
+      >
+        <template #default>
+          <div
+            class="flex flex-col gap-3 bg-white dark:!bg-zinc-900 p-4 rounded-lg absolute inset-y-0 right-0 w-[50vw]"
+          >
+            <div class="flex items-center justify-between">
+              <h1
+                class="text-lg font-semibold text-zinc-900 dark:text-primary1"
+              >
+                <slot name="label">
+                  {{ `"${currentDetailTaskStep?.title}"` }} task list
+                </slot>
+              </h1>
+              <div
+                @click="drawer = false"
+                class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
+              >
+                <Icon name="material-symbols:close-rounded" size="25" />
+              </div>
+            </div>
+            <d-divider></d-divider>
+            <div></div>
+            <!-- <v-expansion-panels v-model="currentDetailTasksPanel" multiple>
+                <v-expansion-panel
+                  v-for="(task, taskIndex) in currentDetailTasks"
+                  :key="taskIndex"
+                  :value="task.uuid"
+                >
+                  <template #title>
+                    <div class="flex flex-col gap-2">
+                      <div class="text-lg font-semibold">{{ task.title }}</div>
+                      <input
+                        v-model="task.title"
+                        class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1"
+                      />
+                    </div>
+                  </template>
+                  <template #text>
+                    <div class="flex flex-col gap-2">
+                      <div class="">{{ task.remark ?? "-" }}</div>
+                    </div>
+                  </template>
+                </v-expansion-panel>
+              </v-expansion-panels> -->
+
+            <div class="overflow-y-auto flex flex-col gap-3">
+              <div
+                v-for="(task, taskIndex) in currentDetailTasks"
+                :key="taskIndex"
+              >
+                <div class="flex flex-col">
+                  <div
+                    class="flex items-center justify-between p-2 rounded-t-lg border border-solid border-brown-500 bg-brown-100 dark:bg-dark1"
+                  >
+                    <input
+                      v-model="task.title"
+                      class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 font-medium"
+                    />
+                    <!-- delete task -->
+                    <d-button
+                      @click="onDeleteDetailTask(taskIndex)"
+                      icon="mdi-delete"
+                      is-no-text
+                      class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                      icon-class="text-cancel dark:text-primary1"
+                      rounded="xl"
+                      size=""
+                      cta="select"
+                      icon-size="16"
+                    ></d-button>
+                  </div>
+                  <div
+                    class="flex flex-col p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
+                  >
+                    <input
+                      v-model="task.remark"
+                      class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 text-rose-600 text-sm"
+                    />
+                  </div>
+                  <!-- <div class="text-lg font-semibold">{{ task.title }}</div> -->
+
+                  <!-- <div class="text-sm text-gray-500">{{ task.remark }}</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </v-dialog>
       <!-- <div class="flex-shrink-0 w-64">
         <button
           @click="addNewStep"

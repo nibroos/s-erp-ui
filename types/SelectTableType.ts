@@ -159,6 +159,10 @@ export type FormOptionSelectableType = {
   mode: FormOptionModeSelectableType
   modal: Modal
   keyDif: number
+  createApi?: string
+  createMethodApi?: 'post'
+  editApi?: string
+  editMethodApi?: 'post'
 } & ButtonOptionSelectableType
 
 export type FormOptionModeSelectableType = 'edit' | 'create' | 'view' | ''

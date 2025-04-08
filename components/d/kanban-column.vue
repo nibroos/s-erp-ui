@@ -94,6 +94,7 @@ const emit = defineEmits([
   "update-step",
   "delete-steps",
   "tasks-dragged",
+  "detail-tasks",
 ]);
 
 const updateStepName = () => {
@@ -334,6 +335,15 @@ watch(
   },
   { deep: true, immediate: true }
 );
+
+const toggleDrawer = () => {
+  emit("detail-tasks", {
+    stepIndex: props.stepIndex,
+    tasks: props.step.tasks,
+    isOpen: true,
+    listActions: listActions,
+  });
+};
 </script>
 
 <template>
@@ -355,6 +365,15 @@ watch(
             class="bg-grey1 dark:bg-dark3 dark:text-white px-1.5 font-bold rounded-full"
           >
             {{ step.tasks.length }}
+          </div>
+          <div>
+            <v-btn
+              density="compact"
+              class="dark:text-white hover:text-gray-500 w-max"
+              icon="mdi-information"
+              variant="flat"
+              @click="toggleDrawer"
+            ></v-btn>
           </div>
           <v-menu
             activator="parent"
@@ -496,7 +515,7 @@ watch(
         detail-method-api="post"
         mapping-detail="data[0]"
         total-prop="meta.total"
-        :label="`Tasks${props.stepIndex}`"
+        :label="`Tasks`"
         v-model="selectedTasks"
         class="col-span-2 lg:col-span-1"
         multiple
@@ -514,6 +533,8 @@ watch(
           mode: '',
           keyDif: props.stepIndex,
           cta: 'Create New Task Master',
+          createApi: '/v1/tasks/create-task',
+          editApi: '/v1/tasks/update-task',
         }"
       >
         <template #btn="{ onOpenModal, onClearSelected }">

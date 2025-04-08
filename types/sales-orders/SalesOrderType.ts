@@ -152,6 +152,7 @@ export type FormScheduleStepType = {
 
 export type FormScheduleTaskType = {
   id?: number | null | undefined | string | string[]
+  uuid?: string
   parent_id?: number | null
   parent_uuid?: string
   schedule_id?: number | null

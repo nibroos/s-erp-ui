@@ -76,6 +76,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   returnObject: false,
   formOptions: () => ({
     mode: "",
+    createApi: "",
+    editApi: "",
     creatable: false,
     deletable: false,
     keyDif: random(0, 1000),
@@ -136,7 +138,28 @@ const emits = defineEmits([
   "submit:",
 ]);
 
-let headersModal = ref(props.fields);
+const initHeadersModal = () => {
+  let initialHeader = props.fields;
+
+  // check if key actions exists
+  const hasActionsKey = initialHeader.some(
+    (header) => header.key === "actions"
+  );
+  if (!!props.formOptions.editable && !hasActionsKey) {
+    initialHeader.push({
+      title: "Actions",
+      key: "actions",
+      align: "end",
+      sortable: false,
+      class: "text-center",
+      width: 100,
+    });
+  }
+
+  return initialHeader;
+};
+
+let headersModal = ref<FieldSelectableType[]>(initHeadersModal());
 let api = ref<string>(props.api);
 
 let showModal = ref<boolean>(props.showModal);
@@ -171,6 +194,12 @@ const metaModal = ref<Pagination<any[]>>({
 });
 
 const showMetaModal = ref<Record<string, any>>({
+  data: [],
+  single: {},
+  loading: false,
+});
+
+const showEditMetaModal = ref<Record<string, any>>({
   data: [],
   single: {},
   loading: false,
@@ -235,6 +264,62 @@ const fetchDataServerFetch = async (options: {
   }
 
   await filterData();
+};
+
+const fetchSingleEdit = async (id: number) => {
+  // return
+  if (!id) {
+    return;
+  }
+
+  showEditMetaModal.value.loading = true;
+  let apiUrl;
+
+  if (props.detailMethodApi == "post") {
+    let payload;
+
+    if (props.multiple && !props.returnObject) {
+      payload = { ids: itemsCheck.value };
+    } else {
+      payload = { ids: [id] };
+    }
+
+    apiUrl = `${props.detailApi}`;
+    await useMyFetch()
+      .post(apiUrl, payload)
+      .then((res) => {
+        showEditMetaModal.value.single = (<Record<string, any>>(
+          property(props.mappingDetail)(res.data)
+        )) as any;
+
+        filteredModalForms.value = props.fields.map((field) => {
+          if (field.key in showEditMetaModal.value.single) {
+            return {
+              ...field,
+              payload: showEditMetaModal.value.single[field.key],
+            };
+          }
+          return field;
+        });
+      })
+      .finally(() => {
+        showEditMetaModal.value.loading = false;
+      });
+  } else {
+    apiUrl = `${props.detailApi}/${id}`;
+    await useMyFetch()
+      .get(apiUrl)
+      .then((res) => {
+        showEditMetaModal.value.single = (<Record<string, any>>(
+          property(props.mappingDetail)(res.data)
+        )) as any;
+      })
+      .finally(() => {
+        showEditMetaModal.value.loading = false;
+      });
+  }
+
+  console.log("showEditMetaModal.value.single", showEditMetaModal.value.single);
 };
 
 const fetchSingle = async (id: number, oldId: number | null) => {
@@ -383,56 +468,36 @@ const onSelectOption = async (event: any, row: any) => {
   }
 };
 
-const isColumnDisplay = (
-  formOption: FieldSelectableType,
-  type: DisplayColumnType
-): boolean => {
-  if (formOption.type == type) {
-    return true;
-  } else if (formOption.type == "view") {
-    return true;
-  } else if (formOption.type == "disabled") {
-    return true;
-  } else if (formOption.type == "autocomplete-client") {
-    return true;
-  } else if (formOption.type == "autocomplete") {
-    return true;
-  } else if (formOption.type == "date") {
-    return true;
-  } else if (formOption.type == "datetime") {
-    return true;
-  } else if (formOption.type == "currency") {
-    return true;
-  } else if (formOption.type == "number") {
-    return true;
-  } else if (formOption.type == "boolean") {
-    return true;
-  } else if (formOption.type == "image") {
-    return true;
-  }
-  return false;
-};
-
 const filteredModalForms = ref<FieldSelectableType[]>(props.fields) ?? [];
 const genFormOptions = ref<FormOptionSelectableType>({
-  ...useInitials.formOptionDefault,
-  ...props.formOptions,
+  // json stringify parse
+  ...JSON.parse(
+    JSON.stringify(mergeProps(props.formOptions, props.formOptions))
+  ),
+  // ...useInitials.formOptionDefault,
+  // ...props.formOptions,
 });
 
 const toggleOpenModal = (
-  mode: FormOptionModeSelectableType = ""
-  // isActive: boolean
+  mode: FormOptionModeSelectableType = "",
+  isActive: boolean,
+  item?: any
 ) => {
   genFormOptions.value.mode = mode;
 
   console.log("toggleOpenModal", mode, genFormOptions.value);
+
+  if (!!item) {
+    // get item from api
+    fetchSingleEdit(item[props.itemValue]);
+  }
 
   if (genFormOptions.value.modal) {
     // if (!mode) {
     //   return (genFormOptions.value.modal.show = false);
     // }
     // genFormOptions.value.modal.show = true;
-    // toggleOpenCloseModal(true);
+    toggleOpenCloseModal(isActive);
   }
 };
 
@@ -444,12 +509,13 @@ const toggleOpenCloseModal = (event: boolean = true) => {
 
   console.log("genFormOptions", event, genFormOptions.value);
 
-  if (event === false) {
-    if (!!genFormOptions.value.modal) {
-      genFormOptions.value.mode = "";
-    }
-  }
+  // if (event === false) {
+  //   if (!!genFormOptions.value.modal) {
+  //     genFormOptions.value.mode = "";
+  //   }
+  // }
 
+  genFormOptions.value.modal.show = event;
   // if (event === true) {
   //   genFormOptions.value.modal.show = true;
   // }
@@ -457,8 +523,22 @@ const toggleOpenCloseModal = (event: boolean = true) => {
   emits(`open:modal-form`, event);
 };
 
-const submitModal = () => {
-  metaModal.value.loading = true;
+const formLoading = ref<boolean>(false);
+const submitModal = async (inputs: ModelFormType[]) => {
+  if (formLoading.value) return;
+  formLoading.value = true;
+
+  const isConfirmed = await useAlert.showPopupConfirmation(
+    `Are you sure ${genFormOptions.value.mode} ${props.label}?`,
+    `${props.label} will be ${genFormOptions.value.mode}ed.`
+  );
+
+  console.log("isConfirmed", isConfirmed);
+
+  if (!isConfirmed) {
+    formLoading.value = false;
+    return;
+  }
 
   if (!!genFormOptions.value?.modal) {
     genFormOptions.value.modal.show = false;
@@ -466,12 +546,18 @@ const submitModal = () => {
 
   let combinePayload: Record<string, any> = {};
   let payload: Record<string, any> = {};
-  for (let [key, value] of Object.entries(modelForms.value)) {
-    payload[key] = value.payload;
-  }
-  console.log(modelForms.value, "modelForms");
 
-  combinePayload = { ...payload };
+  // for (let [key, value] of Object.entries(inputs)) {
+  //   payload[key] = value.payload;
+  // }
+  inputs.forEach((input) => {
+    payload[input.key as unknown as string] = input.payload ?? null;
+  });
+
+  combinePayload = {
+    id: showEditMetaModal.value.single.id,
+    ...payload,
+  };
 
   let args = {
     action: genFormOptions.value,
@@ -480,14 +566,67 @@ const submitModal = () => {
   };
 
   const key = genFormOptions.value?.mode;
-  console.log(args, "submitModal");
 
   emits(`submit:${key}`, args);
+
+  let api = "";
   if (key == "create") {
+    // remove id from payload
+    delete combinePayload["id"];
+
+    api = genFormOptions.value.createApi as string;
   } else if (key == "edit") {
+    api = genFormOptions.value.editApi as string;
   }
 
-  metaModal.value.loading = false;
+  console.log("combinePayload", combinePayload);
+
+  try {
+    const response = await useMyFetch().post(api, combinePayload);
+
+    useAlert.hideAlert();
+    useAlert.alertSuccess(response.data.message);
+
+    filterData();
+
+    // await useMyFetch().post(api.value, combinePayload).then((res) => {
+    //   console.log("res", res);
+    // });
+  } catch (error: any) {
+    const responseData = error.response.data;
+    console.log("Failed To Create Data", error.response.data);
+    let errors = "";
+
+    if (typeof responseData.errors === "object") {
+      await Promise.all(
+        Object.keys(responseData.errors).map((row: any) => {
+          errors += `- ${responseData.errors[row][0]} <br />`;
+        })
+      );
+    }
+    useAlert.alertError(errors + `<br /> ${responseData.message}`);
+
+    console.error("Error showing loading:", error);
+  } finally {
+    formLoading.value = false;
+  }
+};
+
+type ModalFormInstance = ComponentPublicInstance<
+  {},
+  { submitModal: () => void }
+>;
+const modalForm = ref<ModalFormInstance | null>(null);
+
+// Trigger the submitModal method
+const triggerSubmitModal = async () => {
+  if (modalForm.value && modalForm.value.submitModal) {
+    modalForm.value.submitModal();
+  } else {
+    console.error("submitModal method is not available on modalForm");
+  }
+
+  // await submitModal(filteredModalForms.value);
 };
 
 watch(
@@ -668,17 +807,6 @@ onMounted(async () => {
               </div>
 
               <div class="col-span-3 grid grid-cols-2 gap-2 w-full">
-                <!-- <v-text-field
-              id="global_search_modal"
-              v-model="filters.global"
-              hide-details
-              label="Global Search"
-              placeholder="Search anything related to styles, style name, factory, etc"
-              variant="outlined"
-              density="compact"
-              append-inner-icon="mdi-magnify"
-              class="col-span-1"
-            /> -->
                 <d-text-input
                   id="global_search_modal"
                   v-model="filters.global"
@@ -722,32 +850,217 @@ onMounted(async () => {
             :height="props.height"
             hover
             @click:row="onSelectOption"
-          ></v-data-table-server>
+          >
+            <template #item.actions="{ item, index }">
+              <slot name="actions.edit" :item="item" :index="index">
+                <d-button
+                  @click="
+                    () => {
+                      toggleOpenModal('edit', true, item);
+                    }
+                  "
+                  icon="mdi-pencil"
+                  is-no-text
+                  class="p-1 hover:text-zinc-100 !bg-scDarker hover:bg-scDarker rounded-full ease-in-out transition-all hover:dark:!bg-scDarker3"
+                  icon-class="text-primary1"
+                  rounded="xl"
+                  size=""
+                  cta="select"
+                  icon-size="16"
+                ></d-button>
+              </slot>
+            </template>
+          </v-data-table-server>
         </div>
         <template #footer>
           <div class="flex h-max w-full items-center justify-end gap-2">
-            {{ genFormOptions.mode }}
-
             <slot
               v-if="!!genFormOptions.creatable"
               :name="`modal:create`"
               v-bind="{ modal: genFormOptions?.modal }"
               class="grow"
             >
-              <v-btn
-                @click="toggleOpenModal('create')"
-                :class="
-                  classMerge(
-                    'justify-center rounded-lg !border !border-solid !border-sc py-2 transition-all ease-in-out hover:!bg-sc-50 text-sc !font-bold',
-                    genFormOptions?.class ?? ''
-                  )
-                "
-                type="button"
-                id="formOptions"
+              <v-dialog
+                z-index="2510"
+                width="80rem"
+                v-model="genFormOptions.modal.show"
+                :retain-focus="false"
               >
-                {{ genFormOptions?.cta ?? `Create New` }}
-              </v-btn>
+                <template
+                  v-slot:activator="{
+                    props: activatorProps,
+                    isActive: isActiveModal,
+                  }"
+                >
+                  <button
+                    @click="
+                      () => {
+                        // isActiveModal.value = !isActive.value
+                        toggleOpenModal('create', isActiveModal);
+                      }
+                    "
+                    v-bind="activatorProps"
+                    :class="
+                      classMerge(
+                        'flex cursor-pointer items-center font-semibold px-4 py-2 rounded-lg !text-sc bg-primaryDarker hover:bg-primaryDarkest dark:!text-primary1 dark:hover:bg-dark3 dark:bg-dark2 dark:border-scDarker transition-all ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker sm:gap-x-1 !capitalize',
+                        genFormOptions?.class ?? ''
+                      )
+                    "
+                    type="button"
+                    id="formOptions"
+                  >
+                    {{ genFormOptions?.cta ?? `Create New` }}
+                  </button>
+                </template>
+                <template v-slot:default="{ isActive: isActiveModal }">
+                  <div
+                    class="flex flex-col gap-3 bg-white dark:!bg-zinc-900 p-4 rounded-lg"
+                  >
+                    <slot name="header">
+                      <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                          <h1
+                            class="text-lg font-semibold text-zinc-900 dark:text-primary1"
+                          >
+                            <slot
+                              :name="`modal:label`"
+                              v-bind="{ modal: genFormOptions?.modal }"
+                            >
+                              <div
+                                :class="[
+                                  'flex items-center gap-2',
+                                  genFormOptions?.modal?.headerClass ?? '',
+                                ]"
+                              >
+                                <span
+                                  :class="[
+                                    'text-xl capitalize',
+                                    genFormOptions?.modal?.headerTextClass ??
+                                      '',
+                                  ]"
+                                >
+                                  {{ genFormOptions.mode }} {{ props.label }}
+                                </span>
+                              </div>
+                            </slot>
+                          </h1>
+
+                          <d-bt
+                            icon="mdi-close"
+                            @click="
+                              () => {
+                                isActiveModal.value = false;
+                                toggleOpenModal('', isActiveModal.value);
+                              }
+                            "
+                            class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
+                          ></d-bt>
+                        </div>
+                        <!-- 
+                        <p
+                          class="text-sm font-normal text-zinc-500 dark:text-primary1"
+                        >
+                          {{
+                            genFormOptions?.modal?.desc ??
+                            `${genFormOptions?.mode} a new ${props.label}`
+                          }}
+                        </p> -->
+                      </div>
+                    </slot>
+
+                    <div class="max-h-[35rem] overflow-y-auto">
+                      <div>
+                        <slot
+                          :name="`modal:content`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                        >
+                          <lazy-d-modal-form
+                            :inputs="filteredModalForms"
+                            :content-class="genFormOptions.modal.contentClass"
+                            ref="modalForm"
+                            @click:submit="
+                              async (inputs: ModelFormType[]) => {
+                                await submitModal(inputs);
+                              }
+                            "
+                          >
+                          </lazy-d-modal-form>
+                        </slot>
+                      </div>
+                    </div>
+
+                    <slot
+                      :name="`modal:footer`"
+                      v-bind="{ modal: genFormOptions?.modal }"
+                    >
+                      <div class="flex w-full items-center gap-3 pt-3">
+                        <slot
+                          v-if="!!genFormOptions.creatable"
+                          :name="`modal:create`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                          class="grow"
+                        >
+                          <d-bt
+                            @click="
+                              () => {
+                                genFormOptions.modal.show = false;
+                                toggleOpenModal('', genFormOptions.modal.show);
+                              }
+                            "
+                            :class="
+                              classMerge(
+                                'grow justify-center items-center !border border-solid border-rose-700 px-4 py-2 rounded-lg bg-white dark:!bg-rose-700 transition-all ease-in-out hover:!bg-rose-50 dark:hover:!bg-rose-900',
+                                genFormOptions?.modal?.cancelClass ?? ''
+                              )
+                            "
+                            :text-class="
+                              genFormOptions?.modal?.cancelTextClass ??
+                              'text-rose-700  dark:text-primary1 text-lg'
+                            "
+                            :cta="genFormOptions?.modal?.cancelText"
+                            type="submit"
+                            :no-icon="true"
+                          ></d-bt>
+                        </slot>
+                        <d-bt
+                          v-if="!slots[`modal:confirm`]"
+                          :class="
+                            classMerge(
+                              'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
+                              genFormOptions?.modal?.confirmClass ?? ''
+                            )
+                          "
+                          :text-class="
+                            genFormOptions?.modal?.confirmTextClass ??
+                            'text-white text-lg'
+                          "
+                          :cta="genFormOptions.mode"
+                          @click="
+                            () => {
+                              // submitModal();
+                              // Trigger the submitModal method from the ModalForm instance
+                              // const modalForm = $refs.modalForm;
+                              // if (modalForm && modalForm.submitModal) {
+                              //   modalForm.submitModal();
+                              // }
+                              triggerSubmitModal();
+                            }
+                          "
+                          type="submit"
+                          :no-icon="true"
+                        ></d-bt>
+                        <slot
+                          v-else
+                          :name="`modal:confirm`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                        ></slot>
+                      </div>
+                    </slot>
+                  </div>
+                </template>
+              </v-dialog>
             </slot>
+
             <d-bt
               type="button"
               cta="Clear"
@@ -768,520 +1081,6 @@ onMounted(async () => {
           </div>
         </template>
       </lazy-modals-final-modal>
-
-      <v-dialog
-        v-model="genFormOptions.modal.show"
-        z-index="2510"
-        activator="#formOptions"
-      >
-        <!-- <template
-                v-slot:activator="{
-                  props: activatorProps,
-                  isActive: isActiveA,
-                }"
-              >
-                <slot
-                  v-if="!!genFormOptions.creatable"
-                  :name="`modal:create`"
-                  v-bind="{ modal: genFormOptions?.modal }"
-                  class="grow"
-                >
-                  {{ isActiveA }}
-                  <v-btn
-                    v-bind="mergeProps(activatorProps)"
-                    :id="'formOptions' + props.formOptions.keyDif"
-                    @click="toggleOpenModal('create')"
-                    :class="
-                      classMerge(
-                        'justify-center rounded-lg !border !border-solid !border-sc py-2 transition-all ease-in-out hover:!bg-sc-50 text-sc !font-bold',
-                        genFormOptions?.class ?? ''
-                      )
-                    "
-                    type="button"
-                  >
-                    {{ genFormOptions?.cta ?? `Create New` }}
-                  </v-btn>
-                </slot>
-              </template> -->
-
-        <template v-slot:default="{ isActive: isActiveB }">
-          <div
-            class="flex flex-col gap-3 bg-white dark:bg-dark1 p-4 rounded-lg"
-          >
-            <slot name="header">
-              <div class="flex flex-row items-center justify-between">
-                <h1
-                  class="text-lg font-semibold text-zinc-900 dark:text-primary1"
-                >
-                  <slot
-                    :name="`modal:label`"
-                    v-bind="{ modal: genFormOptions?.modal }"
-                  >
-                    <div
-                      :class="[
-                        'flex items-center gap-2',
-                        genFormOptions?.modal?.headerClass ?? '',
-                      ]"
-                    >
-                      {{ genFormOptions }}
-                      <span
-                        :class="[
-                          'text-xl capitalize',
-                          genFormOptions?.modal?.headerTextClass ?? '',
-                        ]"
-                      >
-                        {{ genFormOptions.mode }} {{ props.label }}
-                      </span>
-                    </div>
-                  </slot>
-                </h1>
-
-                <d-bt
-                  icon="mdi-close"
-                  @click="genFormOptions.modal.show = false"
-                  class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
-                ></d-bt>
-              </div>
-            </slot>
-
-            <div class="max-h-[35rem] overflow-y-auto">
-              <div v-if="genFormOptions?.modal?.show">
-                <slot
-                  :name="`modal:content`"
-                  v-bind="{ modal: genFormOptions?.modal }"
-                >
-                  <form
-                    @submit.prevent="submitModal()"
-                    :class="[
-                      'grid grid-cols-4 md:grid-cols-1 gap-2 pt-1',
-                      genFormOptions?.modal?.contentClass ?? '',
-                    ]"
-                  >
-                    <div
-                      v-for="(modelForm, keyModelForm) in filteredModalForms"
-                      :key="keyModelForm"
-                    >
-                      <slot
-                        :name="`modal:${keyModelForm}`"
-                        v-bind="{
-                          item: modelForm,
-                          configKey: filteredModalForms[keyModelForm],
-                          keyModelForm: keyModelForm,
-                          options: modelForm,
-                          methodKey: key,
-                          filteredModalForms: filteredModalForms,
-                        }"
-                      >
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'text')"
-                          :class="classMerge('')"
-                        >
-                          <d-text-input
-                            :model-value="
-                              filteredModalForms[keyModelForm].payload
-                            "
-                            @update:model-value="
-                              filteredModalForms[keyModelForm].payload = $event
-                            "
-                            :label="modelForm.title"
-                          />
-                        </div>
-                        <div v-if="isColumnDisplay(modelForm, 'view')" class="">
-                          {{ modelForm.title }}
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'disabled')"
-                          class=""
-                        >
-                          <d-text-input
-                            :model-value="
-                              filteredModalForms[keyModelForm].payload
-                            "
-                            @update:model-value="
-                              filteredModalForms[keyModelForm].payload = $event
-                            "
-                            :label="modelForm.title"
-                            :disabled="true"
-                          />
-                        </div>
-                        <div
-                          v-if="
-                            isColumnDisplay(modelForm, 'autocomplete-client')
-                          "
-                          class=""
-                        >
-                          <d-autocomplete-client
-                            :model-value="
-                              filteredModalForms[keyModelForm].payload
-                            "
-                            @update:model-value="
-                              filteredModalForms[keyModelForm].payload = $event
-                            "
-                            :label="modelForm.title"
-                            :items="modelForm.others?.items"
-                            :item-title="modelForm.others?.itemTitle ?? 'name'"
-                            :item-value="modelForm.others?.itemValue ?? 'id'"
-                            :is-display-multiple-key="
-                              modelForm.others?.isDisplayMultipleKey ?? false
-                            "
-                            :display-multiple-keys="
-                              modelForm.others?.displayMultipleKeys ?? [
-                                'id',
-                                'name',
-                              ]
-                            "
-                            :max-length-display="
-                              modelForm.others?.maxLengthDisplay ?? 70
-                            "
-                          />
-                        </div>
-                        <div v-if="isColumnDisplay(modelForm, 'date')" class="">
-                          <d-date-picker-light
-                            v-model="filteredModalForms[keyModelForm].payload"
-                            :label="modelForm.title"
-                            :dp-class="modelForm.others?.dpClass"
-                            :clearable="modelForm.others?.clearable"
-                            :placeholder="modelForm.placeholder"
-                            :density="modelForm.others?.density"
-                            :variant="modelForm.others?.variant"
-                          ></d-date-picker-light>
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'datetime')"
-                          class=""
-                        >
-                          <d-date-picker-light
-                            v-model="filteredModalForms[keyModelForm].payload"
-                            :label="modelForm.title"
-                            :dp-class="modelForm.others?.dpClass"
-                            :clearable="modelForm.others?.clearable"
-                            :placeholder="modelForm.placeholder"
-                            :density="modelForm.others?.density"
-                            :variant="modelForm.others?.variant"
-                          ></d-date-picker-light>
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'currency')"
-                          class=""
-                        >
-                          {{ modelForm.title }}
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'number')"
-                          class=""
-                        >
-                          <d-num-v-format
-                            :label="modelForm.title"
-                            :reverse="false"
-                            :hide-currency-display="true"
-                            v-model="filteredModalForms[keyModelForm].payload"
-                          />
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'boolean')"
-                          class=""
-                        >
-                          {{ modelForm.title }}
-                        </div>
-                        <div
-                          v-if="isColumnDisplay(modelForm, 'image')"
-                          class=""
-                        >
-                          {{ modelForm.title }}
-                        </div>
-                      </slot>
-                    </div>
-
-                    <slot
-                      :name="`modal:append`"
-                      v-bind="{
-                        methodKey: key,
-                        filteredModalForms: filteredModalForms,
-                      }"
-                    ></slot>
-                    <button type="submit" class="hidden"></button>
-                  </form>
-                </slot>
-              </div>
-            </div>
-
-            <slot
-              :name="`modal:footer`"
-              v-bind="{ modal: genFormOptions?.modal }"
-            >
-              <div class="flex w-full items-center gap-3 pt-3">
-                {{ isActiveB }}
-                <slot
-                  v-if="!!genFormOptions.creatable"
-                  :name="`modal:create`"
-                  v-bind="{ modal: genFormOptions?.modal }"
-                  class="grow"
-                >
-                  <d-bt
-                    @click="toggleOpenModal('')"
-                    :class="
-                      classMerge(
-                        'grow justify-center items-center rounded-lg !border !border-solid !border-rose-700 py-2 !text-rose-700 transition-all ease-in-out hover:!bg-rose-50',
-                        genFormOptions?.modal?.cancelClass ?? ''
-                      )
-                    "
-                    :text-class="
-                      genFormOptions?.modal?.cancelTextClass ??
-                      'text-rose-700 text-lg'
-                    "
-                    :cta="genFormOptions?.modal?.cancelText"
-                    type="submit"
-                    :no-icon="true"
-                  ></d-bt>
-                </slot>
-                <d-bt
-                  v-if="!slots[`modal:confirm`]"
-                  :class="
-                    classMerge(
-                      'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
-                      genFormOptions?.modal?.confirmClass ?? ''
-                    )
-                  "
-                  :text-class="
-                    genFormOptions?.modal?.confirmTextClass ??
-                    'text-white text-lg'
-                  "
-                  :cta="genFormOptions?.modal?.confirmText"
-                  @click="submitModal()"
-                  type="submit"
-                  :no-icon="true"
-                ></d-bt>
-                <slot
-                  v-else
-                  :name="`modal:confirm`"
-                  v-bind="{ modal: genFormOptions?.modal }"
-                ></slot>
-              </div>
-            </slot>
-          </div>
-        </template>
-      </v-dialog>
-      <!-- <lazy-modals-final-modal
-        :id="randomId()"
-        :name="randomId()"
-        :is-open="genFormOptions.modal.show"
-        :size="genFormOptions?.modal?.size ?? 'sm'"
-        :label="genFormOptions?.modal?.title"
-        :header-text-class="[
-          'text-xl',
-          genFormOptions?.modal?.headerTextClass ?? '',
-        ]"
-        :custom-class="['p-6 !w-4/5', genFormOptions?.modal?.customClass ?? '']"
-        :parent-class="genFormOptions?.modal?.show ? '!z-[2501]' : '!z-[1001]'"
-        :resize="false"
-        @update:is-open="toggleOpenCloseModal($event)"
-      >
-        <template #label>
-          <slot :name="`modal:label`" v-bind="{ modal: genFormOptions?.modal }">
-            <div
-              :class="[
-                'flex items-center gap-2',
-                genFormOptions?.modal?.headerClass ?? '',
-              ]"
-            >
-              {{ genFormOptions }}
-              <span
-                :class="[
-                  'text-xl capitalize',
-                  genFormOptions?.modal?.headerTextClass ?? '',
-                ]"
-              >
-                {{ genFormOptions.mode }} {{ props.label }}
-              </span>
-            </div>
-          </slot>
-        </template>
-
-        <div v-if="genFormOptions?.modal?.show">
-          <slot
-            :name="`modal:content`"
-            v-bind="{ modal: genFormOptions?.modal }"
-          >
-            <form
-              @submit.prevent="submitModal()"
-              :class="[
-                'grid grid-cols-4 md:grid-cols-1 gap-2 pt-1',
-                genFormOptions?.modal?.contentClass ?? '',
-              ]"
-            >
-              <div
-                v-for="(modelForm, keyModelForm) in filteredModalForms"
-                :key="keyModelForm"
-              >
-                <slot
-                  :name="`modal:${keyModelForm}`"
-                  v-bind="{
-                    item: modelForm,
-                    configKey: filteredModalForms[keyModelForm],
-                    keyModelForm: keyModelForm,
-                    options: modelForm,
-                    methodKey: key,
-                    filteredModalForms: filteredModalForms,
-                  }"
-                >
-                  <div
-                    v-if="isColumnDisplay(modelForm, 'text')"
-                    :class="classMerge('')"
-                  >
-                    <d-text-input
-                      :model-value="filteredModalForms[keyModelForm].payload"
-                      @update:model-value="
-                        filteredModalForms[keyModelForm].payload = $event
-                      "
-                      :label="modelForm.title"
-                    />
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'view')" class="">
-                    {{ modelForm.title }}
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'disabled')" class="">
-                    <d-text-input
-                      :model-value="filteredModalForms[keyModelForm].payload"
-                      @update:model-value="
-                        filteredModalForms[keyModelForm].payload = $event
-                      "
-                      :label="modelForm.title"
-                      :disabled="true"
-                    />
-                  </div>
-                  <div
-                    v-if="isColumnDisplay(modelForm, 'autocomplete-client')"
-                    class=""
-                  >
-                    <d-autocomplete-client
-                      :model-value="filteredModalForms[keyModelForm].payload"
-                      @update:model-value="
-                        filteredModalForms[keyModelForm].payload = $event
-                      "
-                      :label="modelForm.title"
-                      :items="modelForm.others?.items"
-                      :item-title="modelForm.others?.itemTitle ?? 'name'"
-                      :item-value="modelForm.others?.itemValue ?? 'id'"
-                      :is-display-multiple-key="
-                        modelForm.others?.isDisplayMultipleKey ?? false
-                      "
-                      :display-multiple-keys="
-                        modelForm.others?.displayMultipleKeys ?? ['id', 'name']
-                      "
-                      :max-length-display="
-                        modelForm.others?.maxLengthDisplay ?? 70
-                      "
-                    />
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'date')" class="">
-                    <d-date-picker-light
-                      v-model="filteredModalForms[keyModelForm].payload"
-                      :label="modelForm.title"
-                      :dp-class="modelForm.others?.dpClass"
-                      :clearable="modelForm.others?.clearable"
-                      :placeholder="modelForm.placeholder"
-                      :density="modelForm.others?.density"
-                      :variant="modelForm.others?.variant"
-                    ></d-date-picker-light>
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'datetime')" class="">
-                    <d-date-picker-light
-                      v-model="filteredModalForms[keyModelForm].payload"
-                      :label="modelForm.title"
-                      :dp-class="modelForm.others?.dpClass"
-                      :clearable="modelForm.others?.clearable"
-                      :placeholder="modelForm.placeholder"
-                      :density="modelForm.others?.density"
-                      :variant="modelForm.others?.variant"
-                    ></d-date-picker-light>
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'currency')" class="">
-                    {{ modelForm.title }}
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'number')" class="">
-                    <d-num-v-format
-                      :label="modelForm.title"
-                      :reverse="false"
-                      :hide-currency-display="true"
-                      v-model="filteredModalForms[keyModelForm].payload"
-                    />
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'boolean')" class="">
-                    {{ modelForm.title }}
-                  </div>
-                  <div v-if="isColumnDisplay(modelForm, 'image')" class="">
-                    {{ modelForm.title }}
-                  </div>
-                </slot>
-              </div>
-
-              <slot
-                :name="`modal:append`"
-                v-bind="{
-                  methodKey: key,
-                  filteredModalForms: filteredModalForms,
-                }"
-              ></slot>
-              <button type="submit" class="hidden"></button>
-            </form>
-          </slot>
-        </div>
-
-        <template #footer>
-          <slot
-            :name="`modal:footer`"
-            v-bind="{ modal: genFormOptions?.modal }"
-          >
-            <div class="flex w-full items-center gap-3 pt-3">
-              <slot
-                v-if="!!genFormOptions.creatable"
-                :name="`modal:create`"
-                v-bind="{ modal: genFormOptions?.modal }"
-                class="grow"
-              >
-                <d-bt
-                  @click="toggleOpenModal('')"
-                  :class="
-                    classMerge(
-                      'grow justify-center items-center rounded-lg !border !border-solid !border-rose-700 py-2 !text-rose-700 transition-all ease-in-out hover:!bg-rose-50',
-                      genFormOptions?.modal?.cancelClass ?? ''
-                    )
-                  "
-                  :text-class="
-                    genFormOptions?.modal?.cancelTextClass ??
-                    'text-rose-700 text-lg'
-                  "
-                  :cta="genFormOptions?.modal?.cancelText"
-                  type="submit"
-                  :no-icon="true"
-                ></d-bt>
-              </slot>
-              <d-bt
-                v-if="!slots[`modal:confirm`]"
-                :class="
-                  classMerge(
-                    'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
-                    genFormOptions?.modal?.confirmClass ?? ''
-                  )
-                "
-                :text-class="
-                  genFormOptions?.modal?.confirmTextClass ??
-                  'text-white text-lg'
-                "
-                :cta="genFormOptions?.modal?.confirmText"
-                @click="submitModal()"
-                type="submit"
-                :no-icon="true"
-              ></d-bt>
-              <slot
-                v-else
-                :name="`modal:confirm`"
-                v-bind="{ modal: genFormOptions?.modal }"
-              ></slot>
-            </div>
-          </slot>
-        </template>
-      </lazy-modals-final-modal> -->
     </div>
   </slot>
 </template>
