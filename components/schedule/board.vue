@@ -15,12 +15,15 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["update:steps"]);
+
 const { form } = storeToRefs(salesOrderStore);
 
 const updateSteps = (steps: FormScheduleStepType[]) => {
   console.log("kanbanboardstep", steps);
 
   form.value.schedule.steps = steps;
+  emit("update:steps", steps);
 };
 </script>
 

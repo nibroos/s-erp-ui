@@ -680,6 +680,10 @@ const initialFormLayout = () => {
   };
 };
 
+const handleUpdateSchedule = () => {
+  salesOrderStore.updateSchedule();
+};
+
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
@@ -1331,7 +1335,19 @@ watchEffect(() => {
                 label="End Date"
               ></d-date-picker-light>
             </div>
-            <div class="lg:col-span-6">
+            <div class="lg:col-span-6 flex items-center">
+              <d-bt
+                :cta="'Update Schedule'"
+                :class="
+                  classMerge(
+                    'w-full h-full rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
+                  )
+                "
+                :text-class="classMerge('text-white mx-auto !font-bold')"
+                :no-icon="true"
+                type="button"
+                @click="handleUpdateSchedule"
+              />
               <d-autocomplete-client
                 v-model="form.schedule.steps_id"
                 :items="useInitials.defaultSteps"

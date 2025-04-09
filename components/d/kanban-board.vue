@@ -4,6 +4,7 @@ import type {
   KanbanListActionsType,
   KanbanListTasksType,
   KanbanSectionListActionsType,
+  OrderScheduleTaskType,
 } from "~/types/KanbanBoardType";
 import type {
   FormScheduleStepType,
@@ -37,6 +38,15 @@ type HandleType = {
   stepIndex: number;
   taskIndex: number;
   updatedTask: FormScheduleStepType;
+};
+
+const generateTasks = (stepIndex: number) => {
+  steps.value[stepIndex].tasks.forEach((task, index) => {
+    task.order_item = index;
+    task.parent_uuid = steps.value[stepIndex].uuid;
+    task.parent_id = steps.value[stepIndex].id ?? null;
+    task.is_checked = task.is_checked ?? 0;
+  });
 };
 
 const handleTaskUpdate = ({
@@ -148,14 +158,7 @@ const handleMoveAllTasks = async ({
   try {
     console.log("handleMoveTasks", stepIndex, list, subList);
 
-    // get step parent_id
-
-    let lastOrderItemDest =
-      steps.value[subList.key as number].tasks.length > 0
-        ? (steps.value[subList.key as number].tasks[
-            steps.value[subList.key as number].tasks.length - 1
-          ]?.order_item ?? 0) + 1
-        : 0;
+    let lastTaskOrderItem = steps.value[stepIndex].tasks.length;
 
     steps.value[subList.key as number].tasks.push(
       ...steps.value[stepIndex].tasks.map((task) => ({
@@ -163,7 +166,7 @@ const handleMoveAllTasks = async ({
         parent_id: steps.value[subList.key as number].id,
         parent_uuid: steps.value[subList.key as number].uuid,
         // order_item push to the end
-        order_item: lastOrderItemDest++,
+        order_item: lastTaskOrderItem++,
       }))
     );
     steps.value[stepIndex].tasks = [];
@@ -177,13 +180,6 @@ const handleMoveAllTasks = async ({
     console.error("Error showing loading:", error);
   }
 };
-// const handleDeleteComment = ({ stepIndex, taskIndex, commentIndex }) => {
-//   const deletedComment = steps.value[stepIndex].tasks[
-//     taskIndex
-//   ].comments.splice(commentIndex, 1)[0];
-//   emit("comment-deleted", { stepIndex, taskIndex, deletedComment });
-//   emit("update:steps", steps.value);
-// };
 
 const handleDeleteStep = (stepIndex: number) => {
   console.log("handleDeleteStep", stepIndex);
@@ -203,16 +199,19 @@ const handleInsertTasks = async ({
   console.log("handleInsertTasks", stepIndex, tasks);
 
   try {
+    let lastTaskOrderItem = steps.value[stepIndex].tasks.length;
     steps.value[stepIndex].tasks.push(
       ...tasks.map((task) => ({
         ...task,
         id: null,
         parent_id: steps.value[stepIndex].id,
+        uuid: randomId(),
         parent_uuid: steps.value[stepIndex].uuid,
-        order_item: steps.value[stepIndex].tasks.length,
+        order_item: lastTaskOrderItem++,
         title: task.name,
         entity_id: task.id as number,
         entity_type: "tasks" as ScheduleEntityType,
+        is_checked: task.is_checked ?? 0,
       }))
     );
     emit("update:steps", steps.value);
@@ -221,10 +220,6 @@ const handleInsertTasks = async ({
   }
 };
 const drawer = ref(false);
-
-// stepIndex: props.stepIndex,
-// tasks: props.step.tasks,
-// isOpen: drawer.value,
 
 const currentDetailTaskStep = ref<FormScheduleStepType | null>(null);
 const currentDetailTasks = ref<KanbanListTasksType[]>([]);
@@ -256,11 +251,6 @@ const handleToggleDetailTasks = ({
 };
 
 const onCloseDetailTasks = () => {
-  // update tasks api
-  console.log(
-    (currentDetailTaskStep.value as unknown as FormScheduleStepType).stepIndex
-  );
-
   if (!!currentDetailTaskStep.value) {
     steps.value[currentDetailTaskStep.value.stepIndex].tasks =
       currentDetailTasks.value;
@@ -287,6 +277,61 @@ const onDeleteDetailTask = async (taskIndex: number) => {
   currentDetailTasks.value.splice(taskIndex, 1);
 };
 
+const taskDragged = (log: any, stepIndex: number) => {
+  const { added, removed, moved } = log;
+
+  if (!!moved) {
+  }
+
+  if (!!added) {
+    const { element, newIndex, oldIndex } = added;
+  }
+
+  generateTasks(stepIndex);
+
+  emit("update:steps", steps.value);
+};
+
+const handleCheckAllTasks = (stepIndex: number) => {
+  console.log("handleCheckAllTasks", stepIndex);
+
+  steps.value[stepIndex].tasks.forEach((task) => {
+    task.is_checked = 1;
+  });
+  emit("update:steps", steps.value);
+};
+
+const handleUncheckAllTasks = (stepIndex: number) => {
+  steps.value[stepIndex].tasks.forEach((task) => {
+    task.is_checked = 0;
+  });
+  emit("update:steps", steps.value);
+};
+
+const handleOrderTasks = (
+  stepIndex: number,
+  orderTaskMode: OrderScheduleTaskType
+) => {
+  console.log("handleOrderTasks", stepIndex, orderTaskMode);
+
+  const column = orderTaskMode.order_column as keyof FormScheduleTaskType; // Ensure column is a valid key
+
+  steps.value[stepIndex].tasks.sort((a, b) => {
+    const valueA = a[column] ?? ""; // Handle undefined or null values
+    const valueB = b[column] ?? "";
+
+    if (orderTaskMode.order_direction === "asc") {
+      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+    } else {
+      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+    }
+  });
+
+  generateTasks(stepIndex);
+
+  emit("update:steps", steps.value);
+};
+
 watch(
   () => drawer.value,
   (newVal, oldVal) => {
@@ -298,20 +343,10 @@ watch(
   },
   { immediate: true }
 );
-
-// watch(
-//   () => steps.value,
-//   (newVal, OldVal) => {
-//     // if (OldVal !== newVal) {
-//       emit("update:steps", steps.value);
-//     // }
-//   },
-//   { immediate: true }
-// );
 </script>
 
 <template>
-  <div class="p-4 dark:bg-dark3 !border-grey3 border-solid !border">
+  <div class="p-4 bg-white dark:bg-dark3 !border-grey3 border-solid !border">
     <div class="flex overflow-x-auto gap-4 pb-4">
       <div v-for="(step, stepIndex) in steps" :key="stepIndex">
         <d-kanban-column
@@ -325,9 +360,13 @@ watch(
           @delete-task="handleDeleteTask"
           @delete-step="handleDeleteStep"
           @delete-tasks="handleDeleteTasks"
+          @check-all-tasks="handleCheckAllTasks"
+          @uncheck-all-tasks="handleUncheckAllTasks"
+          @ordered-tasks="handleOrderTasks"
           @move-all-tasks="handleMoveAllTasks"
           @insert-tasks="handleInsertTasks"
           @detail-tasks="handleToggleDetailTasks"
+          @tasks-dragged="taskDragged"
         />
       </div>
 
@@ -336,7 +375,9 @@ watch(
         v-model="drawer"
         :retain-focus="false"
         :content-class="
-          classMerge('relative h-screen right-0 !w-[50vw] sm:!w-full')
+          classMerge(
+            'relative h-screen right-0 !w-[50vw] sm:!w-full !max-h-none !m-0'
+          )
         "
       >
         <template #default>
@@ -360,39 +401,23 @@ watch(
               </div>
             </div>
             <d-divider></d-divider>
-            <!-- <v-expansion-panels v-model="currentDetailTasksPanel" multiple>
-                <v-expansion-panel
-                  v-for="(task, taskIndex) in currentDetailTasks"
-                  :key="taskIndex"
-                  :value="task.uuid"
-                >
-                  <template #title>
-                    <div class="flex flex-col gap-2">
-                      <div class="text-lg font-semibold">{{ task.title }}</div>
-                      <input
-                        v-model="task.title"
-                        class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1"
-                      />
-                    </div>
-                  </template>
-                  <template #text>
-                    <div class="flex flex-col gap-2">
-                      <div class="">{{ task.remark ?? "-" }}</div>
-                    </div>
-                  </template>
-                </v-expansion-panel>
-              </v-expansion-panels> -->
 
-            <div class="">
-              <div
-                v-if="currentDetailTasks.length > 0"
-                class="overflow-y-auto flex flex-col gap-3"
+            <div v-if="currentDetailTasks.length > 0" class="flex-1">
+              <v-virtual-scroll
+                :items="currentDetailTasks"
+                style="max-height: calc(100vh - 100px)"
+                :class="classMerge('abc')"
               >
-                <div
-                  v-for="(task, taskIndex) in currentDetailTasks"
-                  :key="taskIndex"
+                <template
+                  v-slot:default="{
+                    item: task,
+                    index: taskIndex,
+                  }: {
+                    item: any,
+                    index: number,
+                  }"
                 >
-                  <div class="flex flex-col">
+                  <div class="flex flex-col py-2">
                     <div
                       class="flex items-center text-zinc-900 dark:text-primary1 justify-between p-2 rounded-t-lg border border-solid border-brown-500 bg-brown-100 dark:bg-dark1"
                     >
@@ -416,23 +441,30 @@ watch(
                     <div
                       class="flex flex-col text-zinc-900 dark:text-primary1 p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
                     >
-                      <input
+                      <!-- <input
                         v-model="task.remark"
                         class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 text-sm"
+                      /> -->
+
+                      <d-text-area-input
+                        v-model="task.remark"
+                        :label="``"
+                        :placeholder="`Remark`"
+                        class=""
+                        :auto-grow="false"
+                        :rows="3"
                       />
                     </div>
                     <!-- <div class="text-lg font-semibold">{{ task.title }}</div> -->
 
                     <!-- <div class="text-sm text-gray-500">{{ task.remark }}</div> -->
                   </div>
-                </div>
-                <d-divider-end />
-              </div>
+                </template>
+              </v-virtual-scroll>
+            </div>
 
-              <div v-else>
-                <!-- <span class="text-grey3"> No tasks available </span> -->
-                <d-divider-end />
-              </div>
+            <div v-else>
+              <span class="text-grey3"> No tasks available </span>
             </div>
           </div>
         </template>

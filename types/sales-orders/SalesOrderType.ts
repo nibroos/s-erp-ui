@@ -147,6 +147,8 @@ export type FormScheduleStepType = {
   remark?: string
   order_item?: number
   color?: string
+  start_at?: string
+  end_at?: string
   tasks: FormScheduleTaskType[]
 }
 
@@ -167,6 +169,7 @@ export type FormScheduleTaskType = {
   labels?: string[]
   start_at?: string
   end_at?: string
+  is_checked?: number
 }
 
 export type ScheduleEntityType = 'steps' | 'tasks' | 'comments'

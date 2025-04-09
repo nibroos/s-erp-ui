@@ -6,6 +6,7 @@ import type {
   DeleteTaskType,
   KanbanListActionsType,
   KanbanSectionListActionsType,
+  OrderScheduleTaskType,
 } from "~/types/KanbanBoardType";
 import type { FormScheduleStepType } from "~/types/sales-orders/SalesOrderType";
 import type {
@@ -90,6 +91,9 @@ const emit = defineEmits([
   "delete-step",
   "delete-tasks",
   "move-tasks",
+  "ordered-tasks",
+  "check-all-tasks",
+  "uncheck-all-tasks",
   "move-all-tasks",
   "add-tasks",
   "update-step",
@@ -107,41 +111,10 @@ const updateStepName = () => {
   });
 };
 
-const onTaskDragEnd = () => {
-  // You can add additional logic here if needed when tasks are reordered
-  // console.log("onTaskDragEnd", props.step.tasks);
-  // emit("tasks-dragged", {
-  //   stepIndex: props.stepIndex,
-  //   updatedTask: props.step,
-  // });
-};
-
-// onTaskDragEnter
-// onTaskDragLeave
-
-const onTaskDragEnter = () => {
-  console.log("onTaskDragEnter", props.step.tasks);
-  emit("tasks-dragged", {
-    stepIndex: props.stepIndex,
-    updatedTask: props.step,
-  });
-};
-
-const onTaskDragLeave = () => {
-  console.log("onTaskDragLeave", props.step.tasks);
-  emit("tasks-dragged", {
-    stepIndex: props.stepIndex,
-    updatedTask: props.step,
-  });
-};
-
 const handleChangeOrder = (log: any) => {
-  console.log("handleChangeOrder", log);
+  console.log("handleChangeOrder", log, props.stepIndex);
   // TODO emit changeOrder
-  // emit("tasks-dragged", {
-  //   stepIndex: props.stepIndex,
-  //   updatedTask: props.step,
-  // });
+  emit("tasks-dragged", log, props.stepIndex);
 };
 
 type HandleType = {
@@ -188,6 +161,27 @@ const listActions: KanbanSectionListActionsType = {
         key: "",
         emitKey: "add-tasks",
         icon: "mdi-plus",
+        type: "action",
+      },
+      {
+        title: "Check All tasks",
+        key: "",
+        emitKey: "check-all-tasks",
+        icon: "mdi-checkbox-marked",
+        type: "action",
+      },
+      {
+        title: "Uncheck All tasks",
+        key: "",
+        emitKey: "uncheck-all-tasks",
+        icon: "mdi-checkbox-blank-outline",
+        type: "action",
+      },
+      {
+        title: "Order Checked tasks",
+        key: "",
+        emitKey: "ordered-tasks",
+        icon: "mdi-sort",
         type: "action",
       },
       {
@@ -239,6 +233,15 @@ const handleActions = (
 
       emit("move-tasks", props.stepIndex);
       break;
+    case "check-all-tasks":
+      handleCheckAllTasks();
+      break;
+    case "uncheck-all-tasks":
+      handleUncheckAllTasks();
+      break;
+    case "ordered-tasks":
+      handleOrderedCheck();
+      break;
     case "move-all-tasks":
       console.log(
         "d-kanban-column-move-all-tasks",
@@ -261,14 +264,47 @@ const handleActions = (
       break;
   }
 };
+
+const defaultOrderTask: OrderScheduleTaskType = {
+  order_column: "is_checked",
+  order_direction: "desc",
+};
+const orderTask = ref<OrderScheduleTaskType[]>([]);
+
+const currentOrderTask = ref<OrderScheduleTaskType>();
+const orderTaskMode = ref<OrderScheduleTaskType | null>(null);
+const handleOrderedCheck = () => {
+  if (!orderTaskMode.value) {
+    orderTaskMode.value = defaultOrderTask;
+  } else {
+    orderTaskMode.value = {
+      order_column: orderTaskMode.value.order_column,
+      order_direction:
+        orderTaskMode.value.order_direction === "asc" ? "desc" : "asc",
+    };
+  }
+
+  emit("ordered-tasks", props.stepIndex, orderTaskMode.value);
+};
+
+const handleCheckAllTasks = () => {
+  emit("check-all-tasks", props.stepIndex);
+};
+
+const handleUncheckAllTasks = () => {
+  emit("uncheck-all-tasks", props.stepIndex);
+};
+
 const handleDeleteStep = () => {
   emit("delete-step", props.stepIndex);
 };
+
 const handleDeleteTasks = () => {
   emit("delete-tasks", {
     stepIndex: props.stepIndex,
   });
 };
+
 const handleMoveAllTasks = ({
   list,
   subList,
@@ -359,13 +395,18 @@ const triggerOpenModal = async () => {
 
   // await openModal(filteredModalForms.value);
 };
+
+// computed count task is_checked
+const countCheckedTasks = computed(() => {
+  return props.step.tasks.filter((task) => task.is_checked).length;
+});
 </script>
 
 <template>
   <div
     class="flex flex-col justify-between w-[24rem] bg-white dark:!bg-dark2 rounded-lg shadow dark:text-white !border border-grey3"
   >
-    <div class="flex flex-col p-3 border-b">
+    <div class="flex flex-col p-3 border-b gap-1">
       <div class="flex justify-between items-center">
         <div class="font-medium flex gap-2">
           <input
@@ -379,7 +420,7 @@ const triggerOpenModal = async () => {
           <div
             class="bg-grey1 dark:bg-dark3 dark:text-white px-1.5 font-bold rounded-full"
           >
-            {{ step.tasks.length }}
+            {{ countCheckedTasks }}/{{ step.tasks.length }}
           </div>
           <div>
             <v-btn
@@ -494,6 +535,16 @@ const triggerOpenModal = async () => {
           class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1"
         />
       </h4>
+      <div class="flex gap-2 justify-between">
+        <d-date-picker-light
+          v-model="step.start_at"
+          label="Start"
+        ></d-date-picker-light>
+        <d-date-picker-light
+          v-model="step.end_at"
+          label="End"
+        ></d-date-picker-light>
+      </div>
     </div>
 
     <div class="p-2 flex flex-col h-full">
@@ -501,7 +552,7 @@ const triggerOpenModal = async () => {
         v-model="step.tasks"
         group="tasks"
         item-key="id"
-        class="space-y-2 min-h-20 max-h-48 overflow-y-auto flex-grow"
+        class="space-y-2 min-h-[7rem] max-h-[14rem] overflow-y-auto flex-grow"
         @change="handleChangeOrder"
       >
         <!-- @dragenter="onTaskDragEnter"

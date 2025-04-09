@@ -392,6 +392,61 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    async updateSchedule() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to update this data?',
+        'Schedule will be updated'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      console.log('updateSchedule', this.form.schedule);
+
+
+      try {
+        let id = this.form.id
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/update-sales-order-schedule',
+          this.form
+        )
+
+        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
     async delete(id: number | string | string[] | undefined) {
       this.form.id = id
       try {

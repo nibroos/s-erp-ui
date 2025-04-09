@@ -19,6 +19,11 @@ export type DeleteTaskType = {
   taskIndex: number;
 };
 
+export type OrderScheduleTaskType = {
+  order_column: string;
+  order_direction: string;
+};
+
 export type KanbanSectionListActionsType = {
   [key in ActionTypeType]: {
     title: string;

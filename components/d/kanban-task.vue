@@ -2,14 +2,17 @@
 <script setup lang="ts">
 import { mergeProps } from "vue";
 import type { KanbanListActionsType } from "~/types/KanbanBoardType";
-import type { FormScheduleStepType } from "~/types/sales-orders/SalesOrderType";
+import type {
+  FormScheduleStepType,
+  FormScheduleTaskType,
+} from "~/types/sales-orders/SalesOrderType";
 const props = defineProps({
   step: {
     type: Object as () => FormScheduleStepType,
     required: true,
   },
   task: {
-    type: Object,
+    type: Object as () => FormScheduleTaskType,
     required: true,
   },
   taskIndex: {
@@ -95,14 +98,24 @@ const handleActions = (action: string, list?: KanbanListActionsType) => {
 
 <template>
   <div
-    class="dark:bg-dark1 dark:text-white border rounded p-3 shadow-sm hover:shadow-md transition-shadow"
+    class="dark:bg-dark1 dark:text-white border rounded p-1 shadow-sm hover:shadow-md transition-shadow"
   >
     <div class="flex justify-between items-center">
-      <input
-        v-model="task.title"
-        @change="updateTask"
-        class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
-      />
+      <div class="flex grow">
+        <v-checkbox-btn
+          v-model="task.is_checked"
+          class="flex w-full items-center justify-center"
+          hide-details
+          density="compact"
+          :true-value="1"
+          :false-value="0"
+        />
+        <input
+          v-model="task.title"
+          @change="updateTask"
+          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+        />
+      </div>
       <!-- <button
         @click="emit('delete-task', taskIndex)"
         class="dark:text-white hover:text-red-500 ml-2"
@@ -137,7 +150,7 @@ const handleActions = (action: string, list?: KanbanListActionsType) => {
                 >
                 </v-btn>
               </template>
-              <span>{{ step.title }} Actions</span>
+              <span>{{ task.title }} Actions</span>
             </v-tooltip>
           </template>
 
