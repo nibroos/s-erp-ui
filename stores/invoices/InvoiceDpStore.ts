@@ -39,7 +39,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         sales_order_ids: [],
         customer_ids: [],
         customer_id: null,
-        order_column: 'order_at',
+        order_column: '',
         order_direction: 'desc'
       } as QIndexSalesOrdersType
     },
@@ -72,7 +72,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       {
         cta: "Sales Order",
         key: "salesOrders",
-        icon: "mdi-file-document-outline",
+        icon: "mdi-cart-outline",
         count: 0,
         type: "button",
       },
@@ -113,67 +113,6 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
           show: true,
         },
       },
-      summary: {
-        total_amount: {
-          label: "Sub Amount",
-          symbol: '',
-          value: 0,
-          format: {
-            precision: 2,
-          },
-        },
-        total_discount: {
-          label: "Total Discount",
-          symbol: '',
-          value: 0,
-          format: {
-            precision: 2,
-          },
-        },
-        total_after_disc: {
-          label: "After Discount",
-          symbol: '',
-          value: 0,
-          format: {
-            precision: 2,
-          },
-        },
-        total_vat: {
-          label: "Total VAT",
-          symbol: '',
-          value: 0,
-          percentage: 0,
-          format: {
-            precision: 2,
-          },
-        },
-        total_pph23: {
-          label: "Total PPH23",
-          symbol: '',
-          value: 0,
-          percentage: 0,
-          format: {
-            precision: 2,
-          },
-        },
-        total_dp: {
-          label: "Total DP",
-          symbol: '',
-          value: 0,
-          percentage: 30,
-          format: {
-            precision: 2,
-          },
-        },
-        grand_total: {
-          label: "Grand Total",
-          symbol: '',
-          value: 0,
-          format: {
-            precision: 2,
-          },
-        },
-      },
     } as FormLayoutType,
   }),
 
@@ -206,17 +145,14 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         const response = await useMyFetch().post(
           '/v1/invoice-dps/show-invoice-dp',
           {
-            id: this.form.id
+            id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
           }
         )
-
+    
         this.form = response.data.data[0]
-        if (!this.form.attachments) {
-          this.form.attachments = []
-        }
         
         this.itemsCheck.checkMain = initCheckedInvoiceDpDt(this.form.invoice_dp_dts || [])
-
+    
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data)
@@ -242,6 +178,10 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       }
 
       try {
+        this.updateAllItemsVat();
+        this.updateAllItemsPph23();
+
+        this.form.invoice_dp_dts = [...this.itemsCheck.checkMain]
         const response = await useMyFetch().post(
           '/v1/invoice-dps/create-invoice-dp',
           this.form
@@ -291,7 +231,14 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       }
 
       try {
-        let id = this.form.id
+        let id = typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id;
+
+        this.updateAllItemsVat();
+        this.updateAllItemsPph23();
+        
+        this.form.invoice_dp_dts = [...this.itemsCheck.checkMain]
+
+        this.form.id = id;
 
         const response = await useMyFetch().post(
           '/v1/invoice-dps/update-invoice-dp',
@@ -426,8 +373,15 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         sales_order_ids: [],
         customer_ids: [],
         customer_id: null,
-        order_column: 'order_at',
-        order_direction: 'desc'
+        order_column: '',
+        order_direction: 'desc',
+        so_no: '',
+        po_buyer_no: '',
+        product_code: '',
+        product_name: '',
+        global: '',
+        order_type_id: null,
+        item_type: null
       }
     },
 
@@ -493,14 +447,14 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
 
     autocompleteVat(data: FormVatType) {
       this.form.vat_percentage = Number(data.num);
-
+    
       this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
         if (!!item.is_vat) {
           item.vat_id = data.id as number;
           item.vat_percentage = Number(data.num);
         }
       });
-
+    
       this.calculateTotalAmount();
     },
 
@@ -509,14 +463,44 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.calculateTotalAmount();
     },
 
-    autocompletePph23Dt(data: FormPph23Type, invoiceDpDtType: InvoiceDpDtType) {
-      invoiceDpDtType.pph23_percentage = Number(data.num);
+    autocompletePph(data: FormPph23Type) {
+      this.form.pph23_percentage = Number(data.num);
+    
+      this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
+        if (!!item.is_pph23) {
+          item.pph23_id = data.id as number;
+          item.pph23_percentage = Number(data.num);
+        }
+      });
+    
       this.calculateTotalAmount();
     },
 
     removeVat() {
       this.form.vat_percentage = 0;
       this.calculateTotalAmount();
+    },
+
+    updateAllItemsVat() {
+      if (this.form.vat_id) {
+        this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
+          if (item.is_vat) {
+            item.vat_id = this.form.vat_id;
+            item.vat_percentage = this.form.vat_percentage;
+          }
+        });
+      }
+    },
+    
+    updateAllItemsPph23() {
+      if (this.form.pph23_id) {
+        this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
+          if (item.is_pph23) {
+            item.pph23_id = this.form.pph23_id;
+            item.pph23_percentage = this.form.pph23_percentage;
+          }
+        });
+      }
     },
 
     removeAllVat() {
@@ -600,20 +584,69 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
 
     onClickUpdateProductsModal() {
       if (this.isOpenModal.salesOrders) {
-        this.form.customer_id = this.headAutocomplete.so.customer_id;
-        this.form.currency_id = this.headAutocomplete.so.currency_id;
-        this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
-        this.form.is_vat = this.headAutocomplete.so.is_vat as number;
-        this.form.vat_id = this.headAutocomplete.so.vat_id;
-        this.form.vat_percentage = this.headAutocomplete.so.vat_percentage as number;
-        this.form.pph23_id = this.headAutocomplete.so.pph23_id;
-        this.form.pph23_percentage = this.headAutocomplete.so.pph23_percentage as number;
-        this.form.discount_amount = this.headAutocomplete.so.discount_amount as number;
-        this.form.discount_percentage = this.headAutocomplete.so.discount_percentage as number;
-        this.form.remark = this.headAutocomplete.so.remark;
+        const existingCustomerId = this.form.customer_id;
+        const existingCurrencyId = this.form.currency_id;
+        const existingExchangeRate = this.form.exchange_rate;
+        const existingIsVat = this.form.is_vat;
+        const existingVatId = this.form.vat_id;
+        const existingVatPercentage = this.form.vat_percentage;
+        const existingPph23Id = this.form.pph23_id;
+        const existingPph23Percentage = this.form.pph23_percentage;
+        const existingDiscountAmount = this.form.discount_amount;
+        const existingDiscountPercentage = this.form.discount_percentage;
+        const existingRemark = this.form.remark;
+    
+        if (!existingCustomerId) {
+          this.form.customer_id = this.headAutocomplete.so.customer_id;
+        }
+        
+        if (!existingCurrencyId) {
+          this.form.currency_id = this.headAutocomplete.so.currency_id;
+        }
+        
+        if (!existingExchangeRate || existingExchangeRate === 0) {
+          this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
+        }
+        
+        if (existingIsVat === undefined || existingIsVat === null) {
+          this.form.is_vat = this.headAutocomplete.so.is_vat as number;
+        }
+        
+        if (!existingVatId) {
+          this.form.vat_id = this.headAutocomplete.so.vat_id;
+        }
+        
+        if (!existingVatPercentage || existingVatPercentage === 0) {
+          this.form.vat_percentage = this.headAutocomplete.so.vat_percentage as number;
+        }
+        
+        if (!existingPph23Id) {
+          this.form.pph23_id = this.headAutocomplete.so.pph23_id;
+        }
+        
+        if (!existingPph23Percentage || existingPph23Percentage === 0) {
+          this.form.pph23_percentage = this.headAutocomplete.so.pph23_percentage as number;
+        }
+        
+        if (!existingDiscountAmount || existingDiscountAmount === 0) {
+          this.form.discount_amount = this.headAutocomplete.so.discount_amount as number;
+        }
+        
+        if (!existingDiscountPercentage || existingDiscountPercentage === 0) {
+          this.form.discount_percentage = this.headAutocomplete.so.discount_percentage as number;
+        }
+        
+        if (!existingRemark) {
+          this.form.remark = this.headAutocomplete.so.remark;
+        }
       }
       
       this.selectItemRefModal();
+      
+      if (this.form.dp_percentage > 0) {
+        this.updateDpPercentage(this.form.dp_percentage);
+      }
+      
       this.countSelectedReferences();
       this.closeAllModal();
     },
@@ -641,11 +674,9 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
 
     async fetchModalFilter() {
       if (this.isOpenModal.salesOrders) {
-        if (!!this.form.customer_id) {
-          this.queryModal.qIndexSalesOrders.customer_id = this.form.customer_id;
-          this.queryModal.qIndexSalesOrders.customer_ids = [this.form.customer_id];
+        if (!!this.queryModal.qIndexSalesOrders.customer_id) {
+          this.queryModal.qIndexSalesOrders.customer_ids = [this.queryModal.qIndexSalesOrders.customer_id];
         } else {
-          this.queryModal.qIndexSalesOrders.customer_id = null;
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
         await this.indexSalesOrder();
@@ -656,16 +687,16 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       if (this.isOpenModal.salesOrders) {
         this.queryModal.qIndexSalesOrders.page = options.page;
         this.queryModal.qIndexSalesOrders.per_page = options.itemsPerPage;
-
-        if (options.sortBy.length > 0) {
+    
+        if (options.sortBy && options.sortBy.length > 0) {
           this.queryModal.qIndexSalesOrders.order_column = options.sortBy[0].key;
           this.queryModal.qIndexSalesOrders.order_direction = options.sortBy[0].order;
         } else {
           this.queryModal.qIndexSalesOrders.order_column = "";
-          this.queryModal.qIndexSalesOrders.order_direction = "";
+          this.queryModal.qIndexSalesOrders.order_direction = "desc";
         }
       }
-
+    
       await this.fetchModalFilter();
     },
 
@@ -689,185 +720,141 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.indexSalesOrder();
     },
 
-    onClickSwitchVAT(data: any) {
-      if (!data) {
+    async onClickSwitchVAT(value: boolean) {
+      if (!value) {
         this.form.vat_id = null;
         this.form.vat_percentage = 0;
         this.form.total_vat = 0;
       } else {
-        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+        const applicableVat = await this.getApplicableVat(this.form.invoice_date);
+        
+        if (applicableVat) {
+          this.form.vat_id = applicableVat.id as number;
+          this.form.vat_percentage = Number(applicableVat.num);
+          
+          this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
+            if (item.is_vat) {
+              item.vat_id = applicableVat.id as number;
+              item.vat_percentage = Number(applicableVat.num);
+            }
+          });
+          
+          this.calculateTotalAmount();
+        }
       }
     },
 
     calculateTotalAmount() {
       this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
-        if (!!item.discount_percentage && item.discount_percentage > 0) {
-          item.discount_amount = 0;
-        } else if (!!item.discount_amount && item.discount_amount > 0) {
-          item.discount_percentage = 0;
-        }
-
-        const discPercentage = Number((item.discount_percentage ?? 0) / 100);
-        const discAmount = Number(item.discount_amount);
         const price = Number(item.price);
         const qty = Number(item.qty);
-        const subtotal = Number(price * qty);
+        item.subtotal = price * qty;
+
+        const discount = Number(item.discount || 0);
+        item.total_amount = item.subtotal - discount;
+        
         const dpPercentage = Number((item.dp_percentage ?? 0) / 100);
-
-        const discPercPrice = Number(price * discPercentage);
-        const discPercNum = Number(price - discPercPrice);
-        const discPercAm = Number(subtotal * discPercentage);
-        const subDiscPercAm = Number(subtotal - discPercAm);
-
-        item.subtotal = subtotal;
-
-        let discType = null;
-
-        let discFinal = 0;
-        if (!!discAmount && discAmount > 0) {
-          discType = "amount";
-        } else if (!!discPercentage && discPercentage > 0) {
-          discType = "percentage";
-        }
-
-        discFinal = subDiscPercAm - discAmount;
-        if (discFinal <= 0) {
-          discFinal = subtotal;
-        }
-
-        item.discount_percentage_num = 0;
-        item.discount_percentage_amount = 0;
-        item.discount_final = discFinal;
-        if (discPercentage) {
-          item.discount_percentage_num = discPercNum;
-          item.discount_percentage_amount = discPercAm;
-        }
-
-        item.total_amount = item.discount_final;
         item.total_dp = item.total_amount * dpPercentage;
       });
-
+    
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
         (acc: number, item: InvoiceDpDtType) => acc + item.subtotal,
         0
       );
-
+    
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
         (acc: number, item: InvoiceDpDtType) => acc + item.qty,
         0
       );
-
-      this.form.discount_final = Number(this.itemsCheck.checkMain.reduce(
-        (acc: number, item: InvoiceDpDtType) => acc + (item.discount_percentage_amount + item.discount_amount),
+    
+      const totalItemDiscount = this.itemsCheck.checkMain.reduce(
+        (acc: number, item: InvoiceDpDtType) => acc + (item.discount || 0),
         0
-      ));
-
-      this.form.discount_percentage_amount = 0;
-
-      if (!!this.form.discount_percentage) {
-        let discPercAm = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvoiceDpDtType) => {
-            return acc + (item.total_amount * (this.form.discount_percentage / 100));
-          },
-          0
-        );
-
-        this.form.discount_percentage_amount = discPercAm;
-      }
-
-      this.form.total_discount = this.form.discount_final + this.form.discount_percentage_amount + this.form.discount_amount;
-      if (this.form.total_discount < 0) {
-        this.form.total_discount = 0;
-      }
-
-      const total_after_disc = this.form.subtotal - this.form.total_discount;
-
-      this.form.discount_type = null;
-      if (!!this.form.vat_id) {
-        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvoiceDpDtType) => {
-            if (!!item.is_vat) {
-              return acc + item.total_amount;
-            }
-            return acc;
-          },
-          0
-        );
-
-        let discPercAmVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvoiceDpDtType) => {
-            if (!!item.is_vat) {
-              return acc + (item.total_amount * (this.form.discount_percentage / 100));
-            }
-            return acc;
-          },
-          0
-        );
-
-        this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.discount_amount)) * ((this.form.vat_percentage ?? 0) / 100);
-        if (this.form.total_vat < 0) {
-          this.form.total_vat = 0;
-        }
-      }
-
-      if (!!this.form.pph23_id) {
-        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvoiceDpDtType) => {
-            if (!!item.is_pph23) {
-              return acc + item.subtotal;
-            }
-            return acc;
-          },
-          0
-        );
-        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_percentage ?? 0) / 100);
-      }
-
+      );
+      
       this.form.total_amount_products = this.itemsCheck.checkMain.reduce(
         (acc: number, item: InvoiceDpDtType) => acc + item.total_amount,
         0
       );
-
+    
+      this.form.discount_percentage_amount = 0;
+      this.form.discount_final = 0;
+      
+      if (this.form.discount_percentage > 0) {
+        this.form.discount_percentage_amount = this.form.total_dp_products * (this.form.discount_percentage / 100);
+        this.form.discount_final = this.form.discount_percentage_amount;
+        this.form.discount_type = 'percentage';
+      } else if (this.form.discount_amount > 0) {
+        this.form.discount_final = this.form.discount_amount;
+        this.form.discount_type = 'amount';
+      }
+      
+      this.form.total_discount = totalItemDiscount + this.form.discount_final;
+      
       this.form.total_dp_products = this.itemsCheck.checkMain.reduce(
         (acc: number, item: InvoiceDpDtType) => acc + item.total_dp,
         0
       );
+    
+      if (!!this.form.vat_id) {
+        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: InvoiceDpDtType) => {
+            if (!!item.is_vat) {
+              return acc + item.total_dp;
+            }
+            return acc;
+          },
+          0
+        );
+        
+        totalAmIsVat = totalAmIsVat - (totalAmIsVat * (this.form.discount_percentage / 100));
+        
+        this.form.total_vat = totalAmIsVat * ((this.form.vat_percentage ?? 0) / 100);
+      } else {
+        this.form.total_vat = 0;
+      }    
+    
+      if (!!this.form.pph23_id) {
+        let totalDpIsPph23 = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: InvoiceDpDtType) => {
+            if (!!item.is_pph23) {
+              return acc + item.total_dp;
+            }
+            return acc;
+          },
+          0
+        );
+        
+        this.form.total_pph23 = totalDpIsPph23 * ((this.form.pph23_percentage ?? 0) / 100);
+      } else {
+        this.form.total_pph23 = 0;
+      }
+    
+      this.form.grand_total = this.form.total_dp_products - this.form.discount_final + this.form.total_vat - this.form.total_pph23;
 
-      this.form.grand_total = this.form.total_dp_products + this.form.total_vat - this.form.total_pph23;
-
+      if (this.form.grand_total < 0) {
+        this.form.grand_total = 0;
+      }
+    
       if (this.formLayout.summary) {
-        this.formLayout.summary.total_amount.value = this.form.subtotal;
-        this.formLayout.summary.total_after_disc.value = total_after_disc;
-        this.formLayout.summary.total_discount.value = this.form.total_discount;
+        this.formLayout.summary.sub_amount.value = this.form.total_amount_products;
+        this.formLayout.summary.total_amount.value = this.form.total_dp_products;
+        this.formLayout.summary.total_discount.value = this.form.discount_final;
         this.formLayout.summary.total_vat.value = this.form.total_vat;
         this.formLayout.summary.total_pph23.value = this.form.total_pph23;
-        this.formLayout.summary.total_dp.value = this.form.total_dp_products;
-        this.formLayout.summary.total_dp.percentage = this.form.dp_percentage;
         this.formLayout.summary.grand_total.value = this.form.grand_total;
       }
-
-      let response = {
+    
+      return {
         summary: {
-          total_amount: this.form.subtotal,
-          total_after_disc: total_after_disc,
-          total_discount: this.form.total_discount,
+          sub_amount: this.form.total_amount_products,
+          total_amount: this.form.total_dp_products,
+          total_discount: this.form.discount_final,
           total_vat: this.form.total_vat,
           total_pph23: this.form.total_pph23,
-          total_dp: this.form.total_dp_products,
           grand_total: this.form.grand_total,
         },
-      }
-
-      return response
-    },
-
-    handleUploadFile(file: any) {
-      console.log('file', file);
-    },
-
-    handleDeleteFile(index: number) {
-      console.log('index', index);
-      this.form.attachments.splice(index, 1);
+      };
     },
 
     updateDpPercentage(value: number) {
@@ -924,8 +911,8 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
             page: 1,
             per_page: 100,
             global: '',
-            order_column: 'name',
-            order_direction: 'asc'
+            order_column: 'date_at',
+            order_direction: 'desc'
           }
         )
         
@@ -952,6 +939,44 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       } catch (error: any) {
         console.log('Failed To Change Status', error?.response?.data)
         useAlert.alertError(error?.response?.data?.message || 'Failed to change status!')
+      }
+    },
+
+    async getApplicableVat(invoiceDate: string) {
+      try {
+        if (!this.referenceOptions.vats || this.referenceOptions.vats.length === 0) {
+          await this.fetchVatOptions();
+        }
+        
+        if (!this.referenceOptions.vats || this.referenceOptions.vats.length === 0) {
+          return null;
+        }
+        
+        const invoiceDateObj = new Date(invoiceDate);
+        
+        const sortedVats = [...this.referenceOptions.vats].sort((a, b) => {
+          const dateA = new Date(a.date_at || '1970-01-01');
+          const dateB = new Date(b.date_at || '1970-01-01');
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        let applicableVat = null;
+        for (const vat of sortedVats) {
+          const vatDateAt = new Date(vat.date_at || '1970-01-01');
+          if (invoiceDateObj >= vatDateAt) {
+            applicableVat = vat;
+            break;
+          }
+        }
+        
+        if (!applicableVat && sortedVats.length > 0) {
+          applicableVat = sortedVats[sortedVats.length - 1];
+        }
+        
+        return applicableVat;
+      } catch (error) {
+        console.error('Error getting applicable VAT:', error);
+        return null;
       }
     }
   },

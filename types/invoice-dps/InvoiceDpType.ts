@@ -80,8 +80,6 @@ export type FormInvoiceDpType = {
   grand_total: number
   invoice_dp_dts: InvoiceDpDtType[]
 
-  attachments: any[]
-
   email?: string
   phone?: string
   address?: string
@@ -162,12 +160,7 @@ export type InvoiceDpDtType = {
   qty: number
   price: number
   subtotal: number
-  discount_amount: number
-  discount_percentage?: number
-  discount_percentage_num?: number
-  discount_percentage_amount: number
-  discount_final: number
-  discount_type?: InvoiceDpDiscType | null
+  discount: number
   total_amount: number
   total_dp: number
   ref_num?: string | null
@@ -217,6 +210,13 @@ export type QIndexSalesOrdersType = {
   customer_id?: number | null
   order_column?: string
   order_direction?: string
+  so_no?: string
+  po_buyer_no?: string
+  order_type_id?: number | null
+  item_type?: string
+  product_code?: string
+  product_name?: string
+  global?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null
@@ -238,6 +238,7 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   dp_percentage?: number
   qty?: number
   price?: number
+  price_sell?: number
   subtotal?: number
   discount_amount?: number
   discount_percentage?: number
@@ -247,10 +248,15 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   discount_type?: InvoiceDpDiscType | null
   total_amount?: number
   total_dp?: number
+
+  disc_am?: number
+  disc_perc?: number
+  disc_perc_am?: number
   
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
 
   sales_order_id?: number | null
+  sales_order_no?: string
   currency_id?: number | null
   exchange_rate?: number | null
   head_vat_id?: number | null
@@ -268,4 +274,16 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   product_name?: string
   product_code?: string
   unit_name?: string
+}
+
+export type FormVatType = {
+  id: number | null;
+  name: string;
+  num: number;
+  description?: string | null;
+  remark?: string | null;
+  date_at?: string | null;
+  status?: number;
+  multiplier?: string | null;
+  divider?: string | null;
 }

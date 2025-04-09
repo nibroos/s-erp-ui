@@ -511,8 +511,9 @@ const formInvoiceDpCreateEdit = {
   branch_id: null,
   invoice_no: '',
   invoice_date: new Date().toISOString().split('T')[0],
-  exchange_rate: 1,
-  remark: "Down payment for project",
+  exchange_rate: 0,
+  remark: "Price not include VAT",
+  status: 'UNPAID',
   pph23_percentage: 0,
   vat_percentage: 0,
   discount_amount: 0,
@@ -520,7 +521,7 @@ const formInvoiceDpCreateEdit = {
   discount_percentage_amount: 0,
   discount_final: 0,
   discount_type: null,
-  dp_percentage: 30,
+  dp_percentage: 0,
   subtotal: 0,
   total_amount_products: 0,
   total_dp_products: 0,
@@ -530,8 +531,6 @@ const formInvoiceDpCreateEdit = {
   total_vat: 0,
   grand_total: 0,
   invoice_dp_dts: [],
-
-  attachments: [],
 
   email: "",
   phone: "",
@@ -584,7 +583,7 @@ const formInvoiceDpCreateEdit = {
       label: "Total DP",
       symbol: '',
       value: 0,
-      percentage: 30,
+      percentage: 0,
       format: {
         precision: 2,
       },

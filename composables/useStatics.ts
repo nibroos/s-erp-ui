@@ -435,17 +435,22 @@ const InvoiceDpIndexStatus = [
     title: 'Paid',
     color: 'green',
   },
+  {
+    value: 'CANCELLED',
+    title: 'Cancelled',
+    color: 'grey',
+  },
 ]
 
 const formTabInvoiceDp = {
   items: 0,
   remarks: 1,
-  attachments: 2,
 }
 
 const formStatusInvoiceDp = [
   { id: 'UNPAID', name: 'UNPAID' },
   { id: 'PAID', name: 'PAID' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
 
