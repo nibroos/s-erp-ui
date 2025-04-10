@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType } from '~/types/sales-orders/SalesOrderType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -254,6 +254,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           }
         )
 
+        this.form.schedule = {} as FormScheduleType
+
         this.form = response.data.data[0]
         if (!this.form.schedule) {
           this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
@@ -414,7 +416,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-sales-order-schedule',
-          this.form
+          this.form.schedule
         )
 
         // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)

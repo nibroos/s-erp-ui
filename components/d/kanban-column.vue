@@ -88,8 +88,8 @@ const emit = defineEmits([
   "add-comment",
   "delete-task",
   "delete-comment",
-  "delete-step",
   "delete-tasks",
+  "delete-step",
   "move-tasks",
   "ordered-tasks",
   "check-all-tasks",
@@ -97,7 +97,6 @@ const emit = defineEmits([
   "move-all-tasks",
   "add-tasks",
   "update-step",
-  "delete-steps",
   "tasks-dragged",
   "detail-tasks",
 ]);
@@ -208,6 +207,13 @@ const listActions: KanbanSectionListActionsType = {
         icon: "mdi-delete",
         type: "action",
       },
+      {
+        title: "Delete step",
+        key: "delete-step",
+        emitKey: "delete-step",
+        icon: "mdi-delete",
+        type: "action",
+      },
     ],
   },
   // steps: {
@@ -257,7 +263,7 @@ const handleActions = (
     case "delete-tasks":
       handleDeleteTasks();
       break;
-    case "delete-steps":
+    case "delete-step":
       handleDeleteStep();
       break;
     default:

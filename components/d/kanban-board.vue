@@ -19,8 +19,18 @@ const props = defineProps({
 });
 
 const steps = ref<FormScheduleStepType[]>(
-  props.initialSteps.length ? props.initialSteps : useInitials.defaultSteps
+  props.initialSteps.length
+    ? props.initialSteps
+    : JSON.parse(JSON.stringify(useInitials.defaultSteps))
 );
+
+const generateStepIndex = () => {
+  steps.value.forEach((step, index) => {
+    step.stepIndex = index;
+  });
+};
+
+generateStepIndex();
 
 const emit = defineEmits([
   "update:steps",
@@ -182,8 +192,6 @@ const handleMoveAllTasks = async ({
 };
 
 const handleDeleteStep = (stepIndex: number) => {
-  console.log("handleDeleteStep", stepIndex);
-
   const deletedStep = steps.value.splice(stepIndex, 1)[0];
   emit("step-deleted", { stepIndex, deletedStep });
   emit("update:steps", steps.value);
@@ -240,6 +248,8 @@ const handleToggleDetailTasks = ({
   listActions: KanbanSectionListActionsType;
 }) => {
   console.log("handleToggleDetailTasks", stepIndex, tasks, isOpen);
+  steps.value[stepIndex].stepIndex = stepIndex;
+
   drawer.value = isOpen;
   currentDetailTasksListActions.value = listActions;
   currentDetailTaskStep.value = steps.value[stepIndex];
@@ -251,6 +261,8 @@ const handleToggleDetailTasks = ({
 };
 
 const onCloseDetailTasks = () => {
+  console.log("onCloseDetailTasks", currentDetailTaskStep.value);
+
   if (!!currentDetailTaskStep.value) {
     steps.value[currentDetailTaskStep.value.stepIndex].tasks =
       currentDetailTasks.value;
@@ -332,6 +344,43 @@ const handleOrderTasks = (
   emit("update:steps", steps.value);
 };
 
+const addNewStep = () => {
+  const newStep: FormScheduleStepType = {
+    id: null,
+    uuid: randomId(),
+    stepIndex: steps.value.length,
+    schedule_id: null,
+    entity_id: null,
+    entity_type: "steps" as ScheduleEntityType,
+    order_item: steps.value.length,
+    color: "",
+    title: "Step " + (steps.value.length + 1),
+    start_at: "",
+    end_at: "",
+    tasks: [],
+  };
+
+  steps.value.push(newStep);
+  emit("step-added", { newStep });
+  emit("update:steps", steps.value);
+};
+
+// reset board expose functions
+const resetBoard = () => {
+  console.log("defaultSteps", useInitials.defaultSteps);
+
+  steps.value = JSON.parse(
+    JSON.stringify(useInitials.defaultSteps)
+  ) as FormScheduleStepType[];
+  console.log("resetBoard", steps.value);
+
+  emit("update:steps", steps.value);
+};
+
+defineExpose({
+  resetBoard,
+});
+
 watch(
   () => drawer.value,
   (newVal, oldVal) => {
@@ -346,7 +395,7 @@ watch(
 </script>
 
 <template>
-  <div class="p-4 bg-white dark:bg-dark3 !border-grey3 border-solid !border">
+  <div class="p-4 bg-white dark:!bg-dark3 !border-grey3 border-solid !border">
     <div class="flex overflow-x-auto gap-4 pb-4">
       <div v-for="(step, stepIndex) in steps" :key="stepIndex">
         <d-kanban-column
@@ -469,14 +518,14 @@ watch(
           </div>
         </template>
       </v-dialog>
-      <!-- <div class="flex-shrink-0 w-64">
+      <div class="flex-shrink-0 w-64">
         <button
           @click="addNewStep"
           class="w-full p-2 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center gap-2"
         >
-          <span>+ Add Column</span>
+          <span>+ Add Step</span>
         </button>
-      </div> -->
+      </div>
     </div>
   </div>
 </template>

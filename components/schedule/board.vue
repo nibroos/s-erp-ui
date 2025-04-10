@@ -25,11 +25,30 @@ const updateSteps = (steps: FormScheduleStepType[]) => {
   form.value.schedule.steps = steps;
   emit("update:steps", steps);
 };
+
+const kanbanBoardExposeRef = ref();
+
+// Trigger the openModal method
+const resetBoard = async () => {
+  if (kanbanBoardExposeRef.value) {
+    console.log("resetBoard-board");
+    kanbanBoardExposeRef.value.resetBoard();
+  } else {
+    console.error("openModal method is not available on kanbanBoardExposeRef");
+  }
+
+  // await openModal(filteredModalForms.value);
+};
+
+defineExpose({
+  resetBoard,
+});
 </script>
 
 <template>
   <div :class="classMerge('', props.class)">
     <d-kanban-board
+      ref="kanbanBoardExposeRef"
       :initial-steps="form.schedule.steps"
       @update:steps="updateSteps"
     />

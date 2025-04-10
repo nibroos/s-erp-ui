@@ -684,6 +684,21 @@ const handleUpdateSchedule = () => {
   salesOrderStore.updateSchedule();
 };
 
+const kanbanBoardExposeRef = ref();
+
+// Trigger the openModal method
+const resetBoard = async () => {
+  if (kanbanBoardExposeRef.value) {
+    console.log("resetBoard-SO");
+
+    kanbanBoardExposeRef.value.resetBoard();
+  } else {
+    console.error("openModal method is not available on kanbanBoardExposeRef");
+  }
+
+  // await openModal(filteredModalForms.value);
+};
+
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
@@ -1298,7 +1313,7 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="flex flex-col gap-2"
         >
-          <div class="grid grid-cols-5 gap-2">
+          <div class="grid grid-cols-6 gap-2">
             <div class="lg:col-span-6">
               <d-text-input
                 v-model="form.schedule.title"
@@ -1335,7 +1350,63 @@ watchEffect(() => {
                 label="End Date"
               ></d-date-picker-light>
             </div>
-            <div class="lg:col-span-6 flex items-center">
+            <div class="lg:col-span-6 col-span-2 flex items-center gap-2">
+              <v-menu
+                :close-on-content-click="false"
+                no-click-animation
+                :open-delay="0"
+                :close-delay="0"
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    density="compact"
+                    :class="
+                      classMerge(
+                        'dark:text-white hover:text-gray-500 !h-full !border border-solid !border-zinc-400 dark:bg-dark3'
+                      )
+                    "
+                    variant="flat"
+                  >
+                    <span :class="classMerge('text-xs dark:text-primary1')"
+                      >Color</span
+                    >
+                    <div
+                      :style="{
+                        backgroundColor: form.schedule.color,
+                        color: form.schedule.color ? 'white' : 'black',
+                      }"
+                      class="w-6 h-6 rounded-full border border-solid border-grey2 ml-2"
+                    ></div>
+                  </v-btn>
+                </template>
+                <v-color-picker
+                  show-swatches
+                  v-model="form.schedule.color"
+                  :modes="['hex']"
+                  hide-inputs
+                >
+                </v-color-picker>
+              </v-menu>
+
+              <d-bt
+                :cta="'Reset Schedule'"
+                :class="
+                  classMerge(
+                    '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+                  )
+                "
+                :text-class="
+                  classMerge('text-scDarker dark:text-white mx-auto')
+                "
+                :icon-class="
+                  classMerge('text-scDarker dark:text-white mx-auto')
+                "
+                icon="mdi-refresh"
+                type="button"
+                @click="resetBoard()"
+              />
               <d-bt
                 :cta="'Update Schedule'"
                 :class="
@@ -1361,7 +1432,19 @@ watchEffect(() => {
               />
             </div>
           </div>
-          <schedule-board class="mt-2" />
+          <div class="overflow-x-auto">
+            <v-skeleton-loader
+              height="240"
+              type="image"
+              :loading="loading.editPageLoading"
+            >
+              <schedule-board
+                ref="kanbanBoardExposeRef"
+                class="mt-2"
+                v-if="!loading.editPageLoading"
+              />
+            </v-skeleton-loader>
+          </div>
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabSalesOrder.attachments"
