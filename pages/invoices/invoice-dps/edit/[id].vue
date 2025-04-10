@@ -15,7 +15,7 @@ const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
 const invoiceDpStore = useInvoiceDpStore();
-const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal, loading } =
+const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
   storeToRefs(invoiceDpStore);
 
 const route = useRoute();
@@ -80,8 +80,8 @@ const headersSelectedItems = ref([
   { title: "Ref Type", key: "ref_type", sortable: true },
   { title: "Ref Number", key: "ref_num", sortable: true },
   { title: "Item Type", key: "product_type", sortable: true },
-  { title: "Product Code", key: "item_code", sortable: true },
-  { title: "Product Name", key: "item_name", sortable: true },
+  { title: "Product Code", key: "product_code", sortable: true },
+  { title: "Product Name", key: "product_name", sortable: true },
   { title: "Unit", key: "unit_name", sortable: true },
   { title: "Price", key: "price", align: "end", sortable: true },
   { title: "Qty", key: "qty", align: "end", sortable: true },
@@ -235,7 +235,18 @@ const formLayout = ref({
         (key) => key.charAt(0).toUpperCase() + key.slice(1)
       )
     : ["Items", "Remark"],
+  mode: "edit",
   button: {
+    create: {
+      path: "/invoices/invoice-dps/create",
+      show: true,
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+      text: "Update"
+    },
     clear: {
       show: true,
     },
@@ -247,6 +258,15 @@ const initialFormLayout = () => {
   formLayout.value.currentTab = tabFormIndex.value;
   formLayout.value.mode = "edit";
   formLayout.value.button = {
+    create: {
+      path: "/invoices/invoice-dps/create",
+      show: true,
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -294,9 +314,11 @@ const calculateTotalAmountLocal = () => {
 
 onMounted(async () => {
   form.value.id = id;
-  await invoiceDpStore.show();
   initialFormLayout();
   await invoiceDpStore.fetchVatOptions();
+  await invoiceDpStore.show();
+
+  invoiceDpStore.updateRefsModal();
 
   if (form.value.is_vat) {
     await invoiceDpStore.onClickSwitchVAT(true);
@@ -345,11 +367,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
       @update:current-tab="tabFormIndex = $event"
     >
       <template #header>
-        <div v-if="loading.editPageLoading" class="flex justify-center items-center h-40">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        </div>
         <form
-          v-else
           :class="
             classMerge(
               'grid grid-cols-6 lg:grid-cols-1 gap-2',
@@ -358,16 +376,16 @@ watch(() => form.value.invoice_date, async (newDate) => {
           "
           @submit.prevent="handleSubmit"
         >
-          <!-- Invoice Number (Disabled) -->
           <div class="lg:col-span-6">
             <d-text-input
               v-model="form.invoice_no"
-              :label="`Invoice No`"
-              :placeholder="`Invoice No`"
+              :label="`Invoice DP Number`"
+              :placeholder="`Invoice DP Number`"
+              :errors="errors.invoice_no"
               disabled
             />
           </div>
-          
+
           <div class="lg:col-span-6">
             <d-select-table
               api="/v1/customers/index-customer"
@@ -549,10 +567,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
         </form>
       </template>
       <template #content>
-        <div v-if="loading.editPageLoading" class="flex justify-center items-center h-40">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        </div>
-        <div v-else-if="tabFormIndex == useStatics.formTabInvoiceDp.items">
+        <div v-if="tabFormIndex == useStatics.formTabInvoiceDp.items">
           <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
             <d-option-ref-btn
               :refs="invoiceDpStore.optionRefBtnRef"
@@ -583,7 +598,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
           
           </div>
 
-          <div class="mt-4">
+          <div class="mt-2">
             <v-data-table-virtual
               :items="invoiceDpStore.itemsCheck.checkMain ?? []"
               :headers="headersSelectedItems"
@@ -601,7 +616,9 @@ watch(() => form.value.invoice_date, async (newDate) => {
             >
               <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
                 <button
-                  v-if="internalItem.raw.product_type === 'product' && internalItem.raw.invoice_dp_dt_boms && internalItem.raw.invoice_dp_dt_boms.length > 0"
+                  v-if="(internalItem.raw.product_type === 'product' || internalItem.raw.item_type === 'product') && 
+                        ((internalItem.raw.invoice_dp_dt_boms && internalItem.raw.invoice_dp_dt_boms.length > 0) || 
+                        (internalItem.raw.so_dts_boms && internalItem.raw.so_dts_boms.length > 0))"
                   class="cursor-pointer"
                   @click="toggleExpand(internalItem)"
                   @submit.prevent
@@ -613,7 +630,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
                   />
                 </button>
               </template>
-              
+
               <template #header.dp_percentage>
                 <div class="flex flex-col items-end w-full">
                   <d-num-v-format
@@ -633,7 +650,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
                   />
                 </div>
               </template>
-              
+
               <template #item.ref_type="{ item }">
                 <span class="uppercase">{{ item.ref_type }}</span>
               </template>
@@ -706,18 +723,19 @@ watch(() => form.value.invoice_date, async (newDate) => {
               </template>
               
               <template #expanded-row="{ columns, item }">
-                <tr v-if="item.invoice_dp_dt_boms && item.invoice_dp_dt_boms.length > 0">
+                <tr v-if="(item.invoice_dp_dt_boms && item.invoice_dp_dt_boms.length > 0) || 
+                          (item.so_dts_boms && item.so_dts_boms.length > 0)">
                   <td :colspan="columns.length" class="!p-0">
                     <div>
                       <v-data-table-virtual
                         :headers="headersBom"
-                        :items="item.invoice_dp_dt_boms || []"
+                        :items="item.invoice_dp_dt_boms || item.so_dts_boms || []"
                         item-value="uid"
                         density="compact"
                         return-object
                         fixed-header
                         class="table-hover"
-                        :height="item.invoice_dp_dt_boms.length > 1 ? '170' : '100'"
+                        :height="(item.invoice_dp_dt_boms?.length || item.so_dts_boms?.length || 0) > 1 ? '170' : '100'"
                         :header-props="{
                           class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                         }"
@@ -761,193 +779,194 @@ watch(() => form.value.invoice_date, async (newDate) => {
     >
       <template #top>
         <form
-        class="grid grid-cols-5 w-full flex-row items-center gap-2"
-        @submit.prevent="invoiceDpStore.fetchModalFilter()"
-      >
-        <d-autocomplete
-          v-model="queryModal.qIndexSalesOrders.customer_id"
-          api="/v1/customers/index-customer"
-          method-api="post"
-          page-end-prop="meta.next_page_url"
-          item-title="name"
-          item-value="id"
-          inner-search-key="global"
-          label="Customer"
-          placeholder="Select customer"
-        />
-
-        <d-autocomplete-client
-          v-model="queryModal.qIndexSalesOrders.item_type"
-          :items="[
-            { id: 'product', name: 'Product' },
-            { id: 'item', name: 'Item' },
-          ]"
-          label="Item Type"
-          item-value="id"
-          item-title="name"
-        />
-
-        <d-text-input
-          v-model="queryModal.qIndexSalesOrders.so_no"
-          label="Sales Order No"
-          placeholder="Search by SO No"
-          append-inner-icon="mdi-magnify"
-        />
-
-        <d-text-input
-          v-model="queryModal.qIndexSalesOrders.po_buyer_no"
-          label="Buyer PO No"
-          placeholder="Search by PO No"
-          append-inner-icon="mdi-magnify"
-        />
-
-        <d-text-input
-          v-model="queryModal.qIndexSalesOrders.product_code"
-          label="Product Code"
-          placeholder="Search by Product Code"
-          append-inner-icon="mdi-magnify"
-        />
-
-        <d-text-input
-          v-model="queryModal.qIndexSalesOrders.product_name"
-          label="Product Name"
-          placeholder="Search by Product Name"
-          append-inner-icon="mdi-magnify"
-        />
-
-        <d-text-input
-          v-model="queryModal.qIndexSalesOrders.global"
-          label="Global Search"
-          placeholder="Search global"
-          append-inner-icon="mdi-magnify"
-        />
-
-        <d-submit-button
-          @click:submit="invoiceDpStore.fetchModalFilter()"
-          @click:clear="invoiceDpStore.handleClearQuery()"
-          class="grid-cols-1"
-        />
-      </form>
-    </template>
-
-    <v-data-table-server
-      v-model="invoiceDpStore.itemsCheck.checkSalesOrders"
-      v-model:page="queryModal.qIndexSalesOrders.page"
-      :items="metaModal.indexSalesOrders.data ?? []"
-      :headers="headersSalesOrder"
-      :items-per-page="queryModal.qIndexSalesOrders.per_page"
-      :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
-      :items-per-page-options="[10, 25, 50, 100]"
-      :loading="metaModal.indexSalesOrders.loading"
-      density="compact"
-      :header-props="{
-        class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
-      }"
-      :row-props="{
-        class: 'cursor-pointer',
-      }"
-      item-value="ref_dt_id"
-      show-current-page
-      return-object
-      multiple
-      show-select
-      @update:options="(data:any) => invoiceDpStore.fetchDataServerFetch(data)"
-      fixed-header
-      height="450"
-      hover
-    >
-      <template #item.item_type="{ item }">
-        <span class="capitalize">{{ item.item_type }}</span>
-      </template>
-      <template #item.order_date="{ item }">
-        {{ formatDate(item.order_date) }}
-      </template>
-      <template #item.shipping_date="{ item }">
-        {{ formatDate(item.shipping_date) }}
-      </template>
-      <template #item.price_sell="{ item }">
-        <d-num-layout :value="item.price_sell" />
-      </template>
-      <template #item.qty="{ item }">
-        <d-num-layout :value="item.qty" />
-      </template>
-      <template #item.discount="{ item }">
-        <d-num-layout
-          :value="item.disc_am > 0 ? item.disc_am : item.disc_perc_am"
-        />
-      </template>
-      <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-        <button
-          v-if="
-            !!internalItem.raw.so_dts_boms &&
-            internalItem.raw.so_dts_boms.length > 0
-          "
-          class="cursor-pointer"
-          @click="toggleExpand(internalItem)"
-          @submit.prevent
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="invoiceDpStore.fetchModalFilter()"
         >
-          <v-icon
-            icon="mdi-chevron-down"
-            class="transition-transform"
-            :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+          <d-autocomplete
+            v-model="queryModal.qIndexSalesOrders.customer_id"
+            api="/v1/customers/index-customer"
+            method-api="post"
+            page-end-prop="meta.next_page_url"
+            item-title="name"
+            item-value="id"
+            inner-search-key="global"
+            label="Customer"
+            placeholder="Select customer"
           />
-        </button>
-      </template>
-      <template
-        #expanded-row="{
-        columns,
-        item,
-        internalItem,
-        index
-      }: {
-        columns: any
-        item: any
-        internalItem: any
-        index: number
-      }"
-      >
-        <tr v-if="item.so_dts_boms && item.so_dts_boms.length > 0">
-          <td :colspan="columns.length" class="!p-0">
-            <div class="">
-              <v-data-table-virtual
-                :headers="headersBom"
-                :items="item.so_dts_boms || []"
-                item-value="uid"
-                density="compact"
-                return-object
-                fixed-header
-                class="table-hover"
-                :height="item.so_dts_boms.length > 1 ? '170' : '100'"
-                :header-props="{
-                  class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                }"
-                :row-props="{
-                  class: 'whitespace-nowrap',
-                }"
-              >
-                <template #item.qty="{ item }">
-                  <d-num-layout :value="item.qty" />
-                </template>
-              </v-data-table-virtual>
-            </div>
-          </td>
-        </tr>
-      </template>
-    </v-data-table-server>
 
-    <template #footer>
-      <div class="flex h-max w-full justify-end">
-        <button
-          class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-          @click="invoiceDpStore.onClickUpdateProductsModal()"
+          <d-autocomplete-client
+            v-model="queryModal.qIndexSalesOrders.item_type"
+            :items="[
+              { id: 'product', name: 'Product' },
+              { id: 'item', name: 'Item' },
+            ]"
+            label="Item Type"
+            item-value="id"
+            item-title="name"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.so_no"
+            label="Sales Order No"
+            placeholder="Search by SO No"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.po_buyer_no"
+            label="Buyer PO No"
+            placeholder="Search by PO No"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.product_code"
+            label="Product Code"
+            placeholder="Search by Product Code"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.product_name"
+            label="Product Name"
+            placeholder="Search by Product Name"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.global"
+            label="Global Search"
+            placeholder="Search global"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="invoiceDpStore.fetchModalFilter()"
+            @click:clear="invoiceDpStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="invoiceDpStore.itemsCheck.checkSalesOrders"
+        v-model:page="queryModal.qIndexSalesOrders.page"
+        :items="metaModal.indexSalesOrders.data ?? []"
+        :headers="headersSalesOrder"
+        :items-per-page="queryModal.qIndexSalesOrders.per_page"
+        :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
+        :items-per-page-options="[10, 25, 50, 100]"
+        :loading="metaModal.indexSalesOrders.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="ref_dt_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => invoiceDpStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize">{{ item.item_type }}</span>
+        </template>
+        <template #item.order_date="{ item }">
+          {{ formatDate(item.order_date) }}
+        </template>
+        <template #item.shipping_date="{ item }">
+          {{ formatDate(item.shipping_date) }}
+        </template>
+        <template #item.price_sell="{ item }">
+          <d-num-layout :value="item.price_sell" />
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
+        </template>
+        <template #item.discount="{ item }">
+          <d-num-layout
+            :value="item.disc_am > 0 ? item.disc_am : item.disc_perc_am"
+          />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="
+              !!internalItem.raw.so_dts_boms &&
+              internalItem.raw.so_dts_boms.length > 0
+            "
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
+          >
+            <v-icon
+              icon="mdi-chevron-down"
+              class="transition-transform"
+              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+            />
+          </button>
+        </template>
+        <template
+          #expanded-row="{
+          columns,
+          item,
+          internalItem,
+          index
+        }: {
+          columns: any
+          item: any
+          internalItem: any
+          index: number
+        }"
         >
-          <Icon name="material-symbols:save-rounded" size="20" />
-          Add Selected Sales Orders ({{
-            invoiceDpStore.itemsCheck.checkSalesOrders.length
-          }})
-        </button>
-      </div>
-    </template>
-  </modals-final-modal>
-</div>
+          <tr v-if="item.so_dts_boms && item.so_dts_boms.length > 0">
+            <td :colspan="columns.length" class="!p-0">
+              <div class="">
+                <v-data-table-virtual
+                  :headers="headersBom"
+                  :items="item.so_dts_boms || []"
+                  item-value="uid"
+                  density="compact"
+                  return-object
+                  fixed-header
+                  class="table-hover"
+                  :height="item.so_dts_boms.length > 1 ? '170' : '100'"
+                  :header-props="{
+                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
+                >
+                  <template #item.qty="{ item }">
+                    <d-num-layout :value="item.qty" />
+                  </template>
+                </v-data-table-virtual>
+              </div>
+            </td>
+          </tr>
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="invoiceDpStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Sales Orders ({{
+              invoiceDpStore.itemsCheck.checkSalesOrders.length
+            }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
+  </div>
 </template>
+
