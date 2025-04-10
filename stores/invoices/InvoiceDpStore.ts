@@ -151,6 +151,20 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
     
         this.form = response.data.data[0]
         
+        this.form.is_vat = this.form.vat_id ? 1 : 0
+        this.form.is_pph23 = this.form.pph23_id ? 1 : 0
+
+        if (!this.form.email && this.form.customer_id) {
+          await this.fetchCustomerDetails(this.form.customer_id);
+        }
+
+        if (this.form.invoice_dp_dts && this.form.invoice_dp_dts.length > 0) {
+          this.form.invoice_dp_dts.forEach(item => {
+            item.product_code = item.item_code;
+            item.product_name = item.item_name;
+          });
+        }
+        
         this.itemsCheck.checkMain = initCheckedInvoiceDpDt(this.form.invoice_dp_dts || [])
     
         return response
@@ -160,6 +174,24 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       } finally {
         this.loading.editPageLoading = false
         this.updateRefsModal()
+      }
+    },
+
+    async fetchCustomerDetails(customerId: number) {
+      try {
+        const response = await useMyFetch().post(
+          '/v1/customers/index-customer',
+          {
+            id: customerId
+          }
+        )
+        
+        if (response.data && response.data.data && response.data.data.length > 0) {
+          const customerData = response.data.data[0];
+          this.autocompleteCustomer(customerData);
+        }
+      } catch (error) {
+        console.log('Failed to fetch customer details', error);
       }
     },
 
@@ -313,37 +345,54 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
     async indexSalesOrder() {
       if (this.metaModal.indexSalesOrders.loading) return
       this.metaModal.indexSalesOrders.loading = true
-
+    
       try {
         const response = await useMyFetch().post(
           '/v1/invoice-dps/index-ref-so-dt',
           this.queryModal.qIndexSalesOrders
         )
-
+    
         if (this.isOpenModal.salesOrders) {
           this.metaModal.indexSalesOrders = response.data
-
-          if (this.itemsCheck.checkSalesOrders.length > 0) {
-            this.itemsCheck.checkSalesOrders.forEach((checkSO: FormInvoiceDpDtProductListType, iCheckSO: number) => {
-              (this.metaModal.indexSalesOrders.data as FormInvoiceDpDtProductListType[]).forEach((resSO: FormInvoiceDpDtProductListType, iResSO: number) => {
-                if (resSO.ref_id === checkSO.ref_id && resSO.ref_dt_id === checkSO.ref_dt_id && checkSO.ref_type === 'so') {
-                  const combined = {
-                    ...resSO,
-                    ...checkSO
-                  }
-
-                  this.metaModal.indexSalesOrders.data[iResSO] = combined
-                  this.itemsCheck.checkSalesOrders[iCheckSO] = combined
-                }
-              })
-            })
+    
+          if (this.itemsCheck.checkMain.length > 0) {
+            const selectedItems: FormInvoiceDpDtProductListType[] = [];
+            
+            (this.metaModal.indexSalesOrders.data as FormInvoiceDpDtProductListType[]).forEach((resSO: FormInvoiceDpDtProductListType, iResSO: number) => {
+              const existingItem = this.itemsCheck.checkMain.find(item => 
+                item.ref_type === 'so' && 
+                ((item.ref_id === resSO.sales_order_id && item.ref_dt_id === resSO.id) ||
+                (item.ref_id === resSO.ref_id && item.ref_dt_id === resSO.ref_dt_id))
+              );
+              
+              if (existingItem) {
+                const combined = {
+                  ...resSO,
+                  ref_type: 'so',
+                  ref_id: resSO.sales_order_id || resSO.ref_id,
+                  ref_dt_id: resSO.id || resSO.ref_dt_id,
+                  qty: existingItem.qty,
+                  dp_percentage: existingItem.dp_percentage,
+                  is_vat: existingItem.is_vat,
+                  is_pph23: existingItem.is_pph23,
+                  vat_id: existingItem.vat_id,
+                  pph23_id: existingItem.pph23_id
+                };
+                
+                selectedItems.push(combined);
+                
+                this.metaModal.indexSalesOrders.data[iResSO] = combined;
+              }
+            });
+            
+            this.itemsCheck.checkSalesOrders = selectedItems;
           }
-
+    
           if (this.itemsCheck.checkSalesOrders.length > 0) {
             this.autocompleteSalesOrder(this.itemsCheck.checkSalesOrders[0])
           }
         }
-
+    
         return response.data
       } catch (error: any) {
         console.log('Failed To Fetch Sales Order Data', error.response?.data)
@@ -397,10 +446,23 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       }
     },
     handleClickClear() {
+      const currentInvoiceNo = this.form.invoice_no;
+      const currentId = this.form.id;
+      const isEditMode = !!currentId;
+
       this.form = cloneObject(useInitials.formInvoiceDpCreateEdit)
+
+      if (isEditMode) {
+        this.form.id = currentId;
+        this.form.invoice_no = currentInvoiceNo;
+      }
+      
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkSalesOrders = []
       this.errors = {}
+
+      this.queryModal.qIndexSalesOrders.customer_id = null;
+      this.queryModal.qIndexSalesOrders.customer_ids = [];
 
       this.resetSummary()
       this.countSelectedReferences()
@@ -641,14 +703,28 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         }
       }
       
+      const existingItems = [...this.itemsCheck.checkMain];
+
       this.selectItemRefModal();
       
       if (this.form.dp_percentage > 0) {
-        this.updateDpPercentage(this.form.dp_percentage);
+        this.itemsCheck.checkMain.forEach(item => {
+          const existingItem = existingItems.find(existing => 
+            existing.ref_type === item.ref_type && 
+            existing.ref_id === item.ref_id && 
+            existing.ref_dt_id === item.ref_dt_id
+          );
+          
+          if (!existingItem) {
+            item.dp_percentage = this.form.dp_percentage;
+            item.total_dp = item.total_amount * (this.form.dp_percentage / 100);
+          }
+        });
       }
       
       this.countSelectedReferences();
       this.closeAllModal();
+      this.calculateTotalAmount();
     },
 
     onClickDeleteSelected(item: any, index: number) {
@@ -725,7 +801,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         this.form.vat_id = null;
         this.form.vat_percentage = 0;
         this.form.total_vat = 0;
-      } else {
+      } else if (!this.form.vat_id) {
         const applicableVat = await this.getApplicableVat(this.form.invoice_date);
         
         if (applicableVat) {

@@ -222,6 +222,8 @@ export type QIndexSalesOrdersType = {
 export type VatModeType = 'header' | 'detail' | null
 
 export type FormInvoiceDpDtProductListType = ProductListType & {
+  sales_order_id?: number | null,
+  id?: number | null,
   ref_type: InvoiceDpRefType
   customer_id?: number | null
   invoice_dp_id?: number | null
