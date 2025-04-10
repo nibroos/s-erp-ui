@@ -1,6 +1,8 @@
 import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductBomListType, ProductListType } from "../masters/ProductType"
 import type { QuoDtsType } from "../quotations/QuotationType"
+import type { FormTaskType } from "../masters/TaskType"
+import type { KanbanListTasksType } from "../KanbanBoardType"
 
 export type IndexSalesOrderType = {
   id: number
@@ -130,7 +132,47 @@ export type FormScheduleType = {
   color: string
   status: string
   remark: string | null
+  steps_id?: number | null
+  steps?: FormScheduleStepType[]
 }
+
+export type FormScheduleStepType = {
+  id?: number | null
+  uuid?: string
+  stepIndex: number
+  schedule_id?: number | null
+  entity_id?: number | null
+  entity_type?: ScheduleEntityType
+  title: string
+  remark?: string
+  order_item?: number
+  color?: string
+  start_at?: string
+  end_at?: string
+  tasks: FormScheduleTaskType[]
+}
+
+export type FormScheduleTaskType = {
+  id?: number | null | undefined | string | string[]
+  uuid?: string
+  parent_id?: number | null
+  parent_uuid?: string
+  schedule_id?: number | null
+  assignee_id?: number | null
+  entity_id?: number | null
+  entity_type?: ScheduleEntityType
+  title?: string
+  remark?: string | null
+  order_item?: number
+  // color?: string
+  // locations?: string
+  labels?: string[]
+  start_at?: string
+  end_at?: string
+  is_checked?: number
+}
+
+export type ScheduleEntityType = 'steps' | 'tasks' | 'comments'
 
 export type SoDtType = {
   uid?: string

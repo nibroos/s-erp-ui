@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
       <!-- {{ mergedConfig.summary }} -->
       <d-summary-layout
         v-if="
-        Object.keys(props.config.summary as object).length > 0 &&
+        !!props.config.summary && Object.keys(props.config.summary as object).length > 0 &&
         !slots.summary
       "
         :config="props.config.summary"

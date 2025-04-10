@@ -27,6 +27,7 @@ import type {
 import { updateSoRefsModalFromMain } from "~/composables/maps/salesOrderComp";
 import type {
   FormQuoDtBomListType,
+  QuoDtBomType,
   QuoDtType,
 } from "~/types/quotations/QuotationType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
@@ -46,6 +47,7 @@ const {
   metaModal,
   optionRefBtnRef,
   openedModal,
+  loading,
   formLayout: formLayoutStore,
 } = storeToRefs(salesOrderStore);
 
@@ -92,7 +94,7 @@ const headers = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersBOM = ref([
+const headersBOM = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
@@ -609,6 +611,21 @@ const calculateTotalAmountLocal = () => {
   }
 };
 
+const kanbanBoardExposeRef = ref();
+
+// Trigger the openModal method
+const resetBoard = async () => {
+  if (kanbanBoardExposeRef.value) {
+    console.log("resetBoard-SO");
+
+    kanbanBoardExposeRef.value.resetBoard();
+  } else {
+    console.error("openModal method is not available on kanbanBoardExposeRef");
+  }
+
+  // await openModal(filteredModalForms.value);
+};
+
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
@@ -1107,7 +1124,7 @@ watchEffect(() => {
                   <div class="">
                     <v-data-table-virtual
                       :headers="headersBOM"
-                      :items="item.so_dts_boms || []"
+                      :items="(item.so_dts_boms as SoDtBomType[]) || []"
                       item-value="uid"
                       density="compact"
                       return-object
@@ -1123,7 +1140,7 @@ watchEffect(() => {
                     >
                       <template #item.remark="{ item }">
                         <d-text-area-input
-                          v-model="(item as SoDtType).remark"
+                          v-model="item.remark"
                           :label="``"
                           :placeholder="`Remark`"
                           class="w-full"
@@ -1132,7 +1149,7 @@ watchEffect(() => {
 
                       <template #item.qty="{ item }">
                         <d-num-v-format
-                          v-model="(item as SoDtType).qty"
+                          v-model="item.qty"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1153,7 +1170,7 @@ watchEffect(() => {
                       </template>
                       <template #item.price_buy="{ item }">
                         <d-num-v-format
-                          v-model="(item as SoDtType).price_buy"
+                          v-model="item.price_buy"
                           :precision="{
                             min: 3,
                             max: 3,
@@ -1219,43 +1236,117 @@ watchEffect(() => {
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
-          class="grid grid-cols-5 gap-2"
+          class="flex flex-col gap-2"
         >
-          <div class="lg:col-span-6">
-            <d-text-input
-              v-model="form.schedule.title"
-              :label="`Title`"
-              :placeholder="`Title`"
-              :errors="errors.title"
-            />
+          <div class="grid grid-cols-6 gap-2">
+            <div class="lg:col-span-6">
+              <d-text-input
+                v-model="form.schedule.title"
+                :label="`Title`"
+                :placeholder="`Title`"
+                :errors="errors.title"
+              />
+            </div>
+
+            <!-- assignee_id -->
+            <div class="lg:col-span-6">
+              <d-autocomplete
+                v-model="form.schedule.assignee_id"
+                api="/v1/users/index-user"
+                single-api="/v1/users/show-user"
+                page-end-prop="meta.next_page_url"
+                item-title="name"
+                item-value="id"
+                method-api="post"
+                inner-search-key="global"
+                label="Assignee"
+              ></d-autocomplete>
+            </div>
+
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.schedule.start_at"
+                label="Start Date"
+              ></d-date-picker-light>
+            </div>
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.schedule.end_at"
+                label="End Date"
+              ></d-date-picker-light>
+            </div>
+            <div class="lg:col-span-6 col-span-2 flex gap-2 items-center">
+              <v-menu
+                :close-on-content-click="false"
+                no-click-animation
+                :open-delay="0"
+                :close-delay="0"
+                transition="slide-y-transition"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    density="compact"
+                    :class="
+                      classMerge(
+                        'dark:text-white hover:text-gray-500 !h-full !border border-solid !border-zinc-400 dark:bg-dark3'
+                      )
+                    "
+                    variant="flat"
+                  >
+                    <span :class="classMerge('text-xs dark:text-primary1')"
+                      >Color</span
+                    >
+                    <div
+                      :style="{
+                        backgroundColor: form.schedule.color,
+                        color: form.schedule.color ? 'white' : 'black',
+                      }"
+                      class="w-6 h-6 rounded-full border border-solid border-grey2 ml-2"
+                    ></div>
+                  </v-btn>
+                </template>
+                <v-color-picker
+                  show-swatches
+                  v-model="form.schedule.color"
+                  :modes="['hex']"
+                  hide-inputs
+                >
+                </v-color-picker>
+              </v-menu>
+
+              <d-bt
+                :cta="'Reset Schedule'"
+                :class="
+                  classMerge(
+                    '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+                  )
+                "
+                :text-class="
+                  classMerge('text-scDarker dark:text-white mx-auto')
+                "
+                :icon-class="
+                  classMerge('text-scDarker dark:text-white mx-auto')
+                "
+                icon="mdi-refresh"
+                type="button"
+                @click="resetBoard()"
+              />
+            </div>
           </div>
 
-          <!-- assignee_id -->
-          <div class="lg:col-span-6">
-            <d-autocomplete
-              v-model="form.schedule.assignee_id"
-              api="/v1/users/index-user"
-              single-api="/v1/users/show-user"
-              page-end-prop="meta.next_page_url"
-              item-title="name"
-              item-value="id"
-              method-api="post"
-              inner-search-key="global"
-              label="Assignee"
-            ></d-autocomplete>
-          </div>
-
-          <div class="lg:col-span-6">
-            <d-date-picker-light
-              v-model="form.schedule.start_at"
-              label="Start Date"
-            ></d-date-picker-light>
-          </div>
-          <div class="lg:col-span-6">
-            <d-date-picker-light
-              v-model="form.schedule.end_at"
-              label="End Date"
-            ></d-date-picker-light>
+          <div class="overflow-x-auto">
+            <v-skeleton-loader
+              height="240"
+              type="image"
+              :loading="loading.editPageLoading"
+            >
+              <schedule-board
+                ref="kanbanBoardExposeRef"
+                class="mt-2"
+                v-if="!loading.editPageLoading"
+              />
+            </v-skeleton-loader>
           </div>
         </div>
         <div
@@ -1471,7 +1562,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
+                  :items="(item.quo_dts_boms as QuoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1533,7 +1624,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.boms || []"
+                  :items="(item.boms as SoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1777,7 +1868,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.so_dts_boms || []"
+                  :items="(item.so_dts_boms as SoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object
@@ -1809,7 +1900,7 @@ watchEffect(() => {
               <div class="">
                 <v-data-table-virtual
                   :headers="headersBOMModal"
-                  :items="item.quo_dts_boms || []"
+                  :items="(item.quo_dts_boms as QuoDtBomType[]) || []"
                   item-value="uid"
                   density="compact"
                   return-object

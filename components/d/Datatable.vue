@@ -114,9 +114,9 @@ const defaultHeaderProps: SelectTableType = {
   key: "",
   value: "",
   align: "start" as "start" | "end" | "center",
-  width: 150,
-  minWidth: "150",
-  maxWidth: "150",
+  // width: 150,
+  // minWidth: "150",
+  // maxWidth: "150",
 };
 
 const generateFiltersObj = () => {

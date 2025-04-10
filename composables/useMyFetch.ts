@@ -11,12 +11,12 @@ export const useMyFetch = function () {
     'Accept': '*/*'
   }
 
-  const BaseApi = axios.create({
+  const baseApi = axios.create({
     headers: headers,
     baseURL: API_URL,
   });
 
-  BaseApi.interceptors.request.use(config => {
+  baseApi.interceptors.request.use(config => {
     // const token = localStorage.getItem("_token");
 
     let authStore = JSON.parse(localStorage.getItem('AuthStore') || '{}') as { authUser: AuthUserType }
@@ -29,5 +29,5 @@ export const useMyFetch = function () {
   })
 
 
-  return BaseApi;
+  return baseApi;
 };

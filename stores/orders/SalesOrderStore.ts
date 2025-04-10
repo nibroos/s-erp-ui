@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType } from '~/types/sales-orders/SalesOrderType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -254,6 +254,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           }
         )
 
+        this.form.schedule = {} as FormScheduleType
+
         this.form = response.data.data[0]
         if (!this.form.schedule) {
           this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
@@ -369,6 +371,61 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         useAlert.alertSuccess(response.data.message)
 
         navigateTo(`/sales/sales-orders`)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async updateSchedule() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to update this data?',
+        'Schedule will be updated'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      console.log('updateSchedule', this.form.schedule);
+
+
+      try {
+        let id = this.form.id
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/update-sales-order-schedule',
+          this.form.schedule
+        )
+
+        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
 
         return response
       } catch (error: any) {
@@ -1304,3 +1361,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 })
 
 export default useSalesOrderStore
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useSalesOrderStore, import.meta.hot))
+}

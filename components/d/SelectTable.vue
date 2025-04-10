@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import qs from "qs";
-import { property, debounce } from "lodash-es";
+import { mergeProps } from "vue";
+import { property, debounce, random } from "lodash-es";
 
 import { useMyFetch } from "~/composables/useMyFetch";
 import type {
   FieldSelectableType,
   FilterSelectableType,
+  FormOptionModeSelectableType,
+  FormOptionSelectableType,
+  MethodAttributeSelectableType,
   SelectTableType,
 } from "~/types/SelectTableType";
 import { type Pagination } from "~/interfaces/LaravelPaginationInterface";
+import { useInitials } from "../../composables/useInitials";
+import type {
+  DisplayColumnType,
+  ModelFormType,
+} from "~/types/DatatableClientType";
 
 const props = withDefaults(defineProps<SelectTableType>(), {
   modelValue: null,
@@ -38,6 +47,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   displayMultipleSeparator: "-",
   maxLengthDisplay: 20,
   isQuickSelect: false,
+  isResetWhenClose: false,
+  isResetWhenOpen: false,
 
   // Modal
   showModal: false,
@@ -63,6 +74,17 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   height: "450",
   multiple: false,
   returnObject: false,
+  formOptions: () => ({
+    mode: "",
+    createApi: "",
+    editApi: "",
+    creatable: false,
+    deletable: false,
+    keyDif: random(0, 1000),
+    modal: {
+      show: false,
+    },
+  }),
   filters: (props: SelectTableType) => [],
   fields: (props: SelectTableType) => [
     {
@@ -82,6 +104,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   ],
 });
 
+const slots = useSlots() as Record<string, any>;
+const modelForms = ref<ModelFormType>({});
 const generatedFiltersObj = ref<FilterSelectableType[]>([]);
 
 const defaultFieldProps: FilterSelectableType = {
@@ -107,9 +131,35 @@ const emits = defineEmits([
   "update:modelValue",
   "click:selected",
   "click:clear",
+  "open:modal-form",
+  "submit:create",
+  "submit:edit",
+  "submit:view",
+  "submit:",
 ]);
 
-let headersModal = ref(props.fields);
+const initHeadersModal = () => {
+  let initialHeader = props.fields;
+
+  // check if key actions exists
+  const hasActionsKey = initialHeader.some(
+    (header) => header.key === "actions"
+  );
+  if (!!props.formOptions.editable && !hasActionsKey) {
+    initialHeader.push({
+      title: "Actions",
+      key: "actions",
+      align: "end",
+      sortable: false,
+      class: "text-center",
+      width: 100,
+    });
+  }
+
+  return initialHeader;
+};
+
+let headersModal = ref<FieldSelectableType[]>(initHeadersModal());
 let api = ref<string>(props.api);
 
 let showModal = ref<boolean>(props.showModal);
@@ -121,6 +171,11 @@ let icon = ref<string>(props.icon);
 
 const openModal = (event: boolean) => {
   showModal.value = event;
+
+  if (props.isResetWhenOpen) {
+    itemsCheck.value = [];
+    selectedText.value = "";
+  }
 
   emits("openModal", showModal.value);
 };
@@ -139,6 +194,12 @@ const metaModal = ref<Pagination<any[]>>({
 });
 
 const showMetaModal = ref<Record<string, any>>({
+  data: [],
+  single: {},
+  loading: false,
+});
+
+const showEditMetaModal = ref<Record<string, any>>({
   data: [],
   single: {},
   loading: false,
@@ -203,6 +264,62 @@ const fetchDataServerFetch = async (options: {
   }
 
   await filterData();
+};
+
+const fetchSingleEdit = async (id: number) => {
+  // return
+  if (!id) {
+    return;
+  }
+
+  showEditMetaModal.value.loading = true;
+  let apiUrl;
+
+  if (props.detailMethodApi == "post") {
+    let payload;
+
+    if (props.multiple && !props.returnObject) {
+      payload = { ids: itemsCheck.value };
+    } else {
+      payload = { ids: [id] };
+    }
+
+    apiUrl = `${props.detailApi}`;
+    await useMyFetch()
+      .post(apiUrl, payload)
+      .then((res) => {
+        showEditMetaModal.value.single = (<Record<string, any>>(
+          property(props.mappingDetail)(res.data)
+        )) as any;
+
+        filteredModalForms.value = props.fields.map((field) => {
+          if (field.key in showEditMetaModal.value.single) {
+            return {
+              ...field,
+              payload: showEditMetaModal.value.single[field.key],
+            };
+          }
+          return field;
+        });
+      })
+      .finally(() => {
+        showEditMetaModal.value.loading = false;
+      });
+  } else {
+    apiUrl = `${props.detailApi}/${id}`;
+    await useMyFetch()
+      .get(apiUrl)
+      .then((res) => {
+        showEditMetaModal.value.single = (<Record<string, any>>(
+          property(props.mappingDetail)(res.data)
+        )) as any;
+      })
+      .finally(() => {
+        showEditMetaModal.value.loading = false;
+      });
+  }
+
+  console.log("showEditMetaModal.value.single", showEditMetaModal.value.single);
 };
 
 const fetchSingle = async (id: number, oldId: number | null) => {
@@ -297,6 +414,11 @@ const onSelectItems = async () => {
   }
 
   // selectedText.value = itemsCheck.value.map((item) => item.name).join(', ')
+
+  if (props.isResetWhenClose) {
+    itemsCheck.value = [];
+    selectedText.value = "";
+  }
   openModal(false);
 };
 
@@ -346,6 +468,167 @@ const onSelectOption = async (event: any, row: any) => {
   }
 };
 
+const filteredModalForms = ref<FieldSelectableType[]>(props.fields) ?? [];
+const genFormOptions = ref<FormOptionSelectableType>({
+  // json stringify parse
+  ...JSON.parse(
+    JSON.stringify(mergeProps(props.formOptions, props.formOptions))
+  ),
+  // ...useInitials.formOptionDefault,
+  // ...props.formOptions,
+});
+
+const toggleOpenModal = (
+  mode: FormOptionModeSelectableType = "",
+  isActive: boolean,
+  item?: any
+) => {
+  genFormOptions.value.mode = mode;
+
+  console.log("toggleOpenModal", mode, genFormOptions.value);
+
+  if (!!item) {
+    // get item from api
+    fetchSingleEdit(item[props.itemValue]);
+  }
+
+  if (genFormOptions.value.modal) {
+    // if (!mode) {
+    //   return (genFormOptions.value.modal.show = false);
+    // }
+    // genFormOptions.value.modal.show = true;
+    toggleOpenCloseModal(isActive);
+  }
+};
+
+const toggleOpenCloseModal = (event: boolean = true) => {
+  // if (!!genFormOptions.value.modal) {
+  //   // genFormOptions.value.modal.title = action?.modal?.title;
+  //   genFormOptions.value.modal.show = event;
+  // }
+
+  console.log("genFormOptions", event, genFormOptions.value);
+
+  // if (event === false) {
+  //   if (!!genFormOptions.value.modal) {
+  //     genFormOptions.value.mode = "";
+  //   }
+  // }
+
+  genFormOptions.value.modal.show = event;
+  // if (event === true) {
+  //   genFormOptions.value.modal.show = true;
+  // }
+
+  emits(`open:modal-form`, event);
+};
+
+const formLoading = ref<boolean>(false);
+const submitModal = async (inputs: ModelFormType[]) => {
+  if (formLoading.value) return;
+  formLoading.value = true;
+
+  const isConfirmed = await useAlert.showPopupConfirmation(
+    `Are you sure ${genFormOptions.value.mode} ${props.label}?`,
+    `${props.label} will be ${genFormOptions.value.mode}ed.`
+  );
+
+  console.log("isConfirmed", isConfirmed);
+
+  if (!isConfirmed) {
+    formLoading.value = false;
+    return;
+  }
+
+  if (!!genFormOptions.value?.modal) {
+    genFormOptions.value.modal.show = false;
+  }
+
+  let combinePayload: Record<string, any> = {};
+  let payload: Record<string, any> = {};
+
+  // for (let [key, value] of Object.entries(inputs)) {
+  //   payload[key] = value.payload;
+  // }
+  inputs.forEach((input) => {
+    payload[input.key as unknown as string] = input.payload ?? null;
+  });
+
+  combinePayload = {
+    id: showEditMetaModal.value.single.id,
+    ...payload,
+  };
+
+  let args = {
+    action: genFormOptions.value,
+    config: modelForms.value,
+    payload: combinePayload,
+  };
+
+  const key = genFormOptions.value?.mode;
+
+  emits(`submit:${key}`, args);
+
+  let api = "";
+  if (key == "create") {
+    // remove id from payload
+    delete combinePayload["id"];
+
+    api = genFormOptions.value.createApi as string;
+  } else if (key == "edit") {
+    api = genFormOptions.value.editApi as string;
+  }
+
+  console.log("combinePayload", combinePayload);
+
+  try {
+    const response = await useMyFetch().post(api, combinePayload);
+
+    useAlert.hideAlert();
+    useAlert.alertSuccess(response.data.message);
+
+    filterData();
+
+    // await useMyFetch().post(api.value, combinePayload).then((res) => {
+    //   console.log("res", res);
+    // });
+  } catch (error: any) {
+    const responseData = error.response.data;
+    console.log("Failed To Create Data", error.response.data);
+    let errors = "";
+
+    if (typeof responseData.errors === "object") {
+      await Promise.all(
+        Object.keys(responseData.errors).map((row: any) => {
+          errors += `- ${responseData.errors[row][0]} <br />`;
+        })
+      );
+    }
+    useAlert.alertError(errors + `<br /> ${responseData.message}`);
+
+    console.error("Error showing loading:", error);
+  } finally {
+    formLoading.value = false;
+  }
+};
+
+type ModalFormInstance = ComponentPublicInstance<
+  {},
+  { submitModal: () => void }
+>;
+const modalForm = ref<ModalFormInstance | null>(null);
+
+// Trigger the submitModal method
+const triggerSubmitModal = async () => {
+  if (modalForm.value && modalForm.value.submitModal) {
+    modalForm.value.submitModal();
+  } else {
+    console.error("submitModal method is not available on modalForm");
+  }
+
+  // await submitModal(filteredModalForms.value);
+};
+
 watch(
   () => itemsCheck.value,
   (newValue: any, oldValue: any) => {
@@ -376,9 +659,15 @@ onMounted(async () => {
 
   generateFiltersObj();
 
-  if (!!props.modelValue) {
+  console.log("props.modelValue", props.modelValue);
+
+  if (!!props.modelValue && props.modelValue.length > 0) {
     itemsCheck.value.push(props.modelValue);
   }
+});
+
+defineExpose({
+  openModal,
 });
 </script>
 
@@ -388,66 +677,74 @@ onMounted(async () => {
       :class="classMerge('flex w-full grow', props.class)"
       :title="selectedText"
     >
-      <lazy-d-bt
-        type="button"
-        :cta="selectedText ? `${props.label}: ${selectedText}` : props.cta"
-        :no-icon="!!selectedText"
-        :class="
-          classMerge(
-            'text-none flex w-full grow items-stretch justify-center gap-1 whitespace-nowrap !border-1.5 !border-solid dark:bg-dark1 hover:dark:bg-dark2',
-            !!selectedText
-              ? '!border-zinc-300 dark:!border-zinc-500 p-2.5 rounded-l-md'
-              : '!border-zinc-200 dark:!border-zinc-500 rounded-md p-1.5',
-            props.btnClass
-          )
-        "
-        :text-class="
-          classMerge(
-            'text-sm dark:text-primary1  font-normal dark:!text-primary1',
-            !!selectedText ? '!text-dark3' : '!text-zinc-400',
-            props.disabled ? 'line-through' : '',
-            props.textClass
-          )
-        "
-        :icon="!selectedText ? icon : undefined"
-        :icon-class="
-          classMerge('!text-zinc-400 dark:text-primary1', props.iconClass)
-        "
-        @click="openModal(true)"
-        :max-length-display="props.maxLengthDisplay"
-        :loading="showMetaModal.loading"
-        :disabled="props.disabled"
+      <slot
+        name="btn"
+        :selectedText="selectedText"
+        @openModal="openModal"
+        @clearSelected="clearSelected"
+        @selectItems="onSelectItems"
       >
-        <template #append-cta>
-          <slot name="append-cta" />
-        </template>
-      </lazy-d-bt>
+        <lazy-d-bt
+          type="button"
+          :cta="selectedText ? `${props.label}: ${selectedText}` : props.cta"
+          :no-icon="!!selectedText"
+          :class="
+            classMerge(
+              'text-none flex w-full grow items-stretch justify-center gap-1 whitespace-nowrap !border-1.5 !border-solid dark:bg-dark1 hover:dark:bg-dark2',
+              !!selectedText
+                ? '!border-zinc-300 dark:!border-zinc-500 p-2.5 rounded-l-md'
+                : '!border-zinc-200 dark:!border-zinc-500 rounded-md p-1.5',
+              props.btnClass
+            )
+          "
+          :text-class="
+            classMerge(
+              'text-sm dark:text-primary1  font-normal dark:!text-primary1',
+              !!selectedText ? '!text-dark3' : '!text-zinc-400',
+              props.disabled ? 'line-through' : '',
+              props.textClass
+            )
+          "
+          :icon="!selectedText ? icon : undefined"
+          :icon-class="
+            classMerge('!text-zinc-400 dark:text-primary1', props.iconClass)
+          "
+          @click="openModal(true)"
+          :max-length-display="props.maxLengthDisplay"
+          :loading="showMetaModal.loading"
+          :disabled="props.disabled"
+        >
+          <template #append-cta>
+            <slot name="append-cta" />
+          </template>
+        </lazy-d-bt>
 
-      <d-bt
-        v-if="selectedText"
-        type="button"
-        cta="Clear"
-        :class="
-          classMerge(
-            'text-none m-0 rounded-r-md flex items-center justify-center border-y-1.5 border-r-1.5 border-solid py-0',
-            !!selectedText
-              ? 'border-zinc-300 dark:border-zinc-500'
-              : 'border-zinc-200 dark:border-zinc-500'
-          )
-        "
-        text-class="text-zinc-400"
-        icon="mdi-close"
-        icon-class="text-zinc-400"
-        is-no-text
-        @click="clearSelected"
-        :disabled="props.disabled"
-      />
+        <d-bt
+          v-if="selectedText"
+          type="button"
+          cta="Clear"
+          :class="
+            classMerge(
+              'text-none m-0 rounded-r-md flex items-center justify-center border-y-1.5 border-r-1.5 border-solid py-0',
+              !!selectedText
+                ? 'border-zinc-300 dark:border-zinc-500'
+                : 'border-zinc-200 dark:border-zinc-500'
+            )
+          "
+          text-class="text-zinc-400"
+          icon="mdi-close"
+          icon-class="text-zinc-400"
+          is-no-text
+          @click="clearSelected"
+          :disabled="props.disabled"
+        />
+      </slot>
 
-      <!-- Modal Add Style -->
       <lazy-modals-final-modal
         :is-open="showModal"
         :size="'sm'"
         :label="props.modalTitle"
+        :name="randomId()"
         :header-text-class="classMerge('text-lg', props.modalHeaderTextClass)"
         :custom-class="props.modalCustomClass"
         :parent-class="props.modalParentClass"
@@ -514,17 +811,6 @@ onMounted(async () => {
               </div>
 
               <div class="col-span-3 grid grid-cols-2 gap-2 w-full">
-                <!-- <v-text-field
-              id="global_search_modal"
-              v-model="filters.global"
-              hide-details
-              label="Global Search"
-              placeholder="Search anything related to styles, style name, factory, etc"
-              variant="outlined"
-              density="compact"
-              append-inner-icon="mdi-magnify"
-              class="col-span-1"
-            /> -->
                 <d-text-input
                   id="global_search_modal"
                   v-model="filters.global"
@@ -568,10 +854,217 @@ onMounted(async () => {
             :height="props.height"
             hover
             @click:row="onSelectOption"
-          ></v-data-table-server>
+          >
+            <template #item.actions="{ item, index }">
+              <slot name="actions.edit" :item="item" :index="index">
+                <d-button
+                  @click="
+                    () => {
+                      toggleOpenModal('edit', true, item);
+                    }
+                  "
+                  icon="mdi-pencil"
+                  is-no-text
+                  class="p-1 hover:text-zinc-100 !bg-scDarker hover:bg-scDarker rounded-full ease-in-out transition-all hover:dark:!bg-scDarker3"
+                  icon-class="text-primary1"
+                  rounded="xl"
+                  size=""
+                  cta="select"
+                  icon-size="16"
+                ></d-button>
+              </slot>
+            </template>
+          </v-data-table-server>
         </div>
         <template #footer>
           <div class="flex h-max w-full items-center justify-end gap-2">
+            <slot
+              v-if="!!genFormOptions.creatable"
+              :name="`modal:create`"
+              v-bind="{ modal: genFormOptions?.modal }"
+              class="grow"
+            >
+              <v-dialog
+                z-index="2510"
+                width="80rem"
+                v-model="genFormOptions.modal.show"
+                :retain-focus="false"
+              >
+                <template
+                  v-slot:activator="{
+                    props: activatorProps,
+                    isActive: isActiveModal,
+                  }"
+                >
+                  <button
+                    @click="
+                      () => {
+                        // isActiveModal.value = !isActive.value
+                        toggleOpenModal('create', isActiveModal);
+                      }
+                    "
+                    v-bind="activatorProps"
+                    :class="
+                      classMerge(
+                        'flex cursor-pointer items-center font-semibold px-4 py-2 rounded-lg !text-sc bg-primaryDarker hover:bg-primaryDarkest dark:!text-primary1 dark:hover:bg-dark3 dark:bg-dark2 dark:border-scDarker transition-all ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker sm:gap-x-1 !capitalize',
+                        genFormOptions?.class ?? ''
+                      )
+                    "
+                    type="button"
+                    id="formOptions"
+                  >
+                    {{ genFormOptions?.cta ?? `Create New` }}
+                  </button>
+                </template>
+                <template v-slot:default="{ isActive: isActiveModal }">
+                  <div
+                    class="flex flex-col gap-3 bg-white dark:!bg-zinc-900 p-4 rounded-lg"
+                  >
+                    <slot name="header">
+                      <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                          <h1
+                            class="text-lg font-semibold text-zinc-900 dark:text-primary1"
+                          >
+                            <slot
+                              :name="`modal:label`"
+                              v-bind="{ modal: genFormOptions?.modal }"
+                            >
+                              <div
+                                :class="[
+                                  'flex items-center gap-2',
+                                  genFormOptions?.modal?.headerClass ?? '',
+                                ]"
+                              >
+                                <span
+                                  :class="[
+                                    'text-xl capitalize',
+                                    genFormOptions?.modal?.headerTextClass ??
+                                      '',
+                                  ]"
+                                >
+                                  {{ genFormOptions.mode }} {{ props.label }}
+                                </span>
+                              </div>
+                            </slot>
+                          </h1>
+
+                          <d-bt
+                            icon="mdi-close"
+                            @click="
+                              () => {
+                                isActiveModal.value = false;
+                                toggleOpenModal('', isActiveModal.value);
+                              }
+                            "
+                            class="cursor-pointer rounded-full p-1 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:bg-dark1 dark:hover:bg-dark2 dark:text-primary1"
+                          ></d-bt>
+                        </div>
+                        <!-- 
+                        <p
+                          class="text-sm font-normal text-zinc-500 dark:text-primary1"
+                        >
+                          {{
+                            genFormOptions?.modal?.desc ??
+                            `${genFormOptions?.mode} a new ${props.label}`
+                          }}
+                        </p> -->
+                      </div>
+                    </slot>
+
+                    <div class="max-h-[35rem] overflow-y-auto">
+                      <div>
+                        <slot
+                          :name="`modal:content`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                        >
+                          <lazy-d-modal-form
+                            :inputs="filteredModalForms"
+                            :content-class="genFormOptions.modal.contentClass"
+                            ref="modalForm"
+                            @click:submit="
+                              async (inputs: ModelFormType[]) => {
+                                await submitModal(inputs);
+                              }
+                            "
+                          >
+                          </lazy-d-modal-form>
+                        </slot>
+                      </div>
+                    </div>
+
+                    <slot
+                      :name="`modal:footer`"
+                      v-bind="{ modal: genFormOptions?.modal }"
+                    >
+                      <div class="flex w-full items-center gap-3 pt-3">
+                        <slot
+                          v-if="!!genFormOptions.creatable"
+                          :name="`modal:create`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                          class="grow"
+                        >
+                          <d-bt
+                            @click="
+                              () => {
+                                genFormOptions.modal.show = false;
+                                toggleOpenModal('', genFormOptions.modal.show);
+                              }
+                            "
+                            :class="
+                              classMerge(
+                                'grow justify-center items-center !border border-solid border-rose-700 px-4 py-2 rounded-lg bg-white dark:!bg-rose-700 transition-all ease-in-out hover:!bg-rose-50 dark:hover:!bg-rose-900',
+                                genFormOptions?.modal?.cancelClass ?? ''
+                              )
+                            "
+                            :text-class="
+                              genFormOptions?.modal?.cancelTextClass ??
+                              'text-rose-700  dark:text-primary1 text-lg'
+                            "
+                            :cta="genFormOptions?.modal?.cancelText"
+                            type="submit"
+                            :no-icon="true"
+                          ></d-bt>
+                        </slot>
+                        <d-bt
+                          v-if="!slots[`modal:confirm`]"
+                          :class="
+                            classMerge(
+                              'w-2/3 justify-center items-center rounded-lg !bg-sc py-2 text-white transition-all ease-in-out hover:!bg-scDarker',
+                              genFormOptions?.modal?.confirmClass ?? ''
+                            )
+                          "
+                          :text-class="
+                            genFormOptions?.modal?.confirmTextClass ??
+                            'text-white text-lg'
+                          "
+                          :cta="genFormOptions.mode"
+                          @click="
+                            () => {
+                              // submitModal();
+                              // Trigger the submitModal method from the ModalForm instance
+                              // const modalForm = $refs.modalForm;
+                              // if (modalForm && modalForm.submitModal) {
+                              //   modalForm.submitModal();
+                              // }
+                              triggerSubmitModal();
+                            }
+                          "
+                          type="submit"
+                          :no-icon="true"
+                        ></d-bt>
+                        <slot
+                          v-else
+                          :name="`modal:confirm`"
+                          v-bind="{ modal: genFormOptions?.modal }"
+                        ></slot>
+                      </div>
+                    </slot>
+                  </div>
+                </template>
+              </v-dialog>
+            </slot>
+
             <d-bt
               type="button"
               cta="Clear"
@@ -583,11 +1076,11 @@ onMounted(async () => {
 
             <button
               type="button"
-              class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+              class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker"
               @click="onSelectItems"
             >
               <Icon name="material-symbols:save-rounded" size="20" />
-              <span>Select {{ props.label }}</span>
+              <span>Select {{ props.label }} ({{ itemsCheck.length }})</span>
             </button>
           </div>
         </template>

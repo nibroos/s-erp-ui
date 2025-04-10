@@ -832,3 +832,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 })
 
 export default useQuotationStore
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useQuotationStore, import.meta.hot))
+}

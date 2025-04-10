@@ -93,7 +93,9 @@ const getParentLink = (link: string) => {
     >
       <d-datatable
         api="/v1/item-groups/index-item-group"
-        detail-link="/masters/item-groups"
+        detail-link="/masters/customizations/item-groups"
+        edit-link="/masters/customizations/item-groups/edit"
+        delete-api="/v1/item-groups/delete-item-group"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
