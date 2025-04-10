@@ -60,8 +60,8 @@ export const convertInvoiceDpItemRefProduct = (
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
     pph23_id: item.pph23_id,
-    ref_id: item.ref_id as number,
-    ref_dt_id: item.ref_dt_id as number,
+    ref_id: item.sales_order_id as number,
+    ref_dt_id: item.id as number,
     product_id: productId as number,
     product_uuid: productUuid,
     ref_type: refType,
@@ -99,33 +99,41 @@ export function generateInvoiceDpDt(
   checkOpened: InvoiceDpRefType,
   checkMain: InvoiceDpDtType[],
 ): InvoiceDpDtType[] {
-  let newRefItems: InvoiceDpDtType[]
+  let newRefItems: InvoiceDpDtType[] = []
   let updatedList: InvoiceDpDtType[] = []
 
-  let selectedRefList = {
-    so: [] as InvoiceDpDtType[],
-  }
-
-  selectedRefList.so = checkMain.filter((item: InvoiceDpDtType) => {
-    return item.ref_type == 'so'
-  })
-
-  newRefItems = checkSelected.map((dt: FormInvoiceDpDtRefType): InvoiceDpDtType => {
+  // Map item yang dipilih dari modal
+  checkSelected.forEach((dt: FormInvoiceDpDtRefType) => {
     if (dt.item_type === 'product') {
       dt.product_type = 'product';
     } else {
       dt.product_type = 'item';
     }
+
+    const existingItem = checkMain.find(item => 
+      item.ref_type === checkOpened && 
+      ((item.ref_id === (dt.sales_order_id || dt.ref_id) && 
+      item.ref_dt_id === (dt.id || dt.ref_dt_id)) ||
+      (item.ref_id === dt.ref_id && item.ref_dt_id === dt.ref_dt_id))
+    );
     
-    return convertInvoiceDpItemRefProduct(dt, checkOpened)
-  })
+    if (existingItem) {
+      newRefItems.push({
+        ...existingItem,
+        ref_type: checkOpened,
+        ref_id: dt.sales_order_id || dt.ref_id,
+        ref_dt_id: dt.id || dt.ref_dt_id
+      });
+    } else {
+      newRefItems.push(convertInvoiceDpItemRefProduct(dt, checkOpened));
+    }
+  });
   
-  if (checkOpened == 'so') {
-    selectedRefList[checkOpened] = [...newRefItems]
-    updatedList = [...selectedRefList[checkOpened]]
+  if (checkOpened === 'so') {
+    updatedList = [...newRefItems];
   }
 
-  return updatedList
+  return updatedList;
 }
 
 export function updateInvoiceDpRefsModalFromMain(
@@ -133,36 +141,47 @@ export function updateInvoiceDpRefsModalFromMain(
   checkOpened: InvoiceDpRefType,
   checkProducts: FormInvoiceDpDtProductListType[]
 ): any[] {
-  let updatedList: any[] = []
+  let updatedList: any[] = [];
 
-  let selectedRefList: InvoiceDpDtType[]
-
-  selectedRefList = checkMain.filter((itemMain: InvoiceDpDtType) => {
-    return (itemMain.ref_type == checkOpened)
-  })
+  let selectedRefList: InvoiceDpDtType[] = checkMain.filter((itemMain: InvoiceDpDtType) => {
+    return (itemMain.ref_type == checkOpened);
+  });
 
   if (checkProducts.length > 0) {
     selectedRefList.forEach((mainItem: InvoiceDpDtType) => {
+      let found = false;
+      
       checkProducts.forEach((prodItem: FormInvoiceDpDtProductListType) => {
         if (
-          (mainItem.ref_type == 'so' && mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)
+          (mainItem.ref_type == 'so' && 
+           ((mainItem.ref_id == prodItem.sales_order_id && mainItem.ref_dt_id == prodItem.id) ||
+           (mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)))
         ) {
+          found = true;
+          
           let combined: any = {
             ...prodItem,
             ...mainItem,
-          }
+            ref_type: mainItem.ref_type,
+            ref_id: mainItem.ref_id,
+            ref_dt_id: mainItem.ref_dt_id,
+            sales_order_id: mainItem.ref_id,
+            id: mainItem.ref_dt_id
+          };
 
-          combined = convertInvoiceDpItemRefProduct(combined, checkOpened)
-
-          updatedList.push(combined)
+          updatedList.push(combined);
         }
-      })
-    })
+      });
+      
+      if (!found) {
+        updatedList.push(mainItem);
+      }
+    });
   } else {
-    updatedList = selectedRefList
+    updatedList = selectedRefList;
   }
 
-  return updatedList
+  return updatedList;
 }
 
 export function initCheckedInvoiceDpDt(
@@ -174,6 +193,9 @@ export function initCheckedInvoiceDpDt(
     updatedList[iMainItem] = {
       ...mainItem,
       uid: randomId(),
+      product_code: mainItem.item_code || mainItem.product_code,
+      product_name: mainItem.item_name || mainItem.product_name,
+      invoice_dp_dt_boms: mainItem.invoice_dp_dt_boms || mainItem.so_dts_boms || []
     }
   })
 
