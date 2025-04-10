@@ -59,6 +59,7 @@ export type AutocompleteClientType = {
   isGetSingle?: boolean
   clearable?: boolean
   aClass?: string
+  class?: string
   initialValue?: string | number | null
   placeholder?: string
   chips?: boolean

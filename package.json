@@ -36,6 +36,7 @@
     "vue-final-modal": "^3.4.11",
     "vue-router": "^4.3.0",
     "vue-sweetalert2": "^5.0.5",
+    "vuedraggable": "^4.1.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

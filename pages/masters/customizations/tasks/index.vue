@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useItemSubGroupStore from "~/stores/masters/ItemSubGroupStore";
+import useItemGroupStore from "~/stores/masters/ItemGroupStore";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useItemSubGroupStore();
+const { queryModal } = useItemGroupStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -17,7 +17,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Item Sub Groups",
+  title: "Item Group",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
@@ -25,13 +25,6 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Name",
     key: "name",
     value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Group Name",
-    key: "group_name",
-    value: "group_name",
     align: "start",
     sortable: true,
   },
@@ -59,26 +52,6 @@ const fieldsConfig = ref<FieldSelectableType[]>([
 ]);
 
 const filtersConfig = ref<FilterSelectableType[]>([
-  {
-    title: "Group",
-    key: "parent_ids",
-    type: "autocomplete",
-    others: {
-      methodApi: "post",
-      api: "/v1/item-groups/index-item-group",
-      singleApi: "/v1/item-groups/index-item-group",
-      mappingDetail: "data",
-      itemsProp: "data",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Roles",
-      innerSearchKey: "global",
-      multiple: true,
-      returnObject: false,
-      itemColor: "brown-lighten-2",
-    },
-  },
   {
     title: "Name",
     key: "name",
@@ -119,29 +92,28 @@ const getParentLink = (link: string) => {
       }"
     >
       <d-datatable
-        api="/v1/item-sub-groups/index-item-sub-group"
-        detail-link="/masters/customizations/item-sub-groups"
+        api="/v1/tasks/index-task"
+        edit-link="/masters/customizations/tasks/edit"
+        delete-api="/v1/tasks/delete-task"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
-        label="Master Sub Group"
+        label="Master Group"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to item sub groups.."
+        search-placeholder="Search anything related to item groups.."
         is-quick-select
         no-title
-        edit-link="/masters/customizations/item-sub-groups/edit"
-        delete-api="/v1/item-sub-groups/delete-item-sub-group"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qListIndex"
         :create-option="{
-          link: '/masters/customizations/item-sub-groups/create',
+          link: '/masters/customizations/tasks/create',
           show: true,
           cta: '+ Create',
         }"
         @update:filters="
-          (filters: Record<string, any>) => {
+          (filters) => {
             queryModal.qListIndex = filters;
           }
         "

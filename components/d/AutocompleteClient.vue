@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<AutocompleteClientType>(), {
   query: (): any => ({} as any),
   clearable: true,
   aClass: "",
+  class: "",
   initialValue: "",
   placeholder: (props) => `Select/search ${props.label}`,
   chips: false,
@@ -197,44 +198,50 @@ watch(
 </script>
 
 <template>
-  <v-autocomplete
-    v-model="selected"
-    :label="props.label"
-    :items="options"
-    :variant="props.variant"
-    :density="props.density"
-    :item-title="props.itemTitle"
-    :item-value="props.itemValue"
-    :clearable="props.disabled ? false : props.clearable"
-    :placeholder="props.placeholder"
-    :disabled="props.disabled"
-    :class="classMerge('dark:text-primary1', props.aClass)"
-    :loading="loadingSearch"
-    :chips="props.chips"
-    @update:search="innerSearch = $event"
-    @update:menu="onMenuChange"
-    @update:focused="onFocus"
-    @click:clear="handleClear"
-    hide-details
-    no-filter
-  >
-    <template v-slot:selection="{ item }">
-      <span class="whitespace-nowrap">
-        <!-- {{ item.raw }} -->
-        <d-shorttext
-          :text="getDisplayMultipleKeys(item.raw) || displayTitle || item.title"
-          :max-length="Number(props.maxLengthDisplay)"
-          :class="props.aClass"
-          :start-align="props.startAlignDisplay"
-        />
-      </span>
-    </template>
+  <div :class="classMerge('', props.class)">
+    <v-autocomplete
+      v-model="selected"
+      :label="props.label"
+      :items="options"
+      :variant="props.variant"
+      :density="props.density"
+      :item-title="props.itemTitle"
+      :item-value="props.itemValue"
+      :clearable="props.disabled ? false : props.clearable"
+      :placeholder="props.placeholder"
+      :disabled="props.disabled"
+      :class="classMerge('dark:text-primary1', props.aClass)"
+      :loading="loadingSearch"
+      :chips="props.chips"
+      @update:search="innerSearch = $event"
+      @update:menu="onMenuChange"
+      @update:focused="onFocus"
+      @click:clear="handleClear"
+      hide-details
+      no-filter
+    >
+      <template v-slot:selection="{ item }">
+        <span class="whitespace-nowrap">
+          <!-- {{ item.raw }} -->
+          <d-shorttext
+            :text="
+              getDisplayMultipleKeys(item.raw) || displayTitle || item.title
+            "
+            :max-length="Number(props.maxLengthDisplay)"
+            :class="props.aClass"
+            :start-align="props.startAlignDisplay"
+          />
+        </span>
+      </template>
 
-    <template v-slot:item="{ props, item }">
-      <v-list-item
-        v-bind="props"
-        :title="getDisplayMultipleKeys(item.raw) || displayTitle || item.title"
-      ></v-list-item>
-    </template>
-  </v-autocomplete>
+      <template v-slot:item="{ props, item }">
+        <v-list-item
+          v-bind="props"
+          :title="
+            getDisplayMultipleKeys(item.raw) || displayTitle || item.title
+          "
+        ></v-list-item>
+      </template>
+    </v-autocomplete>
+  </div>
 </template>

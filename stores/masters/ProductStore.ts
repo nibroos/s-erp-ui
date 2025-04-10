@@ -374,3 +374,7 @@ const useProductStore = defineStore('ProductStore', {
 })
 
 export default useProductStore
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProductStore, import.meta.hot))
+}

@@ -1,4 +1,5 @@
 // import Form from 'vform'
+import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 import type { FormInventoryType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
@@ -7,8 +8,8 @@ import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormPurchaseOrderType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
-import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
-import type { FieldSelectableType, FilterSelectableType } from '~/types/SelectTableType'
+import type { FormSalesOrderType, FormScheduleStepType } from '~/types/sales-orders/SalesOrderType'
+import type { FieldSelectableType, FilterSelectableType, FormOptionSelectableType } from '~/types/SelectTableType'
 
 const pagination = {
   current_page: 1,
@@ -45,6 +46,22 @@ const formItemGroupCreateEdit = {
   item_group_id: null,
 } as FormItemGroupType
 
+const formTaskCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  task_id: null,
+} as FormItemGroupType
+
+const formUnitCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  unit_id: null,
+} as FormItemGroupType
+
 const formCurrencyCreateEdit = {
   name: '',
   num: 0,
@@ -52,7 +69,7 @@ const formCurrencyCreateEdit = {
   remark: '',
   symbol: '',
   status: 1,
-  item_group_id: null,
+  currency_id: null,
 } as FormCurrencyType
 
 const formPaymentTermCreateEdit = {
@@ -221,9 +238,11 @@ const formSalesOrderCreateEdit = {
     title: "",
     start_at: new Date().toISOString().split('T')[0],
     end_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    color: "",
+    // generate random hex color
+    color: '#' + Math.floor(Math.random() * 16777215).toString(16),
     status: "WAITING",
     remark: "",
+    steps_id: 1,
   },
 
   attachments: [],
@@ -501,7 +520,150 @@ const formInventoryCreateEdit = {
   address: "",
 } as FormInventoryType
 
-export const useInitials: any = {
+const defaultSteps: FormScheduleStepType[] = [
+  {
+    uuid: randomId(),
+    title: 'Step 1',
+    remark: 'Remark',
+    order_item: 0,
+    stepIndex: 0,
+    schedule_id: null,
+    color: 'text-indigo-600',
+    entity_id: null,
+    entity_type: 'steps',
+    // start date range 7 days from now
+    start_at: new Date().toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Step 2',
+    remark: "Remark",
+    order_item: 1,
+    stepIndex: 1,
+    schedule_id: null,
+    color: 'text-blue-600',
+    entity_id: null,
+    entity_type: 'steps',
+    // start date range 7 days from previous step
+    start_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Step 3',
+    remark: 'Remark',
+    order_item: 2,
+    stepIndex: 2,
+    schedule_id: null,
+    color: 'text-amber-600',
+    entity_id: null,
+    entity_type: 'steps',
+    start_at: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Step 4',
+    remark: 'Remark',
+    order_item: 3,
+    stepIndex: 3,
+    schedule_id: null,
+    color: 'text-amber-600',
+    entity_id: null,
+    entity_type: 'steps',
+    start_at: new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tasks: []
+  },
+  {
+    uuid: randomId(),
+    title: 'Step 5',
+    remark: 'Remark',
+    order_item: 4,
+    stepIndex: 4,
+    schedule_id: null,
+    color: 'text-emerald-600',
+    entity_id: null,
+    entity_type: 'steps',
+    start_at: new Date(new Date().getTime() + 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tasks: []
+  },
+]
+
+const defaultListSteps = [{
+  id: 1,
+  name: 'backlog, to do, in progress, done',
+  steps: defaultSteps,
+}]
+
+const formOptionDefault: FormOptionSelectableType = {
+  creatable: false,
+  editable: false,
+  mode: '',
+  keyDif: random(0, 1000),
+  editApi: '',
+  createApi: '',
+  // key?: string
+  // show?: boolean
+  // title?: string
+  // message?: (props: { label: string }) => string
+  // size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  // headerClass?: string
+  // headerTextClass?: string
+  // contentClass?: string
+  // customClass?: string
+  // confirmText?: string
+  // cancelText?: string
+  // confirmClass?: string
+  // cancelClass?: string
+  // confirmTextClass?: string
+  // cancelTextClass?: string
+  modal: {
+    key: randomId(),
+    show: false,
+    title: 'Create',
+    // message: (props: { title: string }) => `Are you sure you want to ${props.title}?`,
+    size: 'md',
+    // headerClass: 'bg-primary text-white',
+    // headerTextClass: 'text-white',
+    // contentClass: 'bg-white',
+    // customClass: 'bg-white',
+    confirmText: 'Create', // Edit
+    cancelText: 'Cancel'
+  }
+}
+
+type UseInitialsType = {
+  pagination: typeof pagination;
+  perPageOptions: typeof perPageOptions;
+  formItemSubGroupCreateEdit: typeof formItemSubGroupCreateEdit;
+  formItemGroupCreateEdit: typeof formItemGroupCreateEdit;
+  formCurrencyCreateEdit: typeof formCurrencyCreateEdit;
+  formProductCreateEdit: typeof formProductCreateEdit;
+  formQuotationCreateEdit: typeof formQuotationCreateEdit;
+  formSalesOrderCreateEdit: typeof formSalesOrderCreateEdit;
+  productFieldsFilterConfig: typeof productFieldsFilterConfig;
+  formPaymentTermCreateEdit: typeof formPaymentTermCreateEdit;
+  formShippingTermCreateEdit: typeof formShippingTermCreateEdit;
+  formPurchaseTypeCreateEdit: typeof formPurchaseTypeCreateEdit;
+  formInventoryCreateEdit: typeof formInventoryCreateEdit;
+  formIOTypeCreateEdit: typeof formIOTypeCreateEdit;
+  formWarehouseCreateEdit: typeof formWarehouseCreateEdit;
+  formAccountSettingEdit: typeof formAccountSettingEdit;
+  formPurchaseOrderCreateEdit: typeof formPurchaseOrderCreateEdit;
+  formTaskCreateEdit: typeof formTaskCreateEdit;
+  formUnitCreateEdit: typeof formUnitCreateEdit;
+  defaultListSteps: typeof defaultListSteps;
+  defaultSteps: typeof defaultSteps;
+  formOptionDefault: typeof formOptionDefault;
+}
+
+export const useInitials: UseInitialsType = {
   pagination,
   perPageOptions,
   formItemSubGroupCreateEdit,
@@ -519,4 +681,9 @@ export const useInitials: any = {
   formWarehouseCreateEdit,
   formAccountSettingEdit,
   formPurchaseOrderCreateEdit,
+  formTaskCreateEdit,
+  formUnitCreateEdit,
+  defaultListSteps,
+  defaultSteps,
+  formOptionDefault,
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { mergeProps } from "vue";
 import { classMerge } from "~/utils/strings";
 // import {normalizeClass}
 interface IProps {
@@ -18,9 +19,11 @@ interface IProps {
   isLoadingDefault?: boolean;
   isNoText?: boolean;
   maxLengthDisplay?: number | string;
-  variant?: string;
+  variant?: "flat" | "outlined" | "text" | "elevated";
   size?: string;
   title?: string;
+  activator?: any;
+  attach?: any;
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -43,6 +46,8 @@ const props = withDefaults(defineProps<IProps>(), {
   variant: "flat",
   size: "small",
   title: "",
+  activator: null,
+  attach: null,
 });
 
 const mergedConfig = computed(() => {
@@ -137,7 +142,7 @@ onMounted(() => {});
     v-if="type == 'submit'"
     :class="
       classMerge(
-        'flex cursor-pointer items-center p-3 transition-all ease-in-out hover:bg-zinc-100 sm:gap-x-1',
+        'flex cursor-pointer items-center p-3 transition-all ease-in-out hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker sm:gap-x-1',
         props.class,
         `${
           localDisabled && !!disabledClass
@@ -148,6 +153,7 @@ onMounted(() => {});
         }`
       )
     "
+    v-bind="mergeProps(props.activator, props.attach)"
     @click="handleClick"
     :type="type"
     :disabled="localDisabled"
@@ -166,7 +172,7 @@ onMounted(() => {});
       v-if="!props.isNoText"
       :class="
         classMerge(
-          'flex items-center justify-center font-medium capitalize transition-all ease-in-out',
+          'flex items-center justify-center font-medium capitalize tracking-normal transition-all ease-in-out',
           props.textClass,
           `${
             localDisabled && !!localDisabledTextClass
@@ -189,9 +195,10 @@ onMounted(() => {});
   </v-btn>
   <v-btn
     v-else
+    v-bind="mergeProps(props.activator, props.attach)"
     :class="
       classMerge(
-        'flex cursor-pointer flex-row items-center transition-all ease-in-out hover:bg-zinc-100',
+        'flex cursor-pointer flex-row items-center transition-all ease-in-out hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker',
         props.class,
         `${localDisabled ? 'cursor-not-allowed' : ''}`
       )
@@ -213,7 +220,7 @@ onMounted(() => {});
       v-if="!props.isNoText"
       :class="
         classMerge(
-          'flex items-center justify-center font-medium capitalize transition-all ease-in-out',
+          'flex items-center justify-center font-medium capitalize tracking-normal transition-all ease-in-out',
           props.textClass,
           `${
             localDisabled && !!localDisabledTextClass

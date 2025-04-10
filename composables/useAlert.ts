@@ -72,6 +72,7 @@ const showPopupConfirmation = async (
     allowEnterKey: opt?.hasOwnProperty('allowEnterKey')
       ? opt.allowEnterKey
       : true,
+    focusConfirm: true,
     customClass: {
       popup: opt?.customClass?.popup || 'p-3',
       container: opt?.customClass?.container || '',

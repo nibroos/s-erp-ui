@@ -27,6 +27,8 @@ interface IProps {
   isNotif?: boolean;
   notifText?: string;
   notifTimeout?: number;
+  activator?: any;
+  attach?: any;
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -54,6 +56,8 @@ const props = withDefaults(defineProps<IProps>(), {
   isNotif: false,
   notifText: (props) => `${props.cta}`,
   notifTimeout: 5000,
+  activator: null,
+  attach: null,
 });
 
 const mergedConfig = computed(() => {
@@ -155,7 +159,7 @@ onMounted(() => {});
       v-if="type == 'submit'"
       :class="
         classMerge(
-          'flex cursor-pointer items-center p-1.5 transition-all ease-in-out hover:bg-zinc-100 sm:gap-x-1',
+          'flex cursor-pointer items-center p-1.5 transition-all ease-in-out hover:bg-zinc-100 sm:gap-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker',
           props.class,
           `${
             localDisabled && !!disabledClass
@@ -209,7 +213,7 @@ onMounted(() => {});
       v-else
       :class="
         classMerge(
-          'flex cursor-pointer flex-row items-center transition-all ease-in-out hover:bg-zinc-100',
+          'flex cursor-pointer flex-row items-center transition-all ease-in-out hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker',
           props.class,
           `${localDisabled ? 'cursor-not-allowed' : ''}`
         )

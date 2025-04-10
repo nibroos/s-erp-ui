@@ -87,7 +87,8 @@ export type Modal = {
   key?: string
   show?: boolean
   title?: string
-  message?: (props: { label: string }) => string
+  desc?: string
+  message?: (props: { title: string }) => string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   headerClass?: string
   headerTextClass?: string
@@ -188,9 +189,9 @@ export type MethodAttributeType = {
   rules?: any[]
   permissions?: PermissionType
   others?: ModalOptionsTableType &
-    AutocompleteType &
-    AutocompleteClientType &
-    DatePickerLightType
+  AutocompleteType &
+  AutocompleteClientType &
+  DatePickerLightType
 }
 
 type ModalOptionsTableType = {

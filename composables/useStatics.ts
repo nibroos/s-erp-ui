@@ -180,6 +180,15 @@ export const topMenuCustomizationTab = [
     link2: "/masters/customizations/purchase-types/create",
     permissions: ["r_ms"],
   },
+  {
+    title: "Tasks",
+    number: 'tasks',
+    icon: "mdi-book-edit-outline",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/tasks",
+    link2: "/masters/customizations/tasks/create",
+    permissions: ["r_ms"],
+  },
 ]
 
 const QuoIndexStatus = [
@@ -292,6 +301,7 @@ const formStatusSalesOrder = [
   { id: 'SCHEDULE', name: 'SCHEDULE' },
   { id: 'INVOICE', name: 'INVOICE' },
   { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'HOLDING', name: 'HOLDING' },
   { id: 'FINISH', name: 'FINISH' },
 ]
 
@@ -443,5 +453,6 @@ export const useStatics = {
   POIndexStatus,
   POIndexDateType,
   formTabPurchaseOrder,
-  formStatusPurchaseOrder
+  formStatusPurchaseOrder,
+  defaultForm,
 }
