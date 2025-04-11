@@ -659,8 +659,6 @@ onMounted(async () => {
 
   generateFiltersObj();
 
-  console.log("props.modelValue", props.modelValue);
-
   if (!!props.modelValue && props.modelValue.length > 0) {
     itemsCheck.value.push(props.modelValue);
   }

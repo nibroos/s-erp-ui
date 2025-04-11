@@ -127,6 +127,7 @@ export type FormScheduleType = {
   assignee_id: number | null
   schedule_no: string
   title: string
+  module_type: 'sales_orders' | 'feedbacks'
   start_at: string
   end_at: string
   color: string

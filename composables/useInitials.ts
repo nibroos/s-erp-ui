@@ -236,6 +236,7 @@ const formSalesOrderCreateEdit = {
     assignee_id: null,
     schedule_no: "",
     title: "",
+    module_type: "sales_orders",
     start_at: new Date().toISOString().split('T')[0],
     end_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     // generate random hex color
