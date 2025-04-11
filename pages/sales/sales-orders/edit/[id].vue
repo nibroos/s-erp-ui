@@ -1452,7 +1452,7 @@ watchEffect(() => {
         >
           <div class="lg:col-span-6">
             <v-file-upload
-              v-model="form.attachments"
+              v-model="form.files"
               clearable
               density="compact"
               variant="compact"
@@ -1477,7 +1477,7 @@ watchEffect(() => {
           >
             <!-- attached files -->
             <div
-              v-for="(file, index) in form.attachments"
+              v-for="(file, index) in form.files"
               :key="index"
               class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
             >
@@ -1538,6 +1538,7 @@ watchEffect(() => {
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesOrderStore.fetchModalFilter()"
+          enctype="multipart/form-data"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsProducts"

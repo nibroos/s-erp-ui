@@ -354,10 +354,54 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       try {
         let id = this.form.id
 
+        const formData = new FormData()
+
+        // Object.keys(this.form).forEach(key => {
+        //   const value = this.form[key as keyof typeof this.form]
+        //   if (value !== null && value !== undefined) {
+        //     if (key === 'files' && value instanceof File) {
+        //       formData.append(key, value)
+        //     }
+        //     else if (key === 'so_dts' && Array.isArray(this.form[key])) {
+        //       this.form[key].forEach((so_dt, index) => {
+        //         formData.append(`${key}[${index}]`, JSON.stringify(so_dt))
+        //       })
+        //     }
+        //     else {
+        //       formData.append(key, value as string | Blob)
+        //     }
+        //   }
+        // })
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files[${index}]`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-sales-order',
-          this.form
+          // this.form,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
+
         this.form = JSON.parse(
           JSON.stringify(useInitials.formSalesOrderCreateEdit)
         )

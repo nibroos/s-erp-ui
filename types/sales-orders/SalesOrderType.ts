@@ -111,6 +111,7 @@ export type FormSalesOrderType = {
 
   schedule: FormScheduleType
   attachments: any[]
+  files: any[]
 
   email?: string
   phone?: string
