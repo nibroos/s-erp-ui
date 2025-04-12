@@ -525,19 +525,6 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.calculateTotalAmount();
     },
 
-    autocompletePph(data: FormPph23Type) {
-      this.form.pph23_percentage = Number(data.num);
-    
-      this.itemsCheck.checkMain.forEach((item: InvoiceDpDtType) => {
-        if (!!item.is_pph23) {
-          item.pph23_id = data.id as number;
-          item.pph23_percentage = Number(data.num);
-        }
-      });
-    
-      this.calculateTotalAmount();
-    },
-
     removeVat() {
       this.form.vat_percentage = 0;
       this.calculateTotalAmount();
@@ -774,6 +761,16 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       }
     
       await this.fetchModalFilter();
+    },
+
+    autocompleteBankInfo(data: any) {
+      this.form.bank_id = data.id;
+      this.selectedBankDetails = {
+        company_name: data.company_name,
+        bank_name: data.name,
+        account_number: data.account_number,
+        account_name: data.account_name
+      };
     },
 
     autocompleteSalesOrder(data: FormInvoiceDpDtProductListType) {

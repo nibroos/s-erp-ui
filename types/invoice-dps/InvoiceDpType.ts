@@ -57,6 +57,7 @@ export type FormInvoiceDpType = {
   vat_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  bank_id?: number | null
   invoice_no?: string
   invoice_date: string
   exchange_rate?: number | null

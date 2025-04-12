@@ -447,6 +447,24 @@ watch(() => form.value.invoice_date, async (newDate) => {
 
           <div class="lg:col-span-6">
             <d-autocomplete
+              v-model="form.bank_id"
+              api="/v1/company-profiles/index-bank-information"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Bank"
+              :display-multiple-keys="['company_name', 'name', 'account_number']"
+              :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
+              is-display-multiple-key
+              :errors="errors.bank_id"
+              @click:selected="(data: any) => invoiceDpStore.autocompleteBankInfo(data)"
+            ></d-autocomplete>
+          </div>   
+
+          <div class="lg:col-span-6">
+            <d-autocomplete
               v-model="form.currency_id"
               api="/v1/currencies/index-currency"
               single-api="/v1/currencies/show-currency"
