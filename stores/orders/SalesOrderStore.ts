@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -377,7 +377,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         if (this.form.files) {
           if (Array.isArray(this.form.files)) {
             this.form.files.forEach((file, index) => {
-              formData.append(`files[${index}]`, file)
+              formData.append(`files`, file)
             })
           } else {
             formData.append('files', this.form.files)
@@ -1385,16 +1385,27 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       return response
     },
 
-    handleUploadFile(file: any) {
-      console.log('file', file);
+    handleUploadFile(event: Event) {
+      console.log('file', event);
+      // const input = event.target as HTMLInputElement
+      // if (input.files) {
+      // this.form.files = Array.from(input.files)
+      // }
     },
 
-    handleDeleteFile(index: number) {
+    handleDeleteFile(attachments: SalesOrderAttachmentsType | File, index: number) {
       console.log('index', index);
-      this.form.attachments.splice(index, 1);
-    }
 
+      if ((attachments as SalesOrderAttachmentsType).id) {
+        this.form.attachments[index]
+      }
+      // this.form.attachments.splice(index, 1);
+      // this.form.deleted_files.push(index);
+    },
 
+    handleExistingFile(attachments: SalesOrderAttachmentsType) {
+      this.form.deleted_files.push(attachments.id);
+    },
   },
   persist: [
     {

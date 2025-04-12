@@ -110,8 +110,9 @@ export type FormSalesOrderType = {
   so_dts: SoDtType[]
 
   schedule: FormScheduleType
-  attachments: any[]
-  files: any[]
+  attachments: SalesOrderAttachmentsType[]
+  files?: File[]
+  deleted_files: number[]
 
   email?: string
   phone?: string
@@ -120,6 +121,22 @@ export type FormSalesOrderType = {
   summary?: Record<string, SummaryPartType>
 
   customer_code?: string
+}
+
+export type SalesOrderAttachmentsType = {
+  id: number
+  ref_id: number
+  ref_type: string
+  file_type: string
+  file_url: string
+  file_name: string
+  remark: any
+  file_size: number
+  device_type: any
+  created_at: string
+  deleted_at: any
+  created_by_name: string
+  updated_by_name: any
 }
 
 export type FormScheduleType = {

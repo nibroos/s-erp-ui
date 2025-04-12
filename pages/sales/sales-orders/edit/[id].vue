@@ -1472,54 +1472,122 @@ watchEffect(() => {
               </template>
             </v-file-upload>
           </div>
-          <div
-            class="md:col-span-1 col-span-2 grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-          >
+          <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
             <!-- attached files -->
-            <div
-              v-for="(file, index) in form.files"
-              :key="index"
-              class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
-            >
-              <div class="flex gap-2">
-                <v-img
-                  :aspect-ratio="1"
-                  :src="file.url"
-                  :alt="file.name"
-                  width="50"
-                  cover
-                  class="border border-solid border-grey3"
-                ></v-img>
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-medium dark:text-primary1"
+                >Uploaded Files</span
+              >
+              <div
+                class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+              >
+                <div
+                  v-for="(file, index) in form.attachments"
+                  :key="index"
+                  class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
+                >
+                  <div class="flex gap-2">
+                    <v-img
+                      :aspect-ratio="1"
+                      :alt="file.file_name"
+                      width="50"
+                      cover
+                      class="border border-solid border-grey3"
+                    ></v-img>
 
-                <div class="flex flex-col justify-center">
-                  <span class="text-sm dark:text-primary1">{{
-                    file.name
-                  }}</span>
-                  <span class="text-xs dark:text-grey1">{{ file.size }}</span>
+                    <div class="flex flex-col justify-center">
+                      <span class="text-sm dark:text-primary1">{{
+                        file.file_name
+                      }}</span>
+                      <span class="text-xs dark:text-grey1">{{
+                        shortenBytes(file.file_size)
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <d-bt
+                      icon="mdi-download"
+                      is-no-text
+                      class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                      icon-class="text-sc dark:text-primary1"
+                      rounded="xl"
+                      cta="download"
+                      icon-size="16"
+                    ></d-bt>
+                    <d-bt
+                      @click="salesOrderStore.handleExistingFile(file)"
+                      icon="mdi-delete"
+                      is-no-text
+                      class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                      icon-class="text-cancel dark:text-primary1"
+                      rounded="xl"
+                      cta="delete"
+                      icon-size="16"
+                      :is-notif="true"
+                      :notif-text="`${file.file_name} deleted`"
+                    ></d-bt>
+                  </div>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <d-bt
-                  icon="mdi-download"
-                  is-no-text
-                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                  icon-class="text-sc dark:text-primary1"
-                  rounded="xl"
-                  cta="download"
-                  icon-size="16"
-                ></d-bt>
-                <d-bt
-                  @click="salesOrderStore.handleDeleteFile(index)"
-                  icon="mdi-delete"
-                  is-no-text
-                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                  icon-class="text-cancel dark:text-primary1"
-                  rounded="xl"
-                  cta="delete"
-                  icon-size="16"
-                  :is-notif="true"
-                  :notif-text="`${file.name} deleted`"
-                ></d-bt>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div>
+                <span class="text-sm font-medium dark:text-primary1"
+                  >New Files</span
+                >
+              </div>
+              <div
+                class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+              >
+                <div
+                  v-for="(file, index) in form.files"
+                  :key="index"
+                  class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
+                >
+                  <div class="flex gap-2">
+                    <v-img
+                      :aspect-ratio="1"
+                      :src="file.url"
+                      :alt="file.name"
+                      width="50"
+                      cover
+                      class="border border-solid border-grey3"
+                    ></v-img>
+
+                    <div class="flex flex-col justify-center">
+                      <span class="text-sm dark:text-primary1">{{
+                        file.name
+                      }}</span>
+                      <span class="text-xs dark:text-grey1">{{
+                        shortenBytes(file.size)
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <d-bt
+                      icon="mdi-download"
+                      is-no-text
+                      class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                      icon-class="text-sc dark:text-primary1"
+                      rounded="xl"
+                      cta="download"
+                      icon-size="16"
+                    ></d-bt>
+                    <d-bt
+                      @click="salesOrderStore.handleDeleteFile(index)"
+                      icon="mdi-delete"
+                      is-no-text
+                      class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                      icon-class="text-cancel dark:text-primary1"
+                      rounded="xl"
+                      cta="delete"
+                      icon-size="16"
+                      :is-notif="true"
+                      :notif-text="`${file.name} deleted`"
+                    ></d-bt>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1538,7 +1606,6 @@ watchEffect(() => {
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesOrderStore.fetchModalFilter()"
-          enctype="multipart/form-data"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsProducts"

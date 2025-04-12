@@ -247,7 +247,8 @@ const formSalesOrderCreateEdit = {
   },
 
   attachments: [],
-
+  files: [],
+  deleted_files: [],
 
   email: "",
   phone: "",
