@@ -528,6 +528,7 @@ const formInvoiceDpCreateEdit = {
   vat_id: null,
   pph23_id: null,
   branch_id: null,
+  bank_id: null,
   invoice_no: '',
   invoice_date: new Date().toISOString().split('T')[0],
   exchange_rate: 1,
@@ -736,6 +737,34 @@ const formOptionDefault: FormOptionSelectableType = {
   }
 }
 
+const formCompanyProfileCreateEdit = {
+  id: null,
+  parent_id: null,
+  vat_id: null,
+  pph23_id: null,
+  is_primary: 0,
+  payment_id: null,
+  company_name: '',
+  company_owner_name: '',
+  company_sign_name: '',
+  company_city: '',
+  company_province: '',
+  company_district: '',
+  company_postal_code: '',
+  company_address: '',
+  company_phone: '',
+  company_email: '',
+  company_website: '',
+  company_sign: null,
+  company_logo: null,
+  company_description: '',
+  company_remark: '',
+  company_status: 1,
+  is_primary: 0,
+  company_options_json: null,
+  bank_informations: []
+}
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -759,6 +788,7 @@ type UseInitialsType = {
   defaultListSteps: typeof defaultListSteps;
   defaultSteps: typeof defaultSteps;
   formOptionDefault: typeof formOptionDefault;
+  formCompanyProfileCreateEdit: typeof formCompanyProfileCreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -785,4 +815,5 @@ export const useInitials: UseInitialsType = {
   defaultSteps,
   formOptionDefault,
   formInvoiceDpCreateEdit,
+  formCompanyProfileCreateEdit,
 }
