@@ -89,6 +89,7 @@ export type FormSalesOrderType = {
   pph23_perc: number
   is_vat?: number
   is_pph23?: number
+  is_scheduled?: number
   // markup_perc: number
   disc_am: number
   disc_perc: number

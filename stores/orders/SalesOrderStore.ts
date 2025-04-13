@@ -89,7 +89,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
-
+      imageDownloadLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -258,13 +258,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.form = response.data.data[0]
         if (!this.form.schedule) {
-          this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
-          this.form.schedule.title = this.form.po_buyer_no
+          this.form.is_scheduled = 0
+          // this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
+          // this.form.schedule.title = this.form.po_buyer_no
         }
 
         if (!this.form.attachments) {
           this.form.attachments = []
         }
+
+        this.form.deleted_files = []
+
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
 
         // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
@@ -1394,17 +1398,102 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     handleDeleteFile(attachments: SalesOrderAttachmentsType | File, index: number) {
-      console.log('index', index);
-
       if ((attachments as SalesOrderAttachmentsType).id) {
-        this.form.attachments[index]
+        this.form.attachments.splice(index, 1);
+        this.form.deleted_files.push((attachments as SalesOrderAttachmentsType).id);
       }
-      // this.form.attachments.splice(index, 1);
-      // this.form.deleted_files.push(index);
     },
 
-    handleExistingFile(attachments: SalesOrderAttachmentsType) {
-      this.form.deleted_files.push(attachments.id);
+    async handleExistingFile(attachments: SalesOrderAttachmentsType, index: number) {
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to delete this file?',
+        'Data will be deleted permanently when you update this sales order',
+      )
+
+      if (!isConfirmed) {
+        return
+      }
+
+      try {
+        this.form.attachments.splice(index, 1);
+        this.form.deleted_files.push(attachments.id);
+      }
+      catch (error) {
+        console.error('Error deleting file:', error);
+        useAlert.alertError('Failed to delete file. Please try again later.');
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async handleDownloadFile(attachments: SalesOrderAttachmentsType) {
+      if (this.loading.imageDownloadLoading) return
+      this.loading.imageDownloadLoading = true
+
+      try {
+        const config = useRuntimeConfig();
+        const FILE_BASE_URL = config.public.BASE_URL_IMAGE;
+        const url = `${FILE_BASE_URL}/${attachments.file_url}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = attachments.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(objectUrl);
+
+      } catch (error) {
+        console.error("Error downloading file:", error);
+        useAlert.alertError('Failed to download file. Please try again later.');
+      } finally {
+        this.loading.imageDownloadLoading = false;
+      }
+    },
+
+    handleViewFullPageFile(attachments: SalesOrderAttachmentsType) {
+      if (this.loading.imageDownloadLoading) return
+
+      this.loading.imageDownloadLoading = true
+
+      try {
+        const config = useRuntimeConfig();
+        const FILE_BASE_URL = config.public.BASE_URL_IMAGE;
+        const url = `${FILE_BASE_URL}/${attachments.file_url}`;
+        const filename = attachments.file_name;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.target = "_blank";
+
+        // Append to body temporarily
+        document.body.appendChild(link);
+
+        // Trigger download
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error downloading file:", error);
+      }
+      finally {
+        this.loading.imageDownloadLoading = false
+      }
+    },
+
+    goToSalesOrder(id: number) {
+      navigateTo(`/sales/sales-orders/edit/${id}`);
     },
   },
   persist: [

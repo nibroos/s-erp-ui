@@ -5,31 +5,37 @@ import { resolve } from 'path'
 export default defineNuxtConfig({
   devtools: { enabled: false },
   spaLoadingTemplate: false,
+
   app: {
     head: {
       titleTemplate: '%s | Nibros',
       title: process.env.TITLE || 'NUXT APP',
     }
   },
+
   css: [
     '~/assets/css/main.css',
     'sweetalert2/dist/sweetalert2.min.css',
     '@sweetalert2/theme-dark'
   ],
+
   ssr: false,
   sourcemap: false,
+
   build: {
     transpile: [
       'vuetify',
       '@vuepic/vue-datepicker',
     ]
   },
+
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {}
     }
   },
+
   runtimeConfig: {
     public: {
       API: process.env.API_URL || 'http://test-erp.test',
@@ -37,6 +43,7 @@ export default defineNuxtConfig({
         process.env.IMG_BASE_URL || 'http://test-erp.test'
     }
   },
+
   modules: [
     'nuxt-icon',
     '@pinia/nuxt',
@@ -50,19 +57,23 @@ export default defineNuxtConfig({
       })
     },
   ],
+
   piniaPersistedstate: {
     cookieOptions: {
       sameSite: 'strict',
     },
     storage: 'localStorage'
   },
+
   imports: {
     dirs: [
       './stores',
       './composables/**'
     ]
   },
+
   plugins: ['~/plugins/vuesweatalert.ts'],
+
   vite: {
     vue: {
       template: {
@@ -70,8 +81,11 @@ export default defineNuxtConfig({
       }
     }
   },
+
   devServer: {
     host: '0.0.0.0',
     port: 3002,
   },
+
+  compatibilityDate: '2025-04-13',
 })

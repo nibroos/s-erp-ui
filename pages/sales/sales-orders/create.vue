@@ -662,6 +662,7 @@ watch(
 );
 
 onMounted(async () => {
+  form.value.is_scheduled = 0;
   salesOrderStore.handleClickClear();
   await fetchInitialData();
   initialFormLayout();
@@ -1238,115 +1239,129 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="flex flex-col gap-2"
         >
-          <div class="grid grid-cols-6 gap-2">
-            <div class="lg:col-span-6">
-              <d-text-input
-                v-model="form.schedule.title"
-                :label="`Title`"
-                :placeholder="`Title`"
-                :errors="errors.title"
-              />
-            </div>
+          <d-switch-status
+            v-model="form.is_scheduled"
+            :label="`Schedule`"
+            v-if="!form.is_scheduled"
+            :true-value="1"
+            :false-value="0"
+          />
+          <div v-if="form.is_scheduled">
+            <div class="grid grid-cols-6 gap-2 items-center content-center">
+              <div class="lg:col-span-6">
+                <d-text-input
+                  v-model="form.schedule.title"
+                  :label="`Title`"
+                  :placeholder="`Title`"
+                  :errors="errors.title"
+                />
+              </div>
 
-            <!-- assignee_id -->
-            <div class="lg:col-span-6">
-              <d-autocomplete
-                v-model="form.schedule.assignee_id"
-                api="/v1/users/index-user"
-                single-api="/v1/users/show-user"
-                page-end-prop="meta.next_page_url"
-                item-title="name"
-                item-value="id"
-                method-api="post"
-                inner-search-key="global"
-                label="Assignee"
-              ></d-autocomplete>
-            </div>
+              <!-- assignee_id -->
+              <div class="lg:col-span-6">
+                <d-autocomplete
+                  v-model="form.schedule.assignee_id"
+                  api="/v1/users/index-user"
+                  single-api="/v1/users/show-user"
+                  page-end-prop="meta.next_page_url"
+                  item-title="name"
+                  item-value="id"
+                  method-api="post"
+                  inner-search-key="global"
+                  label="Assignee"
+                ></d-autocomplete>
+              </div>
 
-            <div class="lg:col-span-6">
-              <d-date-picker-light
-                v-model="form.schedule.start_at"
-                label="Start Date"
-              ></d-date-picker-light>
-            </div>
-            <div class="lg:col-span-6">
-              <d-date-picker-light
-                v-model="form.schedule.end_at"
-                label="End Date"
-              ></d-date-picker-light>
-            </div>
-            <div class="lg:col-span-6 col-span-2 flex gap-2 items-center">
-              <v-menu
-                :close-on-content-click="false"
-                no-click-animation
-                :open-delay="0"
-                :close-delay="0"
-                transition="slide-y-transition"
-              >
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    density="compact"
-                    :class="
-                      classMerge(
-                        'dark:text-white hover:text-gray-500 !h-full !border border-solid !border-zinc-400 dark:bg-dark3'
-                      )
-                    "
-                    variant="flat"
-                  >
-                    <span :class="classMerge('text-xs dark:text-primary1')"
-                      >Color</span
-                    >
-                    <div
-                      :style="{
-                        backgroundColor: form.schedule.color,
-                        color: form.schedule.color ? 'white' : 'black',
-                      }"
-                      class="w-6 h-6 rounded-full border border-solid border-grey2 ml-2"
-                    ></div>
-                  </v-btn>
-                </template>
-                <v-color-picker
-                  show-swatches
-                  v-model="form.schedule.color"
-                  :modes="['hex']"
-                  hide-inputs
+              <div class="lg:col-span-6">
+                <d-date-picker-light
+                  v-model="form.schedule.start_at"
+                  label="Start Date"
+                ></d-date-picker-light>
+              </div>
+              <div class="lg:col-span-6">
+                <d-date-picker-light
+                  v-model="form.schedule.end_at"
+                  label="End Date"
+                ></d-date-picker-light>
+              </div>
+              <div class="lg:col-span-6 col-span-2 flex gap-2 items-center">
+                <v-menu
+                  :close-on-content-click="false"
+                  no-click-animation
+                  :open-delay="0"
+                  :close-delay="0"
+                  transition="slide-y-transition"
                 >
-                </v-color-picker>
-              </v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      density="compact"
+                      :class="
+                        classMerge(
+                          'dark:text-white hover:text-gray-500 min-h-[2.5rem] !border border-solid !border-zinc-400 dark:bg-dark3'
+                        )
+                      "
+                      variant="flat"
+                    >
+                      <span :class="classMerge('text-xs dark:text-primary1')"
+                        >Color</span
+                      >
+                      <div
+                        :style="{
+                          backgroundColor: form.schedule.color,
+                          color: form.schedule.color ? 'white' : 'black',
+                        }"
+                        class="w-6 h-6 rounded-full border border-solid border-grey2 ml-2"
+                      ></div>
+                    </v-btn>
+                  </template>
+                  <v-color-picker
+                    show-swatches
+                    v-model="form.schedule.color"
+                    :modes="['hex']"
+                    hide-inputs
+                  >
+                  </v-color-picker>
+                </v-menu>
 
-              <d-bt
-                :cta="'Reset Schedule'"
-                :class="
-                  classMerge(
-                    '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
-                  )
-                "
-                :text-class="
-                  classMerge('text-scDarker dark:text-white mx-auto')
-                "
-                :icon-class="
-                  classMerge('text-scDarker dark:text-white mx-auto')
-                "
-                icon="mdi-refresh"
-                type="button"
-                @click="resetBoard()"
-              />
+                <d-bt
+                  :cta="'Reset Schedule'"
+                  :class="
+                    classMerge(
+                      '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+                    )
+                  "
+                  :text-class="
+                    classMerge('text-scDarker dark:text-white mx-auto')
+                  "
+                  :icon-class="
+                    classMerge('text-scDarker dark:text-white mx-auto')
+                  "
+                  icon="mdi-refresh"
+                  type="button"
+                  @click="resetBoard()"
+                />
+                <d-switch-status
+                  v-model="form.is_scheduled"
+                  :label="`Schedule`"
+                  v-if="form.is_scheduled"
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="overflow-x-auto">
-            <v-skeleton-loader
-              height="240"
-              type="image"
-              :loading="loading.editPageLoading"
-            >
-              <schedule-board
-                ref="kanbanBoardExposeRef"
-                class="mt-2"
-                v-if="!loading.editPageLoading"
-              />
-            </v-skeleton-loader>
+            <div class="overflow-x-auto">
+              <v-skeleton-loader
+                height="240"
+                type="image"
+                :loading="loading.editPageLoading"
+              >
+                <schedule-board
+                  ref="kanbanBoardExposeRef"
+                  class="mt-2"
+                  v-if="!loading.editPageLoading"
+                />
+              </v-skeleton-loader>
+            </div>
           </div>
         </div>
         <div
@@ -1374,57 +1389,6 @@ watchEffect(() => {
                 </v-file-upload-item>
               </template>
             </v-file-upload>
-          </div>
-          <div
-            class="md:col-span-1 col-span-2 grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-          >
-            <!-- attached files -->
-            <div
-              v-for="(file, index) in form.attachments"
-              :key="index"
-              class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
-            >
-              <div class="flex gap-2">
-                <v-img
-                  :aspect-ratio="1"
-                  :src="file.url"
-                  :alt="file.name"
-                  width="50"
-                  cover
-                  class="border border-solid border-grey3"
-                ></v-img>
-
-                <div class="flex flex-col justify-center">
-                  <span class="text-sm dark:text-primary1">{{
-                    file.name
-                  }}</span>
-                  <span class="text-xs dark:text-grey1">{{ file.size }}</span>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <d-bt
-                  icon="mdi-download"
-                  is-no-text
-                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                  icon-class="text-sc dark:text-primary1"
-                  rounded="xl"
-                  cta="download"
-                  icon-size="16"
-                ></d-bt>
-                <d-bt
-                  @click="salesOrderStore.handleDeleteFile(index)"
-                  icon="mdi-delete"
-                  is-no-text
-                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                  icon-class="text-cancel dark:text-primary1"
-                  rounded="xl"
-                  cta="delete"
-                  icon-size="16"
-                  :is-notif="true"
-                  :notif-text="`${file.name} deleted`"
-                ></d-bt>
-              </div>
-            </div>
           </div>
         </div>
       </template>

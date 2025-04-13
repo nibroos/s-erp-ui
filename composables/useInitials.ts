@@ -1,6 +1,7 @@
 // import Form from 'vform'
 import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
+import type { AutocompleteType } from '~/types/AutocompleteType'
 import type { FormInventoryType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
@@ -214,6 +215,7 @@ const formSalesOrderCreateEdit = {
   pph23_perc: 0,
   is_vat: 0,
   is_pph23: 0,
+  is_scheduled: 0,
   total_qty: 0,
   subtotal: 0,
   total_discount: 0,
@@ -444,7 +446,7 @@ const productFieldsFilterConfig = {
         multiple: true,
         returnObject: false,
         itemColor: "brown-lighten-2",
-      },
+      } as AutocompleteType,
     },
     {
       title: "Sub Group",
@@ -464,7 +466,7 @@ const productFieldsFilterConfig = {
         multiple: true,
         returnObject: false,
         itemColor: "brown-lighten-2",
-      },
+      } as AutocompleteType,
     },
     {
       title: "Code",
@@ -649,7 +651,10 @@ type UseInitialsType = {
   formProductCreateEdit: typeof formProductCreateEdit;
   formQuotationCreateEdit: typeof formQuotationCreateEdit;
   formSalesOrderCreateEdit: typeof formSalesOrderCreateEdit;
-  productFieldsFilterConfig: typeof productFieldsFilterConfig;
+  productFieldsFilterConfig: {
+    fields: FieldSelectableType[];
+    filters: FilterSelectableType[];
+  };
   formPaymentTermCreateEdit: typeof formPaymentTermCreateEdit;
   formShippingTermCreateEdit: typeof formShippingTermCreateEdit;
   formPurchaseTypeCreateEdit: typeof formPurchaseTypeCreateEdit;
