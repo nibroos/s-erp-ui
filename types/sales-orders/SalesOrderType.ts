@@ -89,6 +89,7 @@ export type FormSalesOrderType = {
   pph23_perc: number
   is_vat?: number
   is_pph23?: number
+  is_scheduled?: number
   // markup_perc: number
   disc_am: number
   disc_perc: number
@@ -109,8 +110,10 @@ export type FormSalesOrderType = {
   expired_at: string
   so_dts: SoDtType[]
 
-  schedule: FormScheduleType
-  attachments: any[]
+  schedule: FormScheduleType | null
+  attachments: SalesOrderAttachmentsType[]
+  files?: File[]
+  deleted_files: number[]
 
   email?: string
   phone?: string
@@ -121,12 +124,29 @@ export type FormSalesOrderType = {
   customer_code?: string
 }
 
+export type SalesOrderAttachmentsType = {
+  id: number
+  ref_id: number
+  ref_type: string
+  file_type: string
+  file_url: string
+  file_name: string
+  remark: any
+  file_size: number
+  device_type: any
+  created_at: string
+  deleted_at: any
+  created_by_name: string
+  updated_by_name: any
+}
+
 export type FormScheduleType = {
   id: number | null
   sales_order_id: number | null
   assignee_id: number | null
   schedule_no: string
   title: string
+  module_type: 'sales_orders' | 'feedbacks'
   start_at: string
   end_at: string
   color: string
@@ -134,6 +154,9 @@ export type FormScheduleType = {
   remark: string | null
   steps_id?: number | null
   steps?: FormScheduleStepType[]
+
+  is_scheduled?: number
+  is_delete?: number
 }
 
 export type FormScheduleStepType = {

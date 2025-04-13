@@ -192,9 +192,14 @@ const handleMoveAllTasks = async ({
 };
 
 const handleDeleteStep = (stepIndex: number) => {
-  const deletedStep = steps.value.splice(stepIndex, 1)[0];
-  emit("step-deleted", { stepIndex, deletedStep });
-  emit("update:steps", steps.value);
+  if (stepIndex < 5) {
+    useAlert.alertError(`You cannot delete the first 5 steps.`);
+    return;
+  } else {
+    const deletedStep = steps.value.splice(stepIndex, 1)[0];
+    emit("step-deleted", { stepIndex, deletedStep });
+    emit("update:steps", steps.value);
+  }
 };
 
 const handleInsertTasks = async ({
@@ -488,13 +493,37 @@ watch(
                       ></d-button>
                     </div>
                     <div
-                      class="flex flex-col text-zinc-900 dark:text-primary1 p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
+                      class="flex flex-col gap-2 text-zinc-900 dark:text-primary1 p-2 rounded-b-lg border border-solid border-brown-500 bg-brown-50 dark:bg-dark1"
                     >
                       <!-- <input
                         v-model="task.remark"
                         class="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-brown-500 rounded px-1 text-sm"
                       /> -->
 
+                      <div class="grid grid-cols-2 gap-2">
+                        <d-autocomplete
+                          v-model="task.assignee_id"
+                          api="/v1/users/index-user"
+                          single-api="/v1/users/show-user"
+                          page-end-prop="meta.next_page_url"
+                          item-title="name"
+                          item-value="id"
+                          method-api="post"
+                          inner-search-key="global"
+                          label="Assignee"
+                        ></d-autocomplete>
+
+                        <div class="flex gap-2 grow">
+                          <d-date-picker-light
+                            v-model="task.start_at"
+                            label="Start Date"
+                          ></d-date-picker-light>
+                          <d-date-picker-light
+                            v-model="task.end_at"
+                            label="End Date"
+                          ></d-date-picker-light>
+                        </div>
+                      </div>
                       <d-text-area-input
                         v-model="task.remark"
                         :label="``"

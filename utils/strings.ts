@@ -59,3 +59,25 @@ export const capitalizeEachWord = (str: string) => {
     })
     .join(' ')
 }
+
+export const shortenBytes = (n: number) => {
+  // const k = n > 0 ? Math.floor((Math.log2(n) / 10)) : 0;
+  // const rank = (k > 0 ? 'KMGT'[k - 1] : '') + 'b';
+  // const count = Math.floor(n / Math.pow(1024, k));
+  // return count + rank;
+
+  var marker = 1024; // Change to 1000 if required
+  var decimal = 3; // Change as required
+  var kiloBytes = marker; // One Kilobyte is 1024 bytes
+  var megaBytes = marker * marker; // One MB is 1024 KB
+  var gigaBytes = marker * marker * marker; // One GB is 1024 MB
+
+  // return bytes if less than a KB
+  if (n < kiloBytes) return n + " Bytes";
+  // return KB if less than a MB
+  else if (n < megaBytes) return (n / kiloBytes).toFixed(decimal) + " KB";
+  // return MB if less than a GB
+  else if (n < gigaBytes) return (n / megaBytes).toFixed(decimal) + " MB";
+  // return GB if less than a TB
+  else return (n / gigaBytes).toFixed(decimal) + " GB";
+}

@@ -822,6 +822,10 @@ const useQuotationStore = defineStore('QuotationStore', {
         this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
     },
 
+    goToQuotation(id: number) {
+      navigateTo(`/sales/quotations/edit/${id}`);
+    },
+
   },
   persist: [
     {
