@@ -110,7 +110,7 @@ export type FormSalesOrderType = {
   expired_at: string
   so_dts: SoDtType[]
 
-  schedule: FormScheduleType
+  schedule: FormScheduleType | null
   attachments: SalesOrderAttachmentsType[]
   files?: File[]
   deleted_files: number[]
@@ -154,6 +154,9 @@ export type FormScheduleType = {
   remark: string | null
   steps_id?: number | null
   steps?: FormScheduleStepType[]
+
+  is_scheduled?: number
+  is_delete?: number
 }
 
 export type FormScheduleStepType = {

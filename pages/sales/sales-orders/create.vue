@@ -1246,7 +1246,7 @@ watchEffect(() => {
             :true-value="1"
             :false-value="0"
           />
-          <div v-if="form.is_scheduled">
+          <div v-if="form.is_scheduled && form.schedule != null">
             <div class="grid grid-cols-6 gap-2 items-center content-center">
               <div class="lg:col-span-6">
                 <d-text-input
@@ -1345,6 +1345,8 @@ watchEffect(() => {
                   v-model="form.is_scheduled"
                   :label="`Schedule`"
                   v-if="form.is_scheduled"
+                  :true-value="1"
+                  :false-value="0"
                 />
               </div>
             </div>
@@ -1370,21 +1372,24 @@ watchEffect(() => {
         >
           <div class="lg:col-span-6">
             <v-file-upload
-              v-model="form.attachments"
+              v-model="form.files"
               clearable
               density="compact"
               variant="compact"
               multiple
               @update:modelValue="salesOrderStore.handleUploadFile"
             >
-              <template #item="{ props: itemProps }">
+              <template v-slot:item="{ file: itemProps }">
                 <v-file-upload-item v-bind="itemProps" lines="one" nav>
                   <template v-slot:prepend>
                     <v-avatar size="32" rounded></v-avatar>
                   </template>
 
                   <template v-slot:clear="{ props: clearProps }">
-                    <v-btn color="primary" v-bind="clearProps"></v-btn>
+                    <v-btn
+                      class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                      v-bind="clearProps"
+                    ></v-btn>
                   </template>
                 </v-file-upload-item>
               </template>

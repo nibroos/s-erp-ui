@@ -49,6 +49,7 @@ const {
   optionRefBtnRef,
   loading,
   openedModal,
+  modals,
   formLayout: summaryLayout,
   currencySymbolLabel,
 } = storeToRefs(salesOrderStore);
@@ -926,6 +927,18 @@ const resetBoard = async () => {
   // await openModal(filteredModalForms.value);
 };
 
+const labelUpdateSchedule = () => {
+  if (
+    !form.value.is_scheduled &&
+    form.value.schedule &&
+    form.value.schedule.id
+  ) {
+    return "Delete Schedule";
+  } else {
+    return "Create Schedule";
+  }
+};
+
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
@@ -1565,15 +1578,31 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="flex flex-col gap-2"
         >
-          <d-switch-status
-            v-model="form.is_scheduled"
-            :label="`Schedule`"
-            v-if="!form.is_scheduled"
-            :true-value="1"
-            :false-value="0"
-          />
-          <div v-if="form.is_scheduled">
-            <div class="grid grid-cols-6 gap-2">
+          <div class="flex gap-2 items-center">
+            <d-switch-status
+              v-model="form.is_scheduled"
+              :label="`Schedule`"
+              v-if="!form.is_scheduled"
+              :true-value="1"
+              :false-value="0"
+            />
+
+            <d-bt
+              v-if="!form.is_scheduled && form.schedule && form.schedule.id"
+              :cta="'Delete Schedule'"
+              :class="
+                classMerge(
+                  'h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
+                )
+              "
+              :text-class="classMerge('text-white mx-auto !font-bold')"
+              :no-icon="true"
+              type="button"
+              @click="handleUpdateSchedule"
+            />
+          </div>
+          <div v-if="form.is_scheduled && form.schedule != null">
+            <div class="grid grid-cols-6 gap-2 items-center content-center">
               <div class="lg:col-span-6">
                 <d-text-input
                   v-model="form.schedule.title"
@@ -1610,7 +1639,7 @@ watchEffect(() => {
                   label="End Date"
                 ></d-date-picker-light>
               </div>
-              <div class="lg:col-span-6 col-span-2 flex items-center gap-2">
+              <div class="lg:col-span-6 col-span-2 flex gap-2 items-center">
                 <v-menu
                   :close-on-content-click="false"
                   no-click-animation
@@ -1624,7 +1653,7 @@ watchEffect(() => {
                       density="compact"
                       :class="
                         classMerge(
-                          'dark:text-white hover:text-gray-500 !h-full !border border-solid !border-zinc-400 dark:bg-dark3'
+                          'dark:text-white hover:text-gray-500 min-h-[2.5rem] !border border-solid !border-zinc-400 dark:bg-dark3'
                         )
                       "
                       variant="flat"
@@ -1670,14 +1699,15 @@ watchEffect(() => {
 
                 <d-switch-status
                   v-model="form.is_scheduled"
-                  :label="`Schedule`"
                   v-if="form.is_scheduled"
+                  :true-value="1"
+                  :false-value="0"
                 />
                 <d-bt
                   :cta="'Update Schedule'"
                   :class="
                     classMerge(
-                      'w-full h-full rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
+                      'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
                     )
                   "
                   :text-class="classMerge('text-white mx-auto !font-bold')"
@@ -1765,14 +1795,17 @@ watchEffect(() => {
                     class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
                   >
                     <div class="flex gap-2">
-                      <d-img
+                      <lazy-d-img
                         v-if="file.file_type.includes('image')"
                         :aspect-ratio="1"
                         :alt="file.file_name"
                         :src="file.file_url"
                         width="50"
-                        class="border border-solid border-grey3"
-                      ></d-img>
+                        class="border border-solid border-grey3 cursor-pointer"
+                        @click="
+                          salesOrderStore.openModalAttachmentImg(true, file)
+                        "
+                      ></lazy-d-img>
 
                       <div v-if="!file.file_type.includes('image')">
                         <v-icon
@@ -1783,13 +1816,9 @@ watchEffect(() => {
                       </div>
 
                       <div class="flex flex-col justify-center">
-                        <!-- <div class="text-sm dark:text-primary1" :title="file.file_name">
-                          {{ file.file_name }}
-                        </div> -->
-                        <d-shorttext
-                          :text="file.file_name"
-                          :max-length="30"
-                          class="text-sm dark:text-primary1"
+                        <input
+                          v-model="file.file_name"
+                          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
                         />
                         <div class="text-xs dark:text-grey1">
                           {{ shortenBytes(file.file_size) }}
@@ -2535,6 +2564,58 @@ watchEffect(() => {
           </button>
         </div>
       </template>
+    </modals-final-modal>
+
+    <modals-final-modal
+      :is-open="isOpenModal.attachment_imgs"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Uploaded Image"
+      parent-class="!z-[1500]"
+      @update:is-open="isOpenModal.attachment_imgs = $event"
+    >
+      <v-carousel
+        height="500"
+        progress="brown"
+        v-model="isOpenModal.attachment_opened"
+        class="pt-2"
+      >
+        <v-carousel-item
+          v-for="(attachment, i) in modals.attachment_imgs"
+          :key="i"
+        >
+          <div class="flex gap-2 pt-2">
+            <div class="w-2/3">
+              <lazy-d-img
+                v-if="attachment.file_type.includes('image')"
+                :aspect-ratio="1"
+                :alt="attachment.file_name"
+                :src="attachment.file_url"
+                :cover="false"
+                width="100%"
+                class="border border-solid border-grey3 h-[25rem] cursor-pointer ease-in-out scale-95 hover:scale-100 transition-all"
+                @click="salesOrderStore.handleViewFullPageFile(attachment)"
+              />
+            </div>
+            <div class="grid grid-cols-1 content-start gap-4 grow">
+              <d-text-input
+                v-model="attachment.file_name"
+                :label="`Name`"
+                :placeholder="`Name`"
+                class="h-[2rem]"
+              />
+              <d-text-area-input
+                v-model="attachment.remark"
+                :label="`Remark`"
+                :placeholder="`Remark`"
+                class=""
+                :auto-grow="false"
+                :rows="3"
+              />
+            </div>
+          </div>
+        </v-carousel-item>
+      </v-carousel>
     </modals-final-modal>
   </div>
 </template>

@@ -103,6 +103,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       products: false,
       boms: false,
       quotations: false,
+      attachment_imgs: false,
+      attachment_opened: 0,
     },
     optionRefBtnRef: [
       {
@@ -128,11 +130,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         index: null as number | null,
         product_id: null as number | null,
         product_uuid: '' as string
-      }
+      },
+      attachment_img: {} as SalesOrderAttachmentsType,
     },
     currencySymbolLabel: '' as string | null,
     referenceOptions: {
       vats: [] as FormVatType[],
+    },
+    modals: {
+      attachment_imgs: [] as SalesOrderAttachmentsType[],
     },
     headAutocomplete: {
       quo: {
@@ -259,12 +265,20 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form = response.data.data[0]
         if (!this.form.schedule) {
           this.form.is_scheduled = 0
-          // this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
+          this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
+          console.log("!this.form.schedule", this.form.schedule);
+
           // this.form.schedule.title = this.form.po_buyer_no
+        } else {
+          this.form.is_scheduled = 1
         }
 
         if (!this.form.attachments) {
           this.form.attachments = []
+        } else {
+          this.modals.attachment_imgs = this.form.attachments.filter((item: SalesOrderAttachmentsType) => {
+            return item.file_type.includes('image')
+          })
         }
 
         this.form.deleted_files = []
@@ -307,9 +321,38 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       try {
+        const formData = new FormData()
+
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/create-sales-order',
-          this.form
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
         this.form = JSON.parse(
           JSON.stringify(useInitials.formSalesOrderCreateEdit)
@@ -357,6 +400,10 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       try {
         let id = this.form.id
+
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
 
         const formData = new FormData()
 
@@ -446,9 +493,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
 
+      let actionText = 'update'
+
+      if (!this.form.is_scheduled && this.form.schedule && this.form.schedule.id) {
+        actionText = 'delete'
+      }
+
       const isConfirmed = await useAlert.showPopupConfirmation(
-        'Are you sure to update this data?',
-        'Schedule will be updated'
+        `Are you sure to ${actionText} this data?`,
+        `Schedule will be ${actionText}d`
       )
 
       if (!isConfirmed) {
@@ -456,11 +509,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         return
       }
 
-      console.log('updateSchedule', this.form.schedule);
-
-
       try {
         let id = this.form.id
+        if (!!this.form.schedule) {
+          this.form.schedule.sales_order_id = id as number
+          this.form.schedule.is_delete = 0
+        }
+
+        if (!this.form.is_scheduled && this.form.schedule) {
+          this.form.schedule.id = null
+          this.form.schedule.is_delete = 1
+        }
 
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-sales-order-schedule',
@@ -1495,6 +1554,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     goToSalesOrder(id: number) {
       navigateTo(`/sales/sales-orders/edit/${id}`);
     },
+
+    openModalAttachmentImg(isOpen: boolean, attachment: SalesOrderAttachmentsType) {
+      this.isOpenModal.attachment_imgs = isOpen
+
+      // find index attachment by id
+      this.isOpenModal.attachment_opened = this.modals.attachment_imgs.findIndex((item: SalesOrderAttachmentsType) => item.id === attachment.id)
+      // this.openedModal.attachment_img = attachment
+    }
   },
   persist: [
     {

@@ -806,6 +806,24 @@ defineExpose({
                   :page-end-prop="filter.others?.pageEndProp"
                   :method-api="filter.others?.methodApi"
                 />
+
+                <d-autocomplete-client
+                  v-else-if="filter.type === 'autocomplete-client'"
+                  v-model="filters[filter.key]"
+                  :items="filter.others?.items"
+                  :label="filter.title"
+                  :item-value="filter.others?.itemValue"
+                  :item-title="filter.others?.itemTitle"
+                  :mapping-detail="filter.others?.mappingDetail"
+                  :multiple="filter.others?.multiple"
+                  :return-object="filter.others?.returnObject"
+                  :item-color="filter.others?.itemColor"
+                  :is-display-multiple-key="filter.others?.isDisplayMultipleKey"
+                  :display-multiple-keys="
+                    filter.others?.displayMultipleKeys ?? ['id', 'name']
+                  "
+                  :max-length-display="filter.others?.maxLengthDisplay ?? 70"
+                />
               </div>
 
               <div class="col-span-3 grid grid-cols-2 gap-2 w-full">
