@@ -88,7 +88,7 @@ const headersSelectedItems = ref([
     title: "", 
     key: "dp_percentage", 
     align: "end", 
-    sortable: true,
+    sortable: false,
     customHeader: true
   },
   { title: "Total Amount DP", key: "total_dp", align: "end", sortable: true },
