@@ -2,6 +2,20 @@
 import type { SnackbarType } from "~/types/components/FormType";
 import { classMerge } from "~/utils/strings";
 // import {normalizeClass}
+
+defineOptions({
+  inheritAttrs: false,
+});
+const attrs = useAttrs();
+
+// Modify your activatorBindings computed
+const activatorBindings = computed(() => {
+  return {
+    ...attrs,
+    ...props.activator,
+  };
+});
+
 interface IProps {
   cta?: string;
   noIcon?: boolean;
@@ -27,8 +41,10 @@ interface IProps {
   isNotif?: boolean;
   notifText?: string;
   notifTimeout?: number;
-  activator?: any;
   attach?: any;
+  activator?: {
+    [key: string]: any;
+  };
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -56,7 +72,7 @@ const props = withDefaults(defineProps<IProps>(), {
   isNotif: false,
   notifText: (props) => `${props.cta}`,
   notifTimeout: 5000,
-  activator: null,
+  activator: () => ({}),
   attach: null,
 });
 
@@ -157,6 +173,7 @@ onMounted(() => {});
   <slot>
     <button
       v-if="type == 'submit'"
+      v-bind="activatorBindings"
       :class="
         classMerge(
           'flex cursor-pointer items-center p-1.5 transition-all ease-in-out hover:bg-zinc-100 sm:gap-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker',
@@ -211,6 +228,7 @@ onMounted(() => {});
     </button>
     <button
       v-else
+      v-bind="activatorBindings"
       :class="
         classMerge(
           'flex cursor-pointer flex-row items-center transition-all ease-in-out hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scDarker',

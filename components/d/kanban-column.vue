@@ -368,7 +368,7 @@ watch(
   () => props.steps,
   (newVal, oldVal) => {
     // if (newVal !== oldVal) {
-    console.log("steps changed", newVal);
+    // console.log("steps changed", newVal);
     // Update the listActions with the new steps
     watchListActionSubMenu(newVal);
     // }

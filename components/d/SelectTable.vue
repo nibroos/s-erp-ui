@@ -659,8 +659,6 @@ onMounted(async () => {
 
   generateFiltersObj();
 
-  console.log("props.modelValue", props.modelValue);
-
   if (!!props.modelValue && props.modelValue.length > 0) {
     itemsCheck.value.push(props.modelValue);
   }
@@ -807,6 +805,24 @@ defineExpose({
                   :items-prop="filter.others?.itemsProp"
                   :page-end-prop="filter.others?.pageEndProp"
                   :method-api="filter.others?.methodApi"
+                />
+
+                <d-autocomplete-client
+                  v-else-if="filter.type === 'autocomplete-client'"
+                  v-model="filters[filter.key]"
+                  :items="filter.others?.items"
+                  :label="filter.title"
+                  :item-value="filter.others?.itemValue"
+                  :item-title="filter.others?.itemTitle"
+                  :mapping-detail="filter.others?.mappingDetail"
+                  :multiple="filter.others?.multiple"
+                  :return-object="filter.others?.returnObject"
+                  :item-color="filter.others?.itemColor"
+                  :is-display-multiple-key="filter.others?.isDisplayMultipleKey"
+                  :display-multiple-keys="
+                    filter.others?.displayMultipleKeys ?? ['id', 'name']
+                  "
+                  :max-length-display="filter.others?.maxLengthDisplay ?? 70"
                 />
               </div>
 

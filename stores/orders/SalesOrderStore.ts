@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -89,7 +89,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
-
+      imageDownloadLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -103,6 +103,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       products: false,
       boms: false,
       quotations: false,
+      attachment_imgs: false,
+      attachment_opened: 0,
     },
     optionRefBtnRef: [
       {
@@ -128,11 +130,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         index: null as number | null,
         product_id: null as number | null,
         product_uuid: '' as string
-      }
+      },
+      attachment_img: {} as SalesOrderAttachmentsType,
     },
     currencySymbolLabel: '' as string | null,
     referenceOptions: {
       vats: [] as FormVatType[],
+    },
+    modals: {
+      attachment_imgs: [] as SalesOrderAttachmentsType[],
     },
     headAutocomplete: {
       quo: {
@@ -258,13 +264,25 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.form = response.data.data[0]
         if (!this.form.schedule) {
+          this.form.is_scheduled = 0
           this.form.schedule = useInitials.formSalesOrderCreateEdit.schedule
-          this.form.schedule.title = this.form.po_buyer_no
+          console.log("!this.form.schedule", this.form.schedule);
+
+          // this.form.schedule.title = this.form.po_buyer_no
+        } else {
+          this.form.is_scheduled = 1
         }
 
         if (!this.form.attachments) {
           this.form.attachments = []
+        } else {
+          this.modals.attachment_imgs = this.form.attachments.filter((item: SalesOrderAttachmentsType) => {
+            return item.file_type.includes('image')
+          })
         }
+
+        this.form.deleted_files = []
+
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
 
         // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
@@ -303,9 +321,38 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       try {
+        const formData = new FormData()
+
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/create-sales-order',
-          this.form
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
         this.form = JSON.parse(
           JSON.stringify(useInitials.formSalesOrderCreateEdit)
@@ -354,10 +401,58 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       try {
         let id = this.form.id
 
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
+
+        const formData = new FormData()
+
+        // Object.keys(this.form).forEach(key => {
+        //   const value = this.form[key as keyof typeof this.form]
+        //   if (value !== null && value !== undefined) {
+        //     if (key === 'files' && value instanceof File) {
+        //       formData.append(key, value)
+        //     }
+        //     else if (key === 'so_dts' && Array.isArray(this.form[key])) {
+        //       this.form[key].forEach((so_dt, index) => {
+        //         formData.append(`${key}[${index}]`, JSON.stringify(so_dt))
+        //       })
+        //     }
+        //     else {
+        //       formData.append(key, value as string | Blob)
+        //     }
+        //   }
+        // })
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-sales-order',
-          this.form
+          // this.form,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
+
         this.form = JSON.parse(
           JSON.stringify(useInitials.formSalesOrderCreateEdit)
         )
@@ -398,9 +493,15 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
 
+      let actionText = 'update'
+
+      if (!this.form.is_scheduled && this.form.schedule && this.form.schedule.id) {
+        actionText = 'delete'
+      }
+
       const isConfirmed = await useAlert.showPopupConfirmation(
-        'Are you sure to update this data?',
-        'Schedule will be updated'
+        `Are you sure to ${actionText} this data?`,
+        `Schedule will be ${actionText}d`
       )
 
       if (!isConfirmed) {
@@ -408,11 +509,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         return
       }
 
-      console.log('updateSchedule', this.form.schedule);
-
-
       try {
         let id = this.form.id
+        if (!!this.form.schedule) {
+          this.form.schedule.sales_order_id = id as number
+          this.form.schedule.is_delete = 0
+        }
+
+        if (!this.form.is_scheduled && this.form.schedule) {
+          this.form.schedule.id = null
+          this.form.schedule.is_delete = 1
+        }
 
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-sales-order-schedule',
@@ -1341,16 +1448,120 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       return response
     },
 
-    handleUploadFile(file: any) {
-      console.log('file', file);
+    handleUploadFile(event: Event) {
+      console.log('file', event);
+      // const input = event.target as HTMLInputElement
+      // if (input.files) {
+      // this.form.files = Array.from(input.files)
+      // }
     },
 
-    handleDeleteFile(index: number) {
-      console.log('index', index);
-      this.form.attachments.splice(index, 1);
+    handleDeleteFile(attachments: SalesOrderAttachmentsType | File, index: number) {
+      if ((attachments as SalesOrderAttachmentsType).id) {
+        this.form.attachments.splice(index, 1);
+        this.form.deleted_files.push((attachments as SalesOrderAttachmentsType).id);
+      }
+    },
+
+    async handleExistingFile(attachments: SalesOrderAttachmentsType, index: number) {
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to delete this file?',
+        'Data will be deleted permanently when you update this sales order',
+      )
+
+      if (!isConfirmed) {
+        return
+      }
+
+      try {
+        this.form.attachments.splice(index, 1);
+        this.form.deleted_files.push(attachments.id);
+      }
+      catch (error) {
+        console.error('Error deleting file:', error);
+        useAlert.alertError('Failed to delete file. Please try again later.');
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async handleDownloadFile(attachments: SalesOrderAttachmentsType) {
+      if (this.loading.imageDownloadLoading) return
+      this.loading.imageDownloadLoading = true
+
+      try {
+        const config = useRuntimeConfig();
+        const FILE_BASE_URL = config.public.BASE_URL_IMAGE;
+        const url = `${FILE_BASE_URL}/${attachments.file_url}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = attachments.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(objectUrl);
+
+      } catch (error) {
+        console.error("Error downloading file:", error);
+        useAlert.alertError('Failed to download file. Please try again later.');
+      } finally {
+        this.loading.imageDownloadLoading = false;
+      }
+    },
+
+    handleViewFullPageFile(attachments: SalesOrderAttachmentsType) {
+      if (this.loading.imageDownloadLoading) return
+
+      this.loading.imageDownloadLoading = true
+
+      try {
+        const config = useRuntimeConfig();
+        const FILE_BASE_URL = config.public.BASE_URL_IMAGE;
+        const url = `${FILE_BASE_URL}/${attachments.file_url}`;
+        const filename = attachments.file_name;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.target = "_blank";
+
+        // Append to body temporarily
+        document.body.appendChild(link);
+
+        // Trigger download
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error downloading file:", error);
+      }
+      finally {
+        this.loading.imageDownloadLoading = false
+      }
+    },
+
+    goToSalesOrder(id: number) {
+      navigateTo(`/sales/sales-orders/edit/${id}`);
+    },
+
+    openModalAttachmentImg(isOpen: boolean, attachment: SalesOrderAttachmentsType) {
+      this.isOpenModal.attachment_imgs = isOpen
+
+      // find index attachment by id
+      this.isOpenModal.attachment_opened = this.modals.attachment_imgs.findIndex((item: SalesOrderAttachmentsType) => item.id === attachment.id)
+      // this.openedModal.attachment_img = attachment
     }
-
-
   },
   persist: [
     {
