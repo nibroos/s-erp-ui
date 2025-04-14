@@ -11,7 +11,7 @@ export const topMenuMasterTab = [
     title: "Company Profile",
     number: 'company-profiles',
     icon: "mdi-domain",
-    link: "/masters/company-profiles",
+    link: "/masters/company-profiles/edit/1",
     permissions: ["r_roles"],
   },
   {

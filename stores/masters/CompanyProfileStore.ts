@@ -192,6 +192,8 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
           }
         )
         
+        const currentId = this.form.id
+    
         this.form = JSON.parse(
           JSON.stringify(useInitials.formCompanyProfileCreateEdit)
         )
@@ -199,7 +201,10 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
     
-        navigateTo(`/masters/company-profiles`)
+        navigateTo(`/masters/company-profiles/edit/${currentId}`)
+    
+        this.form.id = currentId
+        this.show()
     
         return response
       } catch (error: any) {
