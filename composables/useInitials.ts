@@ -764,7 +764,6 @@ const formCompanyProfileCreateEdit = {
   company_description: '',
   company_remark: '',
   company_status: 1,
-  is_primary: 0,
   company_options_json: null,
   bank_informations: []
 }
