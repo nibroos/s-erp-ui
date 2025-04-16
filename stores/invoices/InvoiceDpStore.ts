@@ -1148,7 +1148,12 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         console.error('Error getting applicable VAT:', error);
         return null;
       }
-    }
+    },
+
+    goToInvoiceDp(id: number) {
+      navigateTo(`/sales/sales-orders/edit/${id}`);
+    }     
+
   },
   persist: [
     {

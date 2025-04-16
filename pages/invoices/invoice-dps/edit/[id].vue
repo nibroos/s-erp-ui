@@ -214,6 +214,175 @@ const customSummary = ref({
   } as SummaryPartType,
 });
 
+const nextInvoiceDp = ref<number | null>(null);
+const fieldsConfig = ref<FieldSelectableType[]>([
+  {
+    title: "Invoice DP No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice Date",
+    key: "invoice_date",
+    value: "invoice_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Currency",
+    key: "currency_name",
+    value: "currency_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Exc. Rate",
+    key: "exchange_rate",
+    value: "exchange_rate",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "VAT",
+    key: "total_vat",
+    value: "total_vat",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "PPH",
+    key: "total_pph23",
+    value: "total_pph23",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Discount",
+    key: "total_discount",
+    value: "total_discount",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Subtotal",
+    key: "total_amount",
+    value: "total_amount",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Grand Total",
+    key: "grand_total",
+    value: "grand_total",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Status",
+    key: "status",
+    value: "status",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Created By",
+    key: "created_by_name",
+    value: "created_by_name",
+    align: "start",
+    sortable: true,
+  },
+]);
+
+const filtersConfig = ref<FilterSelectableType[]>([
+  {
+    title: "Customers",
+    key: "customer_ids",
+    type: "autocomplete",
+    others: {
+      methodApi: "post",
+      api: "/v1/customers/index-customer",
+      singleApi: "/v1/customers/index-customer",
+      mappingDetail: "data",
+      itemsProp: "data",
+      pageEndProp: "meta.next_page_url",
+      itemTitle: "name",
+      itemValue: "id",
+      label: "Customers",
+      innerSearchKey: "global",
+      multiple: true,
+      returnObject: false,
+      itemColor: "brown-lighten-2",
+    },
+  },
+  {
+    title: "Date Type",
+    key: "date_type",
+    type: "autocomplete-client",
+    others: {
+      items: [
+        { id: "invoice_date", name: "Invoice Date" },
+        { id: "created_at", name: "Created Date" },
+      ],
+    },
+  },
+  {
+    title: "Start Date",
+    key: "start_date",
+    type: "date",
+  },
+  {
+    title: "End Date",
+    key: "end_date",
+    type: "date",
+  },
+  {
+    title: "Currency",
+    key: "currency_ids",
+    type: "autocomplete",
+    others: {
+      methodApi: "post",
+      api: "/v1/currencies/index-currency",
+      singleApi: "/v1/currencies/index-currency",
+      mappingDetail: "data",
+      itemsProp: "data",
+      pageEndProp: "meta.next_page_url",
+      itemTitle: "name",
+      itemValue: "id",
+      label: "Currencies",
+      innerSearchKey: "global",
+      multiple: true,
+      returnObject: false,
+      itemColor: "brown-lighten-2",
+    },
+  },
+  {
+    title: "Status",
+    key: "status",
+    type: "autocomplete-client",
+    others: {
+      items: useStatics.formStatusInvoiceDp,
+    },
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+  },
+  {
+    title: "Global",
+    key: "global",
+  },
+]);
+
+
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   
@@ -366,6 +535,31 @@ watch(() => form.value.invoice_date, async (newDate) => {
       @click:clear="invoiceDpStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
+      <template #title-append>
+        <d-select-table
+          api="/v1/invoice-dps/index-invoice-dp"
+          detail-api="/v1/invoice-dps/index-invoice-dp"
+          method-api="post"
+          detail-method-api="post"
+          mapping-detail="data[0]"
+          total-prop="meta.total"
+          cta="Go To Invoice DP"
+          v-model="nextInvoiceDp"
+          class="col-span-2 lg:col-span-1"
+          is-quick-select
+          @click:selected="
+            (data) => {
+              if (!!data) {
+                invoiceDpStore.goToInvoiceDp(data.id);
+              }
+            }
+          "
+          modal-parent-class="!z-[2500]"
+          modal-custom-class="!w-4/5"
+          :fields="fieldsConfig"
+          :filters="filtersConfig"
+        />
+      </template>
       <template #header>
         <form
           :class="
