@@ -631,67 +631,164 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.isOpenModal.salesOrders = false;
     },
 
-    onClickUpdateProductsModal() {
-      if (this.isOpenModal.salesOrders) {
-        const existingCustomerId = this.form.customer_id;
-        const existingCurrencyId = this.form.currency_id;
-        const existingExchangeRate = this.form.exchange_rate;
-        const existingIsVat = this.form.is_vat;
-        const existingVatId = this.form.vat_id;
-        const existingVatPercentage = this.form.vat_percentage;
-        const existingPph23Id = this.form.pph23_id;
-        const existingPph23Percentage = this.form.pph23_percentage;
-        const existingDiscountAmount = this.form.discount_amount;
-        const existingDiscountPercentage = this.form.discount_percentage;
-        const existingRemark = this.form.remark;
+    // onClickUpdateProductsModal() {
+    //   if (this.isOpenModal.salesOrders) {
+    //     const existingCustomerId = this.form.customer_id;
+    //     const existingCurrencyId = this.form.currency_id;
+    //     const existingExchangeRate = this.form.exchange_rate;
+    //     const existingIsVat = this.form.is_vat;
+    //     const existingVatId = this.form.vat_id;
+    //     const existingVatPercentage = this.form.vat_percentage;
+    //     const existingPph23Id = this.form.pph23_id;
+    //     const existingPph23Percentage = this.form.pph23_percentage;
+    //     const existingDiscountAmount = this.form.discount_amount;
+    //     const existingDiscountPercentage = this.form.discount_percentage;
+    //     const existingRemark = this.form.remark;
     
-        if (!existingCustomerId) {
-          this.form.customer_id = this.headAutocomplete.so.customer_id;
-        }
+    //     if (!existingCustomerId) {
+    //       this.form.customer_id = this.headAutocomplete.so.customer_id;
+    //     }
         
-        if (!existingCurrencyId) {
-          this.form.currency_id = this.headAutocomplete.so.currency_id;
-        }
+    //     if (!existingCurrencyId) {
+    //       this.form.currency_id = this.headAutocomplete.so.currency_id;
+    //     }
         
-        if (!existingExchangeRate || existingExchangeRate === 0) {
-          this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
-        }
+    //     if (!existingExchangeRate || existingExchangeRate === 0) {
+    //       this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
+    //     }
         
-        if (existingIsVat === undefined || existingIsVat === null) {
-          this.form.is_vat = this.headAutocomplete.so.is_vat as number;
-        }
+    //     if (existingIsVat === undefined || existingIsVat === null) {
+    //       this.form.is_vat = this.headAutocomplete.so.is_vat as number;
+    //     }
         
-        if (!existingVatId) {
-          this.form.vat_id = this.headAutocomplete.so.vat_id;
-        }
+    //     if (!existingVatId) {
+    //       this.form.vat_id = this.headAutocomplete.so.vat_id;
+    //     }
         
-        if (!existingVatPercentage || existingVatPercentage === 0) {
-          this.form.vat_percentage = this.headAutocomplete.so.vat_percentage as number;
-        }
+    //     if (!existingVatPercentage || existingVatPercentage === 0) {
+    //       this.form.vat_percentage = this.headAutocomplete.so.vat_percentage as number;
+    //     }
         
-        if (!existingPph23Id) {
-          this.form.pph23_id = this.headAutocomplete.so.pph23_id;
-        }
+    //     if (!existingPph23Id) {
+    //       this.form.pph23_id = this.headAutocomplete.so.pph23_id;
+    //     }
         
-        if (!existingPph23Percentage || existingPph23Percentage === 0) {
-          this.form.pph23_percentage = this.headAutocomplete.so.pph23_percentage as number;
-        }
+    //     if (!existingPph23Percentage || existingPph23Percentage === 0) {
+    //       this.form.pph23_percentage = this.headAutocomplete.so.pph23_percentage as number;
+    //     }
         
-        if (!existingDiscountAmount || existingDiscountAmount === 0) {
-          this.form.discount_amount = this.headAutocomplete.so.discount_amount as number;
-        }
+    //     if (!existingDiscountAmount || existingDiscountAmount === 0) {
+    //       this.form.discount_amount = this.headAutocomplete.so.discount_amount as number;
+    //     }
         
-        if (!existingDiscountPercentage || existingDiscountPercentage === 0) {
-          this.form.discount_percentage = this.headAutocomplete.so.discount_percentage as number;
-        }
+    //     if (!existingDiscountPercentage || existingDiscountPercentage === 0) {
+    //       this.form.discount_percentage = this.headAutocomplete.so.discount_percentage as number;
+    //     }
         
-        if (!existingRemark) {
-          this.form.remark = this.headAutocomplete.so.remark;
+    //     if (!existingRemark) {
+    //       this.form.remark = this.headAutocomplete.so.remark;
+    //     }
+    //   }
+      
+    //   const existingItems = [...this.itemsCheck.checkMain];
+
+    //   this.selectItemRefModal();
+      
+    //   if (this.form.dp_percentage > 0) {
+    //     this.itemsCheck.checkMain.forEach(item => {
+    //       const existingItem = existingItems.find(existing => 
+    //         existing.ref_type === item.ref_type && 
+    //         existing.ref_id === item.ref_id && 
+    //         existing.ref_dt_id === item.ref_dt_id
+    //       );
+          
+    //       if (!existingItem) {
+    //         item.dp_percentage = this.form.dp_percentage;
+    //         item.total_dp = item.total_amount * (this.form.dp_percentage / 100);
+    //       }
+    //     });
+    //   }
+      
+    //   this.countSelectedReferences();
+    //   this.closeAllModal();
+    //   this.calculateTotalAmount();
+    // },
+
+    onClickUpdateProductsModal() {
+      if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
+        const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
+
+        if (!this.form.customer_id && firstSelectedItem.customer_id) {
+          this.form.customer_id = firstSelectedItem.customer_id;
+
+          if (firstSelectedItem.customer_id) {
+            this.fetchCustomerDetails(firstSelectedItem.customer_id);
+          }
+        }
+
+        if (!this.form.currency_id && firstSelectedItem.currency_id) {
+          this.form.currency_id = firstSelectedItem.currency_id;
+          this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
+        }
+
+        let hasVat = false;
+        let hasPph23 = false;
+
+        const pph23Counts = new Map<number, number>();
+        let maxPph23Count = 0;
+        let mostCommonPph23Id: number | null = null;
+        let mostCommonPph23Percentage = 0;
+
+        this.itemsCheck.checkSalesOrders.forEach(item => {
+          if (item.is_vat === 1) {
+            hasVat = true;
+          }
+
+          if (item.is_pph23 === 1 && item.pph23_id) {
+            hasPph23 = true;
+
+            const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
+            pph23Counts.set(item.pph23_id, currentCount);
+
+            if (currentCount > maxPph23Count) {
+              maxPph23Count = currentCount;
+              mostCommonPph23Id = item.pph23_id;
+              mostCommonPph23Percentage = item.pph23_percentage || 0;
+            }
+          }
+        });
+
+        if (hasVat && !this.form.is_vat) {
+          this.form.is_vat = 1;
+          this.onClickSwitchVAT(true);
+        }
+
+        if (hasPph23 && !this.form.pph23_id && mostCommonPph23Id) {
+          this.form.pph23_id = mostCommonPph23Id;
+          this.form.pph23_percentage = mostCommonPph23Percentage;
+          this.form.is_pph23 = 1;
+        }
+
+        if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
+        (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
+
+          if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
+            this.form.discount_amount = firstSelectedItem.head_disc_am;
+            this.form.discount_percentage = 0;
+          } 
+          else if (firstSelectedItem.head_disc_perc && firstSelectedItem.head_disc_perc > 0) {
+            this.form.discount_percentage = firstSelectedItem.head_disc_perc;
+            this.form.discount_amount = 0;
+          }
+        }
+
+        if (!this.form.remark && firstSelectedItem.head_remark) {
+          this.form.remark = firstSelectedItem.head_remark;
         }
       }
       
       const existingItems = [...this.itemsCheck.checkMain];
-
+    
       this.selectItemRefModal();
       
       if (this.form.dp_percentage > 0) {
@@ -712,7 +809,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.countSelectedReferences();
       this.closeAllModal();
       this.calculateTotalAmount();
-    },
+    },    
 
     onClickDeleteSelected(item: any, index: number) {
       this.itemsCheck.checkMain.splice(index, 1);

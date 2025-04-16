@@ -24,7 +24,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Create Invoice Down Payment",
+  title: "Create Invoice DP",
 });
 
 const headersCustomer = ref<FieldSelectableType[]>([
