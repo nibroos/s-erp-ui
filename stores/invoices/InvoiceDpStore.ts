@@ -1151,7 +1151,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
     },
 
     goToInvoiceDp(id: number) {
-      navigateTo(`/sales/sales-orders/edit/${id}`);
+      navigateTo(`/invoices/invoice-dps/edit/${id}`);
     }     
 
   },
