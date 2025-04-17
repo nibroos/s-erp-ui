@@ -47,19 +47,19 @@ const itemSales = [
   {
     title: "Invoice DP",
     icon: "mdi-credit-card-outline",
-    link: "/invoice-dp",
+    link: "/invoices/invoice-dps",
     permissions: ["r_sos"],
   },
   {
     title: "Sales Invoices",
     icon: "mdi-credit-card-outline",
-    link: "/sales-invoices",
+    link: "/invoices/sales-invoices",
     permissions: ["r_sos"],
   },
   {
     title: "Sales Adjustment",
     icon: "mdi-printer-pos-sync-outline",
-    link: "/sales-adjustment",
+    link: "/invoices/sales-adjustments",
     permissions: ["r_sos"],
   },
 ];

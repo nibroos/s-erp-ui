@@ -524,6 +524,105 @@ const formInventoryCreateEdit = {
   address: "",
 } as FormInventoryType
 
+const formInvoiceDpCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: 116,
+  payment_term_id: null,
+  vat_id: null,
+  pph23_id: null,
+  branch_id: null,
+  bank_id: null,
+  invoice_no: '',
+  invoice_date: new Date().toISOString().split('T')[0],
+  exchange_rate: 1,
+  remark: "Price not include VAT",
+  status: 'UNPAID',
+  pph23_percentage: 0,
+  vat_percentage: 0,
+  discount_amount: 0,
+  discount_percentage: 0,
+  discount_percentage_amount: 0,
+  discount_final: 0,
+  discount_type: null,
+  dp_percentage: 0,
+  subtotal: 0,
+  total_amount_products: 0,
+  total_dp_products: 0,
+  total_qty: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  invoice_dp_dts: [],
+
+  email: "",
+  phone: "",
+  address: "",
+
+  summary: {
+    total_amount: {
+      label: "Sub Amount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_discount: {
+      label: "Total Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_after_disc: {
+      label: "After Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_vat: {
+      label: "Total VAT",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_pph23: {
+      label: "Total PPH23",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_dp: {
+      label: "Total DP",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    grand_total: {
+      label: "Grand Total",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+  }
+} as FormInvoiceDpType
+
 const defaultSteps: FormScheduleStepType[] = [
   {
     uuid: randomId(),
@@ -642,6 +741,33 @@ const formOptionDefault: FormOptionSelectableType = {
   }
 }
 
+const formCompanyProfileCreateEdit = {
+  id: null,
+  parent_id: null,
+  vat_id: null,
+  pph23_id: null,
+  is_primary: 0,
+  payment_id: null,
+  company_name: '',
+  company_owner_name: '',
+  company_sign_name: '',
+  company_city: '',
+  company_province: '',
+  company_district: '',
+  company_postal_code: '',
+  company_address: '',
+  company_phone: '',
+  company_email: '',
+  company_website: '',
+  company_sign: null,
+  company_logo: null,
+  company_description: '',
+  company_remark: '',
+  company_status: 1,
+  company_options_json: null,
+  bank_informations: []
+}
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -668,6 +794,7 @@ type UseInitialsType = {
   defaultListSteps: typeof defaultListSteps;
   defaultSteps: typeof defaultSteps;
   formOptionDefault: typeof formOptionDefault;
+  formCompanyProfileCreateEdit: typeof formCompanyProfileCreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -693,4 +820,6 @@ export const useInitials: UseInitialsType = {
   defaultListSteps,
   defaultSteps,
   formOptionDefault,
+  formInvoiceDpCreateEdit,
+  formCompanyProfileCreateEdit,
 }

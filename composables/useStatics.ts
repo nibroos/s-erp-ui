@@ -11,7 +11,7 @@ export const topMenuMasterTab = [
     title: "Company Profile",
     number: 'company-profiles',
     icon: "mdi-domain",
-    link: "/masters/company-profiles",
+    link: "/masters/company-profiles/edit/1",
     permissions: ["r_roles"],
   },
   {
@@ -434,6 +434,36 @@ const defaultForm = {
   order_type_id: 129,
 }
 
+const InvoiceDpIndexStatus = [
+  {
+    value: 'UNPAID',
+    title: 'Unpaid',
+    color: 'red',
+  },
+  {
+    value: 'PAID',
+    title: 'Paid',
+    color: 'green',
+  },
+  {
+    value: 'CANCELLED',
+    title: 'Cancelled',
+    color: 'grey',
+  },
+]
+
+const formTabInvoiceDp = {
+  items: 0,
+  remarks: 1,
+}
+
+const formStatusInvoiceDp = [
+  { id: 'UNPAID', name: 'UNPAID' },
+  { id: 'PAID', name: 'PAID' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
+]
+
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -455,4 +485,7 @@ export const useStatics = {
   formTabPurchaseOrder,
   formStatusPurchaseOrder,
   defaultForm,
+  InvoiceDpIndexStatus,
+  formTabInvoiceDp,
+  formStatusInvoiceDp
 }
