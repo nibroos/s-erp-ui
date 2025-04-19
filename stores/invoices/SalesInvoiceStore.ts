@@ -632,64 +632,150 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.isOpenModal.salesOrders = false;
     },
 
+    // onClickUpdateProductsModal() {
+    //   if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
+    //     const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
+
+    //     if (!this.form.customer_id && firstSelectedItem.customer_id) {
+    //       this.form.customer_id = firstSelectedItem.customer_id;
+
+    //       if (firstSelectedItem.customer_id) {
+    //         this.fetchCustomerDetails(firstSelectedItem.customer_id);
+    //       }
+    //     }
+
+    //     if (!this.form.currency_id && firstSelectedItem.currency_id) {
+    //       this.form.currency_id = firstSelectedItem.currency_id;
+    //       this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
+    //     }
+
+    //     let hasVat = false;
+    //     let hasPph23 = false;
+
+    //     const pph23Counts = new Map<number, number>();
+    //     let maxPph23Count = 0;
+    //     let mostCommonPph23Id: number | null = null;
+    //     let mostCommonPph23Percentage = 0;
+
+    //     this.itemsCheck.checkSalesOrders.forEach(item => {
+    //       if (item.is_vat === 1) {
+    //         hasVat = true;
+    //       }
+
+    //       if (item.is_pph23 === 1 && item.pph23_id) {
+    //         hasPph23 = true;
+
+    //         const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
+    //         pph23Counts.set(item.pph23_id, currentCount);
+
+    //         if (currentCount > maxPph23Count) {
+    //           maxPph23Count = currentCount;
+    //           mostCommonPph23Id = item.pph23_id;
+    //           mostCommonPph23Percentage = item.pph23_percentage || 0;
+    //         }
+    //       }
+    //     });
+
+    //     if (hasVat && !this.form.is_vat) {
+    //       this.form.is_vat = 1;
+    //       this.onClickSwitchVAT(true);
+    //     }
+
+    //     if (hasPph23 && !this.form.pph23_id && mostCommonPph23Id) {
+    //       this.form.pph23_id = mostCommonPph23Id;
+    //       this.form.pph23_percentage = mostCommonPph23Percentage;
+    //       this.form.is_pph23 = 1;
+    //     }
+
+    //     if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
+    //     (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
+
+    //       if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
+    //         this.form.discount_amount = firstSelectedItem.head_disc_am;
+    //         this.form.discount_percentage = 0;
+    //       } 
+    //       else if (firstSelectedItem.head_disc_perc && firstSelectedItem.head_disc_perc > 0) {
+    //         this.form.discount_percentage = firstSelectedItem.head_disc_perc;
+    //         this.form.discount_amount = 0;
+    //       }
+    //     }
+
+    //     if (!this.form.remark && firstSelectedItem.head_remark) {
+    //       this.form.remark = firstSelectedItem.head_remark;
+    //     }
+    //   }
+      
+    //   const existingItems = [...this.itemsCheck.checkMain];
+    
+    //   this.selectItemRefModal();
+      
+    //   this.countSelectedReferences();
+    //   this.closeAllModal();
+    //   this.calculateTotalAmount();
+    // }, 
+    
     onClickUpdateProductsModal() {
       if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
         const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
-
+    
         if (!this.form.customer_id && firstSelectedItem.customer_id) {
           this.form.customer_id = firstSelectedItem.customer_id;
-
+    
           if (firstSelectedItem.customer_id) {
             this.fetchCustomerDetails(firstSelectedItem.customer_id);
           }
         }
-
+    
         if (!this.form.currency_id && firstSelectedItem.currency_id) {
           this.form.currency_id = firstSelectedItem.currency_id;
           this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
         }
-
+    
         let hasVat = false;
         let hasPph23 = false;
-
+    
         const pph23Counts = new Map<number, number>();
         let maxPph23Count = 0;
         let mostCommonPph23Id: number | null = null;
         let mostCommonPph23Percentage = 0;
-
+    
         this.itemsCheck.checkSalesOrders.forEach(item => {
           if (item.is_vat === 1) {
             hasVat = true;
           }
-
-          if (item.is_pph23 === 1 && item.pph23_id) {
+    
+          if (item.is_pph23 === 1) {
             hasPph23 = true;
-
-            const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
-            pph23Counts.set(item.pph23_id, currentCount);
-
-            if (currentCount > maxPph23Count) {
-              maxPph23Count = currentCount;
-              mostCommonPph23Id = item.pph23_id;
-              mostCommonPph23Percentage = item.pph23_percentage || 0;
+            
+            // Check if head_pph23_id exists and add it to the count
+            if (item.head_pph23_id) {
+              const currentCount = (pph23Counts.get(item.head_pph23_id) || 0) + 1;
+              pph23Counts.set(item.head_pph23_id, currentCount);
+    
+              if (currentCount > maxPph23Count) {
+                maxPph23Count = currentCount;
+                mostCommonPph23Id = item.head_pph23_id;
+                mostCommonPph23Percentage = item.head_pph23_perc || 0;
+              }
             }
           }
         });
-
+    
         if (hasVat && !this.form.is_vat) {
           this.form.is_vat = 1;
           this.onClickSwitchVAT(true);
         }
-
-        if (hasPph23 && !this.form.pph23_id && mostCommonPph23Id) {
+    
+        // Fix: Set PPH23 ID and percentage even if form.pph23_id is already set
+        if (hasPph23 && mostCommonPph23Id) {
           this.form.pph23_id = mostCommonPph23Id;
           this.form.pph23_percentage = mostCommonPph23Percentage;
           this.form.is_pph23 = 1;
         }
-
+    
         if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
         (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
-
+    
           if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
             this.form.discount_amount = firstSelectedItem.head_disc_am;
             this.form.discount_percentage = 0;
@@ -699,7 +785,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             this.form.discount_amount = 0;
           }
         }
-
+    
         if (!this.form.remark && firstSelectedItem.head_remark) {
           this.form.remark = firstSelectedItem.head_remark;
         }
