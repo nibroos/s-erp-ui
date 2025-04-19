@@ -67,12 +67,20 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
     isOpenModal: {
       salesOrders: false,
+      inventoryOuts: false,
     },
     optionRefBtnRef: [
       {
         cta: "Sales Order",
         key: "salesOrders",
         icon: "mdi-cart-outline",
+        count: 0,
+        type: "button",
+      },
+      {
+        cta: "Inventory Out",
+        key: "inventoryOuts",
+        icon: "mdi-package-variant-closed",
         count: 0,
         type: "button",
       },
