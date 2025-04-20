@@ -195,6 +195,18 @@ watch(
     emit("update:modelValue", selected.value);
   }
 );
+
+watch(
+  () => props.items,
+  (newValue) => {
+    if (props.checkDuplicate == true) {
+      options.value = removeDuplicates(newValue);
+    } else {
+      options.value = newValue;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

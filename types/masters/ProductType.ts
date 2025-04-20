@@ -32,6 +32,8 @@ export type CreateMsItemUnitsRequestType = {
   conversion: number
   price_sell: number
   price_buy: number
+
+  name?: string
 }
 
 export type CreateBomsRequestType = {
@@ -40,6 +42,11 @@ export type CreateBomsRequestType = {
   item_unit_id: number
   qty: number
   remark?: string | null
+
+  ref_id?: number
+  product_id: number
+  name?: string
+  item_name?: string
 }
 
 export type ProductListType = {
@@ -87,6 +94,9 @@ export type ProductListType = {
   item_remark?: string
   item_tpb_code?: string
   boms?: ProductBomListType[]
+
+  ref_id?: number
+  product_item_id?: number
 }
 
 export type ProductBomListType = {

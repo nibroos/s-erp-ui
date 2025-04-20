@@ -48,10 +48,11 @@ useHead({
 const id = ref(router.currentRoute.value.params.id);
 
 const headersBoms = ref<FieldSelectableType[]>([
-  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "code", title: "Item Code", sortable: true },
+  { key: "name", title: "Item Name", sortable: true },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
-  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
+  // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
+  // { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
   { key: "remark", title: "Remark", sortable: true },
   {
     key: "action",
@@ -65,7 +66,7 @@ const headersBoms = ref<FieldSelectableType[]>([
 ]);
 
 const headersUnits = ref<FieldSelectableType[]>([
-  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "name", title: "Unit", sortable: true },
   { key: "conversion", title: "Conversion", sortable: true, align: "end" },
   { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
@@ -123,35 +124,61 @@ const filtersSubGroup = ref<FilterSelectableType[]>([
   },
 ]);
 
+const headersModalBoms = ref<FieldSelectableType[]>([
+  { key: "item_group_name", title: "Group", sortable: true },
+  { key: "item_sub_group_name", title: "Subgroup", sortable: true },
+  { key: "code", title: "Product Code", sortable: true },
+  { key: "name", title: "Product Name", sortable: true },
+  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "sku", title: "SKU", align: "end", sortable: true },
+  { key: "barcode", title: "Barcode", align: "end", sortable: true },
+  {
+    key: "specification",
+    title: "Specification",
+    align: "end",
+    sortable: true,
+  },
+  { key: "price_sell", title: "Price Sell", align: "end", sortable: true },
+  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
+  { key: "remark", title: "Remark", sortable: true },
+]);
+
 const headersModalUnits = ref<FieldSelectableType[]>([
   {
     title: "Unit Name",
-    key: "unit_name",
-    value: "unit_name",
+    key: "name",
+    value: "name",
     align: "start",
     sortable: true,
   },
   {
-    title: "Price Buy",
-    key: "price_buy",
-    value: "price_buy",
-    align: "end",
+    title: "Code",
+    key: "code",
+    value: "code",
+    align: "start",
     sortable: true,
   },
-  {
-    title: "Price Sell",
-    key: "price_sell",
-    value: "price_sell",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Conversion",
-    key: "conversion",
-    value: "conversion",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Price Buy",
+  //   key: "price_buy",
+  //   value: "price_buy",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  // {
+  //   title: "Price Sell",
+  //   key: "price_sell",
+  //   value: "price_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  // {
+  //   title: "Conversion",
+  //   key: "conversion",
+  //   value: "conversion",
+  //   align: "end",
+  //   sortable: true,
+  // },
 ]);
 
 const filtersOptionsBoms = ref([
@@ -236,7 +263,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/masters/products",
   currentTab: tabFormIndex.value,
-  tabs: ["BOM", "Units", "Remark"],
+  tabs: ["BOM", "Conversions", "Remark"],
   button: {
     clear: {
       show: true,
@@ -277,36 +304,16 @@ const handleSubmit = async () => {
   await productStore.store();
 };
 
-const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
-  isOpenModal.value.units = false;
-  if (ref.key == "units") {
-    isOpenModal.value.units = true;
-  } else if (ref.key == "boms") {
-    isOpenModal.value.boms = true;
-  }
+// const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {
+//   isOpenModal.value.units = false;
+//   if (ref.key == "units") {
+//     isOpenModal.value.units = true;
+//   } else if (ref.key == "boms") {
+//     isOpenModal.value.boms = true;
+//   }
 
-  await productStore.indexUnit();
-};
-
-const fetchModalFilter = async () => {
-  if (isOpenModal.value.units) {
-    await productStore.indexUnit();
-  }
-  if (isOpenModal.value.boms) {
-    await productStore.indexBom();
-  }
-  // else if (showModal.value.listPO) {
-  //   queryModal.value.qListPO.customer_id = form.value.customer_id
-  //   await useInventoryIn.getPurchaseOrderData(
-  //     qs.stringify(queryModal.value.qListPO)
-  //   )
-  // } else if (showModal.value.listWip) {
-  //   // queryModal.value.qListWip.customer_id = form.value.customer_id
-  //   // queryModal.value.qListWip.mode = 'OUT'
-
-  //   await useInventoryIn.getAllDataRequestWIP()
-  // }
-};
+//   await productStore.indexUnit();
+// };
 
 const fetchInitialData = async () => {
   form.value.id = Number(id.value);
@@ -345,7 +352,7 @@ const fetchDataServerFetch = async (options: { [key: string]: any }) => {
     }
   }
 
-  fetchModalFilter();
+  productStore.fetchModalFilter();
 };
 
 const onClickUpdateProductsModal = () => {
@@ -355,6 +362,10 @@ const onClickUpdateProductsModal = () => {
 
 const onClickDeleteSelected = (item: any, index: number) => {
   itemsCheck.value.checkMainBoms.splice(index, 1);
+};
+
+const onClickDeleteSelectedUnit = (item: any, index: number) => {
+  itemsCheck.value.checkMainUnits.splice(index, 1);
 };
 
 const onClickUpdateBomsModal = () => {
@@ -466,6 +477,19 @@ watchEffect(() => {
                 item-title="name"
                 :clearable="false"
               />
+
+              <!-- <d-autocomplete
+                v-model="form.item_unit_id"
+                api="/v1/units/index-unit"
+                single-api="/v1/units/show-unit"
+                page-end-prop="meta.next_page_url"
+                item-title="name"
+                item-value="id"
+                method-api="post"
+                inner-search-key="global"
+                label="Unit"
+                :errors="errors.item_unit_id"
+              ></d-autocomplete> -->
             </div>
           </div>
 
@@ -488,12 +512,20 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabProduct.boms"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
-          <d-btn
-            class="col-span-2"
-            @click="onClickOpenModalOptionRefBtn({ key: 'boms' })"
-            :cta="`Add BOM (${itemsCheck.checkMainBoms.length})`"
-          >
-          </d-btn>
+          <div class="col-span-2">
+            <d-bt
+              :class="'!border !border-solid p-2 gap-1 text-dark1 !border-grey3 dark:border-dark1 transition-all ease-in-out dark:bg-dark2 dark:hover:bg-dark1 dark:text-primary1 rounded-lg'"
+              @click="
+                productStore.onClickOpenModalOptionRefBtn({ key: 'boms' })
+              "
+              :cta="`BOM (${itemsCheck.checkMainBoms.length})`"
+              no-icon
+              :type="'button'"
+              key="products"
+              icon="mdi-alpha-m-box-outline"
+            >
+            </d-bt>
+          </div>
 
           <d-bt
             :cta="'Clear References'"
@@ -531,12 +563,6 @@ watchEffect(() => {
                 class="w-[9rem]"
               />
             </template>
-            <template #item.price_buy="{ item }">
-              <d-num-layout :value="item.price_buy" />
-            </template>
-            <template #item.price_sell="{ item }">
-              <d-num-layout :value="item.price_buy" />
-            </template>
             <template #item.qty="{ item }">
               <d-num-v-format
                 v-model="item.qty"
@@ -546,9 +572,34 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 label=""
+                :initial-value="item.qty ?? 1"
+                class="w-full"
+              />
+            </template>
+            <!-- <template #item.price_buy="{ item }">
+              <d-num-v-format
+                v-model="item.price_buy"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                label=""
                 class="w-[9rem]"
               />
             </template>
+            <template #item.price_sell="{ item }">
+              <d-num-v-format
+                v-model="item.price_sell"
+                :precision="{
+                  min: 3,
+                  max: 3,
+                }"
+                hide-currency-display
+                label=""
+                class="w-[9rem]"
+              />
+            </template> -->
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt
@@ -570,8 +621,113 @@ watchEffect(() => {
         </div>
         <div
           v-if="tabFormIndex == useStatics.formTabProduct.units"
-          class="grid grid-cols-6 sm:grid-cols-1 gap-2 gap-y-4 items-center"
-        ></div>
+          class="grid grid-cols-3 sm:grid-cols-1 gap-2"
+        >
+          <div class="col-span-2">
+            <d-bt
+              :class="'!border !border-solid p-2 gap-1 text-dark1 !border-grey3 dark:border-dark1 transition-all ease-in-out dark:bg-dark2 dark:hover:bg-dark1 dark:text-primary1 rounded-lg'"
+              @click="
+                productStore.onClickOpenModalOptionRefBtn({ key: 'units' })
+              "
+              :cta="`Unit (${itemsCheck.checkMainUnits.length})`"
+              no-icon
+              :type="'button'"
+              key="products"
+              icon="mdi-alpha-m-box-outline"
+            >
+            </d-bt>
+          </div>
+
+          <d-bt
+            :cta="'Clear References'"
+            :class="
+              classMerge(
+                '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+              )
+            "
+            :text-class="classMerge('text-scDarker dark:text-white mx-auto')"
+            :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
+            icon="mdi-refresh"
+            type="button"
+            @click="productStore.clickClearRefs"
+          />
+          <v-data-table-virtual
+            :items="itemsCheck.checkMainUnits ?? []"
+            :headers="headersUnits"
+            item-value="uid"
+            density="compact"
+            height="500"
+            fixed-header
+            class="col-span-3 sm:col-span-1 table-hover"
+            :header-props="{
+              class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
+            }"
+            :row-props="{
+              class: 'whitespace-nowrap',
+            }"
+          >
+            <template #item.conversion="{ item }">
+              <div class="flex w-full justify-end">
+                <d-num-v-format
+                  v-model="item.conversion"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  :initial-value="item.conversion ?? 1"
+                  hide-currency-display
+                  label=""
+                  class="w-[9rem]"
+                />
+              </div>
+            </template>
+            <template #item.price_buy="{ item }">
+              <div class="flex w-full justify-end">
+                <d-num-v-format
+                  v-model="item.price_buy"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  label=""
+                  class="w-[9rem]"
+                />
+              </div>
+            </template>
+            <template #item.price_sell="{ item }">
+              <div class="flex w-full justify-end">
+                <d-num-v-format
+                  v-model="item.price_sell"
+                  :precision="{
+                    min: 3,
+                    max: 3,
+                  }"
+                  hide-currency-display
+                  label=""
+                  class="w-[9rem]"
+                />
+              </div>
+            </template>
+            <template #item.action="{ item, index }">
+              <div class="action-button flex gap-2">
+                <d-bt
+                  @click="onClickDeleteSelectedUnit(item, index)"
+                  icon="mdi-delete"
+                  is-no-text
+                  class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                  icon-class="text-cancel dark:text-primary1"
+                  rounded="xl"
+                  size=""
+                  cta="delete"
+                  icon-size="16"
+                  :is-notif="true"
+                  :notif-text="`${item.name} deleted`"
+                ></d-bt>
+              </div>
+            </template>
+          </v-data-table-virtual>
+        </div>
         <div
           v-if="tabFormIndex == useStatics.formTabProduct.remarks"
           class="grid grid-cols-1 gap-2"
@@ -602,7 +758,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="fetchModalFilter"
+          @submit.prevent="productStore.fetchModalFilter"
         >
           <d-text-input
             v-for="filter in filtersTextUnits"
@@ -614,7 +770,7 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="fetchModalFilter"
+            @click:submit="productStore.fetchModalFilter"
             @click:clear="productStore.handleClearQuery()"
             class="grid-cols-1"
           />
@@ -678,7 +834,7 @@ watchEffect(() => {
             @click="onClickUpdateProductsModal"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected Products ({{ itemsCheck.checkUnits.length }})
+            Add Selected Units ({{ itemsCheck.checkUnits.length }})
           </button>
         </div>
       </template>
@@ -694,7 +850,7 @@ watchEffect(() => {
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="fetchModalFilter"
+          @submit.prevent="productStore.fetchModalFilter"
         >
           <d-autocomplete
             v-for="filter in filtersOptionsBoms"
@@ -722,7 +878,7 @@ watchEffect(() => {
           />
 
           <d-submit-button
-            @click:submit="fetchModalFilter"
+            @click:submit="productStore.fetchModalFilter"
             @click:clear="productStore.handleClearQuery()"
             class="grid-cols-1"
           />
@@ -732,7 +888,7 @@ watchEffect(() => {
       <v-data-table-server
         v-model="itemsCheck.checkBoms"
         :items="metaModal.indexBoms.data ?? []"
-        :headers="headersModalUnits"
+        :headers="headersModalBoms"
         :items-per-page="queryModal.qListBoms.per_page"
         :items-length="metaModal.indexBoms.meta.total ?? 0"
         :items-per-page-options="useInitials.perPageOptions"

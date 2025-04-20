@@ -75,7 +75,7 @@ const headers = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersBOM = ref([
+const headersBOM = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
