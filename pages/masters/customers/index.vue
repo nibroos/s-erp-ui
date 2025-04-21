@@ -115,6 +115,8 @@ const filtersConfig = ref<FilterSelectableType[]>([
       <d-datatable
         api="/v1/customers/index-customer"
         detail-link="/masters/customers"
+        edit-link="/masters/customers/edit"
+        delete-api="/v1/customers/delete-customer"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -128,7 +130,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         :filters="filtersConfig"
         :query-modal="queryModal.qListIndex"
         :create-option="{
-          link: '/masters/customizations/customers/create',
+          link: '/masters/customers/create',
           show: true,
           cta: '+ Create',
         }"

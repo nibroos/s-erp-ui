@@ -111,6 +111,10 @@ const useProductStore = defineStore('ProductStore', {
           this.form
         )
         this.form = response.data.data[0]
+        this.itemsCheck.checkMainBoms = this.form.boms
+        this.itemsCheck.checkBoms = this.form.boms
+        this.itemsCheck.checkMainUnits = this.form.units
+        this.itemsCheck.checkUnits = this.form.units
 
         return response
       } catch (error: any) {
