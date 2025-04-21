@@ -84,7 +84,7 @@ const headersSelectedItems = ref([
   { title: "Product Name", key: "product_name", sortable: true },
   { title: "Unit", key: "unit_name", sortable: true },
   { title: "Price", key: "price", align: "end", sortable: true },
-  { title: "Qty", key: "qty", align: "end", sortable: true },
+  { title: "Qty", key: "qty", align: "end", sortable: false },
   { title: "Discount", key: "discount", align: "end", sortable: true },
   { title: "Sub Amount", key: "total_amount", align: "end", sortable: true },
   { title: "DP Amount", key: "total_dp", align: "end", sortable: true },
