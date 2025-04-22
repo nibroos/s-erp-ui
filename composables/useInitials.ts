@@ -785,6 +785,114 @@ const formCompanyProfileCreateEdit = {
   bank_informations: []
 }
 
+const formSalesInvoiceCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: 116,
+  payment_term_id: null,
+  vat_id: null,
+  pph23_id: null,
+  branch_id: null,
+  bank_id: null,
+  invoice_no: '',
+  invoice_date: new Date().toISOString().split('T')[0],
+  exchange_rate: 1,
+  remark: "Price not include VAT",
+  rev_no: 0,
+  status: 'UNPAID',
+  pph23_percentage: 0,
+  vat_percentage: 0,
+  discount_amount: 0,
+  discount_percentage: 0,
+  discount_percentage_amount: 0,
+  discount_final: 0,
+  discount_type: null,
+  subtotal: 0,
+  total_amount_products: 0,
+  total_dp_products: 0,
+  total_balance_products: 0,
+  total_qty: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  sales_invoice_dts: [],
+
+  email: "",
+  phone: "",
+  address: "",
+
+  summary: {
+    total_amount: {
+      label: "Sub Amount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_discount: {
+      label: "Total Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_after_disc: {
+      label: "After Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_vat: {
+      label: "Total VAT",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_pph23: {
+      label: "Total PPH23",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_dp: {
+      label: "Total DP",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_balance: {
+      label: "Total Balance",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    grand_total: {
+      label: "Grand Total",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+  }
+} as FormSalesInvoiceType
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -812,6 +920,7 @@ type UseInitialsType = {
   defaultSteps: typeof defaultSteps;
   formOptionDefault: typeof formOptionDefault;
   formCompanyProfileCreateEdit: typeof formCompanyProfileCreateEdit;
+  formSalesInvoiceCreateEdit: typeof formSalesInvoiceCreateEdit;
   formInvoiceDpCreateEdit: typeof formInvoiceDpCreateEdit;
   formCustomerCreateEdit: typeof formCustomerCreateEdit;
 }
@@ -841,5 +950,6 @@ export const useInitials: UseInitialsType = {
   formOptionDefault,
   formInvoiceDpCreateEdit,
   formCompanyProfileCreateEdit,
+  formSalesInvoiceCreateEdit,
   formCustomerCreateEdit
 }

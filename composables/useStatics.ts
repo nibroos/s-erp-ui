@@ -438,7 +438,7 @@ const InvoiceDpIndexStatus = [
   {
     value: 'UNPAID',
     title: 'Unpaid',
-    color: 'red',
+    color: 'orange',
   },
   {
     value: 'PAID',
@@ -463,6 +463,34 @@ const formStatusInvoiceDp = [
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
+const SalesInvoiceIndexStatus = [
+  {
+    value: 'UNPAID',
+    title: 'Unpaid',
+    color: 'orange',
+  },
+  {
+    value: 'PAID',
+    title: 'Paid',
+    color: 'green',
+  },
+  {
+    value: 'CANCELLED',
+    title: 'Cancelled',
+    color: 'grey',
+  },
+]
+
+const formTabSalesInvoice = {
+  items: 0,
+  remarks: 1,
+}
+
+const formStatusSalesInvoice = [
+  { id: 'UNPAID', name: 'UNPAID' },
+  { id: 'PAID', name: 'PAID' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
+]
 
 export const useStatics = {
   QuoIndexStatus,
@@ -487,5 +515,8 @@ export const useStatics = {
   defaultForm,
   InvoiceDpIndexStatus,
   formTabInvoiceDp,
-  formStatusInvoiceDp
+  formStatusInvoiceDp,
+  SalesInvoiceIndexStatus,
+  formTabSalesInvoice,
+  formStatusSalesInvoice
 }
