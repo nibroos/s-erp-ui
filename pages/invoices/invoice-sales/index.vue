@@ -228,13 +228,13 @@ async function changeStatus(id: number, status: string) {
         search-placeholder="Search anything related to Sales Invoice..."
         is-quick-select
         no-title
-        edit-link="/invoices/sales-invoices/edit"
+        edit-link="/invoices/invoice-sales/edit"
         delete-api="/v1/sales-invoices/delete-sales-invoice"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/invoices/sales-invoices/create',
+          link: '/invoices/invoice-sales/create',
           show: true,
           cta: '+ Create',
         }"

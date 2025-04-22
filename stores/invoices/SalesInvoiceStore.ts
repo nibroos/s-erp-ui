@@ -113,7 +113,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/invoices/sales-invoices",
+      parentPath: "/invoices/invoice-sales",
       currentTab: 0,
       tabs: ["Items", "Remark", "Attachments"],
       button: {
@@ -232,7 +232,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/invoices/sales-invoices`)
+        navigateTo(`/invoices/invoice-sales`)
 
         return response
       } catch (error: any) {
@@ -294,7 +294,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
-        navigateTo(`/invoices/sales-invoices`)
+        navigateTo(`/invoices/invoice-sales`)
 
         return response
       } catch (error: any) {
@@ -1137,7 +1137,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
 
     goToSalesInvoice(id: number) {
-      navigateTo(`/invoices/sales-invoices/edit/${id}`);
+      navigateTo(`/invoices/invoice-sales/edit/${id}`);
     }     
   },
   persist: [

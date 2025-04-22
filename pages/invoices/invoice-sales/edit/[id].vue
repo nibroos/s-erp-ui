@@ -384,7 +384,7 @@ const formatDate = (dateString: string) => {
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/invoices/sales-invoices",
+  parentPath: "/invoices/invoice-sales",
   currentTab: tabFormIndex.value,
   tabs: useStatics.formTabSalesInvoice
     ? Object.keys(useStatics.formTabSalesInvoice).map(
@@ -394,7 +394,7 @@ const formLayout = ref({
   mode: "edit",
   button: {
     create: {
-      path: "/invoices/sales-invoices/create",
+      path: "/invoices/invoice-sales/create",
       show: true,
     },
     save: {
@@ -415,7 +415,7 @@ const initialFormLayout = () => {
   formLayout.value.mode = "edit";
   formLayout.value.button = {
     create: {
-      path: "/invoices/sales-invoices/create",
+      path: "/invoices/invoice-sales/create",
       show: true,
     },
     save: {

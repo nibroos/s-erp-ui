@@ -213,7 +213,7 @@ const formatDate = (dateString: string) => {
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/invoices/sales-invoices",
+  parentPath: "/invoices/invoice-sales",
   currentTab: tabFormIndex.value,
   tabs: useStatics.formTabSalesInvoice
     ? Object.keys(useStatics.formTabSalesInvoice).map(

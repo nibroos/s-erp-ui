@@ -51,15 +51,21 @@ const itemSales = [
     permissions: ["r_sos"],
   },
   {
-    title: "Sales Invoices",
+    title: "Invoice Sales",
     icon: "mdi-credit-card-outline",
-    link: "/invoices/sales-invoices",
+    link: "/invoices/invoice-sales",
     permissions: ["r_sos"],
   },
   {
-    title: "Sales Adjustment",
+    title: "Invoice Adjustment",
     icon: "mdi-printer-pos-sync-outline",
-    link: "/invoices/sales-adjustments",
+    link: "/invoices/invoice-adjustments",
+    permissions: ["r_sos"],
+  },
+  {
+    title: "Invoice Maintenance",
+    icon: "mdi-printer-pos-sync-outline",
+    link: "/invoices/invoice-maintenances",
     permissions: ["r_sos"],
   },
 ];
