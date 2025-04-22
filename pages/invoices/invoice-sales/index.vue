@@ -18,7 +18,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Sales Invoice",
+  title: "Invoice Sales",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([

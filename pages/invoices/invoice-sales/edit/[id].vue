@@ -27,7 +27,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Edit Sales Invoice",
+  title: "Edit Invoice Sales",
 });
 
 const headersCustomer = ref<FieldSelectableType[]>([
