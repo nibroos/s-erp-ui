@@ -3,7 +3,9 @@ import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 import type { AutocompleteType } from '~/types/AutocompleteType'
 import type { FormInventoryType } from '~/types/inventories/InventoryType'
+import type { FormInvoiceDpType } from '~/types/invoice-dps/InvoiceDpType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
+import type { FormCustomerType } from '~/types/masters/CustomerType'
 import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
 import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
@@ -62,6 +64,21 @@ const formUnitCreateEdit = {
   status: 1,
   unit_id: null,
 } as FormItemGroupType
+
+const formCustomerCreateEdit = {
+  id: null,
+  customer_type_id: null,
+  agent_id: null,
+  currency_id: null,
+  name: '',
+  phone: null,
+  email: null,
+  address: null,
+  shortname: null,
+  remark: null,
+  pic: null,
+  status: 1,
+} as FormCustomerType
 
 const formCurrencyCreateEdit = {
   name: '',
@@ -904,6 +921,8 @@ type UseInitialsType = {
   formOptionDefault: typeof formOptionDefault;
   formCompanyProfileCreateEdit: typeof formCompanyProfileCreateEdit;
   formSalesInvoiceCreateEdit: typeof formSalesInvoiceCreateEdit;
+  formInvoiceDpCreateEdit: typeof formInvoiceDpCreateEdit;
+  formCustomerCreateEdit: typeof formCustomerCreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -932,4 +951,5 @@ export const useInitials: UseInitialsType = {
   formInvoiceDpCreateEdit,
   formCompanyProfileCreateEdit,
   formSalesInvoiceCreateEdit,
+  formCustomerCreateEdit
 }

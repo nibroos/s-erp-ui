@@ -45,7 +45,7 @@
     "@types/qs": "^6.9.14",
     "autoprefixer": "^10.4.13",
     "vite-plugin-vuetify": "^2.0.3",
-    "vuetify": "^3.8.2",
+    "vuetify": "3.8.2",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
     "nuxt-lodash": "^2.5.3"

@@ -264,7 +264,16 @@ const formLayout = ref({
   parentPath: "/masters/products",
   currentTab: tabFormIndex.value,
   tabs: ["BOM", "Conversions", "Remark"],
+  mode: "edit",
   button: {
+    create: {
+      path: "/masters/products/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -301,7 +310,7 @@ const handleSubmit = async () => {
   form.value.boms = itemsCheck.value.checkMainBoms;
   form.value.units = itemsCheck.value.checkMainUnits;
 
-  await productStore.store();
+  await productStore.update();
 };
 
 // const onClickOpenModalOptionRefBtn = async (ref: RefBtnType) => {

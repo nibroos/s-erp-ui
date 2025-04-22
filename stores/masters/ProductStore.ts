@@ -111,6 +111,10 @@ const useProductStore = defineStore('ProductStore', {
           this.form
         )
         this.form = response.data.data[0]
+        this.itemsCheck.checkMainBoms = this.form.boms
+        this.itemsCheck.checkBoms = this.form.boms
+        this.itemsCheck.checkMainUnits = this.form.units
+        this.itemsCheck.checkUnits = this.form.units
 
         return response
       } catch (error: any) {
@@ -143,7 +147,7 @@ const useProductStore = defineStore('ProductStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/masters/customizations/products/edit/${response.data.data[0].id}`)
+        navigateTo(`/masters/products`)
 
         return response
       } catch (error: any) {
@@ -265,16 +269,23 @@ const useProductStore = defineStore('ProductStore', {
           '/v1/products/index-product',
           params
         )
-        this.metaModal.indexBoms.data = response.data.data
+        console.log('ProductStore-response', response.data.data);
+
+        this.metaModal.indexBoms = response.data
 
         this.metaModal.indexBoms.data.forEach((prod: ProductListType, iProd: number) => {
+          prod.product_item_id = prod.ref_id
           this.itemsCheck.checkBoms.forEach((checkBom: CreateBomsRequestType, iCheckBom: number) => {
-            if (prod.id == checkBom.product_item_id) {
-              prod.id = null
-              this.itemsCheck.checkBoms[iCheckBom] = {
+            // if (prod.ref_id == checkBom.product_item_id) {
+            if (prod.ref_id == checkBom.ref_id) {
+              // prod.id = null
+              let combine = {
                 ...prod,
                 ...checkBom
               }
+
+              this.itemsCheck.checkBoms[iCheckBom] = combine
+              this.metaModal.indexBoms.data[iProd] = combine
             }
           })
         })
@@ -299,16 +310,19 @@ const useProductStore = defineStore('ProductStore', {
           '/v1/units/index-unit',
           params
         )
-        this.metaModal.indexUnits.data = response.data.data
+        this.metaModal.indexUnits = response.data
 
         this.metaModal.indexUnits.data.forEach((unit: UnitType, iUnit: number) => {
           this.itemsCheck.checkUnits.forEach((checkUnit: CreateMsItemUnitsRequestType, iCheckUnit: number) => {
             if (unit.unit_id == checkUnit.unit_id) {
-              unit.id = null
-              this.itemsCheck.checkUnits[iCheckUnit] = {
+              // unit.id = null
+              let combine = {
                 ...unit,
                 ...checkUnit
               }
+
+              this.itemsCheck.checkUnits[iCheckUnit] = combine
+              this.metaModal.indexUnits.data[iUnit] = combine
             }
           })
         })
@@ -362,6 +376,34 @@ const useProductStore = defineStore('ProductStore', {
       this.itemsCheck.checkMainBoms = []
       this.itemsCheck.checkBoms = []
       this.errors = {};
+    },
+
+    async onClickOpenModalOptionRefBtn(ref: RefBtnType) {
+      // this.itemsCheck.checkBoms = updateSoRefsModalFromMain(
+      //   this.itemsCheck.checkMainBoms,
+      //   this.itemsCheck.checkBoms
+      // );
+
+      console.log('ref', ref);
+
+      this.isOpenModal.units = false;
+      if (ref.key == "units") {
+        this.isOpenModal.units = true;
+        console.log('ref.key1', ref.key, this.isOpenModal.units);
+      } else if (ref.key == "boms") {
+        this.isOpenModal.boms = true;
+        console.log('ref.key2', ref.key, this.isOpenModal.boms);
+
+      }
+      await this.fetchModalFilter();
+    },
+
+    async fetchModalFilter() {
+      if (this.isOpenModal.boms) {
+        await this.indexBom();
+      } else if (this.isOpenModal.units) {
+        await this.indexUnit()
+      }
     },
 
   },
