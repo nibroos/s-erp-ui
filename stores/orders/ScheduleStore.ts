@@ -26,6 +26,7 @@ const useScheduleStore = defineStore('ScheduleStore', {
     isOpen: {
       plusEvent: false,
       detailEvent: false,
+      createEvent: false,
     },
     modalData: {
       plusEvents: [] as any[],

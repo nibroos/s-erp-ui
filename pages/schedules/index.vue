@@ -259,6 +259,8 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
+const nextSalesOrder = ref<number | null>(null);
+
 const calendarApp = createCalendar({
   // date yyyy-mm-dd
   // selectedDate: new Date().toISOString().split("T")[0],
@@ -369,7 +371,11 @@ const calendarApp = createCalendar({
       // });
     },
     onEventClick(calendarEvent) {
-      console.log("onEventClick", calendarEvent);
+      scheduleStore.openDetailEventModal(calendarEvent);
+    },
+    onClickDate(date) {
+      isOpen.value.createEvent = true;
+      console.log("onClickDate", date);
     },
   },
 });
@@ -387,6 +393,15 @@ const clickEvent = (event: any) => {
 };
 
 const menu = ref(false);
+
+const updateSchedule = () => {
+  scheduleStore.indexSchedule().then(() => {
+    // calendarApp.events.set(metaModal.value.index.data as any[]);
+    calendarApp.events.set(
+      metaModal.value.index.data as CalendarEventExternal[]
+    );
+  });
+};
 </script>
 
 <template>
@@ -450,11 +465,12 @@ const menu = ref(false);
     <modals-final-modal
       :is-open="isOpen.plusEvent"
       custom-class="overflow-y-auto !w-1/2"
-      label="List of Events"
+      label="List of Schedules"
       parent-class="!z-[1500]"
       @update:is-open="isOpen.plusEvent = $event"
+      :focus-trap="false"
     >
-      <div class="flex flex-col gap-3 p-3">
+      <div class="flex flex-col gap-3 p-3 dark:text-primary1">
         <div
           v-for="event in modalData.plusEvents"
           :key="event.id"
@@ -470,44 +486,140 @@ const menu = ref(false);
           </div>
 
           <div class="flex gap-2 items-center">
-            <v-icon icon="mdi-calendar" :size="24" class="text-dark1" />
+            <v-icon
+              icon="mdi-calendar"
+              :size="24"
+              class="text-dark1 dark:text-primaryDarkest"
+            />
             <div>{{ event.start }} - {{ event.end }}</div>
           </div>
         </div>
       </div>
+      <template #footer>
+        <div class="flex gap-3 w-full">
+          <d-bt
+            :cta="'Close'"
+            :class="
+              classMerge(
+                'w-1/3 whitespace-nowrap border-scDarker dark:hover:bg-scDarker dark:bg-scDarker3 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-sc hover:bg-scDarker border-1.5 p-2 transition-all ease-in-out'
+              )
+            "
+            :text-class="classMerge('text-primary1')"
+            :icon-class="classMerge('text-primary1')"
+            icon="mdi-close"
+            @click="isOpen.plusEvent = false"
+          />
+
+          <d-bt
+            :cta="'New Schedule'"
+            :class="
+              classMerge(
+                'grow whitespace-nowrap border-scDarker text-scDarker dark:text-primary1 dark:hover:bg-dark1 dark:bg-dark2 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-primaryDarker hover:bg-primaryDarkest border-1.5 p-2 transition-all ease-in-out'
+              )
+            "
+            :text-class="classMerge('text-scDarker dark:text-white')"
+            :icon-class="classMerge('text-scDarker dark:text-white')"
+            icon="mdi-calendar-plus"
+            @click="isOpen.createEvent = true"
+          />
+        </div>
+      </template>
     </modals-final-modal>
     <modals-final-modal
       :is-open="isOpen.detailEvent"
-      custom-class="overflow-y-auto !w-1/2"
-      label="List of Events"
-      parent-class="!z-[1500]"
+      custom-class="overflow-y-auto !w-11/12"
+      :label="`${modalData.selectedPlusEvent.title} - Schedule Detail`"
+      parent-class="!z-[1501]"
       @update:is-open="isOpen.detailEvent = $event"
+      :focus-trap="false"
     >
       <div class="flex flex-col gap-3 p-3">
-        <div
-          :key="modalData.selectedPlusEvent.id"
-          class="flex flex-col gap-2 p-2 border-l-8 border-solid hover:bg-gray-100 cursor-pointer"
-          :style="{
-            borderColor: modalData.selectedPlusEvent.color,
-            backgroundColor: modalData.selectedPlusEvent.color
-              ? modalData.selectedPlusEvent.color + '33'
-              : 'white',
-          }"
-        >
-          <div class="flex gap-2 items-center">
-            <div class="text-lg font-semibold">
-              {{ modalData.selectedPlusEvent.title }}
-            </div>
-          </div>
+        <d-schedule-single @update:schedule="updateSchedule" />
+      </div>
 
-          <div class="flex gap-2 items-center">
-            <v-icon icon="mdi-calendar" :size="24" class="text-dark1" />
-            <div>
-              {{ modalData.selectedPlusEvent.start }} -
-              {{ modalData.selectedPlusEvent.end }}
-            </div>
-          </div>
+      <template #footer>
+        <div class="flex gap-3 w-full">
+          <d-bt
+            :cta="'Close'"
+            :class="
+              classMerge(
+                'w-1/3 whitespace-nowrap border-scDarker dark:hover:bg-scDarker dark:bg-scDarker3 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-sc hover:bg-scDarker border-1.5 p-2 transition-all ease-in-out'
+              )
+            "
+            :text-class="classMerge('text-primary1')"
+            :icon-class="classMerge('text-primary1')"
+            icon="mdi-close"
+            @click="isOpen.detailEvent = false"
+          />
+
+          <d-bt
+            :cta="'Sales Order Details'"
+            :class="
+              classMerge(
+                'grow whitespace-nowrap border-scDarker text-scDarker dark:text-primary1 dark:hover:bg-dark1 dark:bg-dark2 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-primaryDarker hover:bg-primaryDarkest border-1.5 p-2 transition-all ease-in-out'
+              )
+            "
+            :text-class="classMerge('text-scDarker dark:text-white')"
+            :icon-class="classMerge('text-scDarker dark:text-white')"
+            icon="mdi-file-document"
+            @click="
+              () => {
+                useSalesOrderStore().tabFormIndex = 2;
+                useSalesOrderStore()
+                  .goToSalesOrder(modalData.selectedPlusEvent.sales_order_id)
+                  .then(() => {
+                    isOpen.detailEvent = false;
+                    isOpen.plusEvent = false;
+                    isOpen.createEvent = false;
+                  });
+              }
+            "
+          />
         </div>
+      </template>
+    </modals-final-modal>
+    <modals-final-modal
+      :is-open="isOpen.createEvent"
+      custom-class="overflow-y-auto !w-3/12"
+      :label="`New Schedule`"
+      parent-class="!z-[1502]"
+      @update:is-open="isOpen.createEvent = $event"
+      :focus-trap="false"
+    >
+      <div class="flex flex-col gap-3 p-3">
+        <!-- <d-schedule-single @update:schedule="updateSchedule" /> -->
+
+        <d-select-table
+          api="/v1/sales-orders/index-sales-order"
+          detail-api="/v1/sales-orders/index-sales-order"
+          method-api="post"
+          detail-method-api="post"
+          mapping-detail="data[0]"
+          total-prop="meta.total"
+          cta="Go To Sales Order"
+          label="Sales Order"
+          v-model="nextSalesOrder"
+          class="col-span-2 lg:col-span-1"
+          is-quick-select
+          @click:selected="
+            (data) => {
+              if (!!data) {
+                useSalesOrderStore().tabFormIndex = 2;
+                useSalesOrderStore()
+                  .goToSalesOrder(data.id)
+                  .then(() => {
+                    isOpen.detailEvent = false;
+                    isOpen.plusEvent = false;
+                    isOpen.createEvent = false;
+                  });
+              }
+            }
+          "
+          modal-parent-class="!z-[2500]"
+          modal-custom-class="!w-4/5"
+          :fields="fieldsConfig"
+          :filters="filtersConfig"
+        />
       </div>
     </modals-final-modal>
   </div>

@@ -1558,8 +1558,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
-    goToSalesOrder(id: number) {
-      navigateTo(`/sales/sales-orders/edit/${id}`);
+    async goToSalesOrder(id: number) {
+      await navigateTo(`/sales/sales-orders/edit/${id}`);
     },
 
     openModalAttachmentImg(isOpen: boolean, attachment: SalesOrderAttachmentsType) {

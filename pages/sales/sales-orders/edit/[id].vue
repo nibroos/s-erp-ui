@@ -1005,6 +1005,7 @@ watchEffect(() => {
           mapping-detail="data[0]"
           total-prop="meta.total"
           cta="Go To Sales Order"
+          label="Sales Order"
           v-model="nextSalesOrder"
           class="col-span-2 lg:col-span-1"
           is-quick-select
@@ -1702,6 +1703,7 @@ watchEffect(() => {
                   v-if="form.is_scheduled"
                   :true-value="1"
                   :false-value="0"
+                  label=""
                 />
                 <d-bt
                   :cta="'Update Schedule'"
