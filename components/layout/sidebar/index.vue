@@ -419,6 +419,20 @@ onMounted(async () => {
             MANAGEMENT
           </v-list-item-title>
 
+          <v-list-item
+            v-if="useAuth.permit('r_sos')"
+            color="#898F99"
+            class="!text-primary1"
+            to="/schedules"
+            rounded="lg"
+          >
+            <template #prepend>
+              <v-icon>mdi-calendar-month</v-icon>
+            </template>
+
+            <v-list-item-title>Schedule</v-list-item-title>
+          </v-list-item>
+
           <v-list-group v-if="isPermissionOnChildExists('sos')" value="Orders">
             <template #activator="{ props }">
               <v-list-item
@@ -442,6 +456,7 @@ onMounted(async () => {
               ></v-list-item>
             </template>
           </v-list-group>
+
           <v-list-group v-if="isPermissionOnChildExists('sos')" value="Sales">
             <template #activator="{ props }">
               <v-list-item

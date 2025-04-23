@@ -16,6 +16,8 @@
     "@mdi/font": "^7.4.47",
     "@nuxt/image": "^1.5.0",
     "@pinia/nuxt": "^0.5.1",
+    "@schedule-x/theme-default": "^2.28.0",
+    "@schedule-x/vue": "^2.26.0",
     "@sweetalert2/theme-dark": "^5.0.16",
     "@types/axios": "^0.14.4",
     "@vuepic/vue-datepicker": "^8.4.0",

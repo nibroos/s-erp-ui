@@ -249,7 +249,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
-    async show() {
+    async show(id?: number | string | string[] | undefined) {
+      if (id) {
+        this.form.id = id
+      } else {
+        this.form.id = this.form.id
+      }
+
+
       if (!!this.loading.editPageLoading) return
       this.loading.editPageLoading = true
       try {
