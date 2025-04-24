@@ -62,6 +62,7 @@ export type FormInventoryType = {
   pph23_id?: number | null
   branch_id?: number | null
   inventory_no?: string
+  inventory_no_ori?: string
   do_no?: string
   surat_jalan_no?: string
   invoice_no?: string
@@ -111,9 +112,7 @@ export type InvDtType = {
   pph23_perc_am?: number
   is_vat?: number
   is_pph23?: number
-  qty_so?: number
-  qty_po?: number
-  qty_in?: number
+  qty_out?: number
   qty: number
   price_sell: number
   price_buy: number
