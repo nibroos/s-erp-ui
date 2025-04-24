@@ -14,6 +14,7 @@
     :focus-trap="props.focusTrap"
     :resize="props.resize"
     :resize-directions="['r', 'l']"
+    keep-overlay
   >
     <div class="flex flex-col gap-3">
       <slot name="header">

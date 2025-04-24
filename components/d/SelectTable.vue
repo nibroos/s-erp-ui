@@ -102,6 +102,7 @@ const props = withDefaults(defineProps<SelectTableType>(), {
       sortable: true,
     },
   ],
+  query: () => ({}),
 });
 
 const slots = useSlots() as Record<string, any>;
@@ -212,13 +213,25 @@ const filterData = async () => {
   metaModal.value.loading = true;
   let queryString = qs.stringify(filters.value);
 
+  let combinePayload = {
+    ...filters.value,
+  };
+
+  if (!!props.query) {
+    combinePayload = {
+      ...filters.value,
+      ...props.query,
+    };
+    queryString = qs.stringify(combinePayload);
+  }
+
   let response;
   let apiUrl;
 
   if (props.methodApi == "post") {
     apiUrl = `${api.value}`;
     response = await useMyFetch()
-      .post(apiUrl, filters.value)
+      .post(apiUrl, combinePayload)
       .then((res) => {
         metaModal.value.data = <any[]>property(props.itemsProp)(res.data);
         metaModal.value.total = property(props.totalProp)(res.data) as string;
@@ -578,8 +591,6 @@ const submitModal = async (inputs: ModelFormType[]) => {
   } else if (key == "edit") {
     api = genFormOptions.value.editApi as string;
   }
-
-  console.log("combinePayload", combinePayload);
 
   try {
     const response = await useMyFetch().post(api, combinePayload);

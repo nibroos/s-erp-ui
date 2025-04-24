@@ -3,6 +3,7 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import DateIODateFnsAdapter from '@date-io/date-fns'
 import { VFileUpload, VFileUploadItem } from 'vuetify/labs/VFileUpload'
+import { VCalendar } from 'vuetify/labs/VCalendar'
 
 const dateFns = new DateIODateFnsAdapter()
 
@@ -11,6 +12,7 @@ export default defineNuxtPlugin((app) => {
     components: {
       VFileUpload,
       VFileUploadItem,
+      VCalendar
     },
     date: {
       adapter: dateFns
