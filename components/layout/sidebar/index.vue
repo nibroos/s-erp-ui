@@ -4,6 +4,10 @@ import useLayoutsStore from "~/stores/configs/LayoutsStore";
 import { useAuth } from "#imports";
 import type { AuthUserDataType } from "~/types/AuthType";
 
+import useAuthStore from "~/stores/AuthStore";
+
+const authStore = useAuthStore();
+
 // const User = useMasterUser();
 // const { data } = storeToRefs(User);
 const router = useRouter();
@@ -315,6 +319,18 @@ const handleClickSampleDiagram = () => {
     .catch((err) => {
       console.error("Failed to navigate:", err);
     });
+};
+
+const handleLogout = async () => {
+  const isConfirmed = await useAlert.showPopupConfirmation(
+    "Logout",
+    "Are you sure you want to log out?",
+    "Logout",
+    true
+  );
+  if (isConfirmed) {
+    await authStore.logoutUser();
+  }
 };
 
 watch(isCloseSidebar, (newValue) => {
@@ -631,18 +647,27 @@ onMounted(async () => {
 
     <!-- Profile Account -->
     <div
-      class="flex h-[77px] w-full cursor-pointer items-center justify-stretch gap-x-5 bg-sc dark:bg-dark1 transition-all ease-in-out hover:bg-scDarker hover:dark:bg-dark1/80 lg:px-2"
-      @click="navigateTo('/profile')"
+      class="flex h-[77px] justify-between px-2 sm:px-1 w-full cursor-pointer items-center gap-x-5 bg-sc dark:bg-dark1 transition-all ease-in-out hover:bg-scDarker hover:dark:bg-dark1/80 lg:px-2"
     >
-      <v-avatar
-        :image="`${BASE_URL}/storage/app/public/master/users/${data?.avatar_url}`"
-        size="40"
-      ></v-avatar>
+      <div class="flex items-center gap-x-3" @click="navigateTo('/profile')">
+        <v-avatar
+          :image="`${BASE_URL}/${data?.avatar_url}`"
+          size="40"
+        ></v-avatar>
+        <div>
+          <p class="text-sm font-normal">{{ data?.name }}</p>
+          <span class="text-xs font-normal text-primaryDarker">
+            {{ data?.roles[0] }}
+          </span>
+        </div>
+      </div>
       <div>
-        <p class="text-sm font-normal">{{ data?.name }}</p>
-        <span class="text-xs font-normal text-primaryDarker">
-          {{ data?.roles[0] }}
-        </span>
+        <button
+          class="rounded-full p-2 opacity-70 transition-all delay-200 duration-300 hover:bg-scLighter hover:opacity-60"
+          @click="handleLogout"
+        >
+          <v-icon icon="mdi-logout"></v-icon>
+        </button>
       </div>
     </div>
   </div>

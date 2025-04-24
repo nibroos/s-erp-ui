@@ -16,6 +16,7 @@ import {
 } from "@schedule-x/calendar";
 import "@schedule-x/theme-default/dist/index.css";
 import useScheduleStore from "~/stores/orders/ScheduleStore";
+import useAuthStore from "~/stores/AuthStore";
 
 const scheduleStore = useScheduleStore();
 const { queryModal, metaModal, modalData, isOpen } = storeToRefs(scheduleStore);
@@ -267,75 +268,12 @@ const calendarApp = createCalendar({
   locale: "en-US",
   isDark: false,
   views: [createViewMonthGrid(), createViewMonthAgenda()],
-  events: [
-    // {
-    //   id: 2,
-    //   title: "Event lorem ipsum dolor sit amet, consectetur adipiscing elit",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#88a8a8",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 3,
-    //   title: "Event AJDKJWQ",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#55a8a8",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 6,
-    //   title: "Event E",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#EE00FF",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 7,
-    //   title: "Event F",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#FF00FF",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 8,
-    //   title: "Event G",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#FF00FF",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 9,
-    //   title: "Event H",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "#FF00FF",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 10,
-    //   title: "Event I",
-    //   start: "2025-04-19",
-    //   end: "2025-04-27",
-    //   color: "red",
-    //   isOpenTip: false,
-    // },
-    // {
-    //   id: 11,
-    //   title: "Event K",
-    //   start: "2025-04-30",
-    //   end: "2025-05-03",
-    //   color: "red",
-    //   isOpenTip: false,
-    // },
-  ],
+  events: [],
+  monthGridOptions: {
+    nEventsPerDay: 5,
+  },
   callbacks: {
     onClickPlusEvents: (date) => {
-      console.log("plus Event clicked!", date);
       scheduleStore.getAllEventsByDate(date);
     },
     beforeRender($app) {
@@ -345,7 +283,6 @@ const calendarApp = createCalendar({
       //   queryModal.value.qListIndex.start_at = range.start;
       //   queryModal.value.qListIndex.end_at = range.end;
       // }
-      console.log("beforeRender");
 
       scheduleStore.indexSchedule().then(() => {
         // calendarApp.events.set(metaModal.value.index.data as any[]);
@@ -357,8 +294,6 @@ const calendarApp = createCalendar({
       // fetchYourEventsFor(range.start, range.end)
     },
     onRangeUpdate(range) {
-      console.log("onRangeUpdate", calendarApp.events.getAll());
-
       console.log("new calendar range start date", range.start);
       console.log("new calendar range end date", range.end);
       // queryModal.value.qListIndex.start_at = range.start;
@@ -375,24 +310,9 @@ const calendarApp = createCalendar({
     },
     onClickDate(date) {
       isOpen.value.createEvent = true;
-      console.log("onClickDate", date);
     },
   },
 });
-
-const clickEvent = (event: any) => {
-  let isOpenTip = event.isOpenTip;
-  isOpenTip = isOpenTip ? false : true;
-
-  console.log("Event clicked!-isOpenTip", event, isOpenTip);
-
-  calendarApp.events.update({
-    ...event,
-  });
-  console.log("Event clicked!");
-};
-
-const menu = ref(false);
 
 const updateSchedule = () => {
   scheduleStore.indexSchedule().then(() => {
@@ -402,47 +322,24 @@ const updateSchedule = () => {
     );
   });
 };
+
+watch(
+  () => useAuthStore().theme,
+  (newValue) => {
+    if (newValue === "dark") {
+      calendarApp.setTheme("dark");
+    } else {
+      calendarApp.setTheme("light");
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
     <ScheduleXCalendar :calendar-app="calendarApp">
       <template #monthGridEvent="{ calendarEvent: event }">
-        <!-- <v-menu :close-on-content-click="false" location="end">
-          <template v-slot:activator="{ props }">
-            <div
-              v-bind="props"
-              :class="
-                classMerge('text-dark3 p-2 rounded-md w-full rounded-l-lg')
-              "
-              :style="{
-                backgroundColor: event.color,
-                color: event.color ? 'white' : 'black',
-              }"
-              @click="clickEvent(event)"
-            >
-              {{ event.title }} {{ event.isOpenTip }}
-            </div>
-          </template>
-
-          <div
-            class="flex flex-col gap-3 p-3 bg-primary1 dark:bg-dark1 border border-solid border-dark1"
-          >
-            <div class="flex gap-2 items-center">
-              <div
-                :style="{ backgroundColor: event.color }"
-                class="w-2 h-2 rounded-full"
-              ></div>
-              <div class="text-lg font-semibold">{{ event.title }}</div>
-            </div>
-
-            <div class="flex gap-2 items-center">
-              <v-icon icon="mdi-calendar" :size="24" class="text-dark1" />
-              <div>{{ event.start }} - {{ event.end }}</div>
-            </div>
-          </div>
-        </v-menu> -->
-
         <div
           :class="
             classMerge(
@@ -615,6 +512,9 @@ const updateSchedule = () => {
               }
             }
           "
+          :query="{
+            is_schedule_not_exists: 1,
+          }"
           modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="fieldsConfig"

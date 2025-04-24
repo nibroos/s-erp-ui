@@ -130,6 +130,7 @@ export type SelectTableType = {
   customFilters?: any[]
   fields?: FieldSelectableType[]
   filters?: FilterSelectableType[]
+  query?: Record<string, any> // filter that not visible in filter
 }
 
 export type FilterSelectableType = {

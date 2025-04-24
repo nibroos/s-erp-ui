@@ -27,12 +27,6 @@ const handleLogout = async () => {
         >
           <v-icon icon="mdi-bell"></v-icon>
         </button> -->
-        <button
-          class="rounded-full p-2 opacity-70 transition-all delay-200 duration-300 hover:bg-slate-300 hover:opacity-60"
-          @click="handleLogout"
-        >
-          <v-icon icon="mdi-logout"></v-icon>
-        </button>
       </div>
     </template>
   </v-menu>
