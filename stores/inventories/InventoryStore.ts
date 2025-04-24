@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType } from '~/types/inventories/InventoryType'
+import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType } from '~/types/inventories/InventoryType'
 
 const useInventoryStore = defineStore('InventoryStore', {
   state: () => ({
@@ -58,9 +58,37 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
-        order_column: 'due_at',
+        order_column: 'order_at',
         order_direction: 'desc'
       } as QIndexSalesOrdersType,
+      qIndexPurchaseOrders: {
+        page: 1,
+        per_page: 100,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        order_column: 'order_at',
+        order_direction: 'desc'
+      } as QIndexPurchaseOrdersType,
+      qIndexInventoryIns: {
+        page: 1,
+        per_page: 100,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        order_column: 'order_at',
+        order_direction: 'desc'
+      } as QIndexInventoryInsType,
       qIndexBoms: {
         page: 1,
         per_page: 100,
@@ -90,6 +118,16 @@ const useInventoryStore = defineStore('InventoryStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexPurchaseOrders: {
+        data: [] as FormInvDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexInventoryIns: {
+        data: [] as FormInvDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
@@ -102,10 +140,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       checkMain: [] as InvDtType[],
       checkProducts: [] as FormInvDtProductListType[],
       checkSalesOrders: [] as FormInvDtProductListType[],
+      checkPurchaseOrders: [] as FormInvDtProductListType[],
+      checkInventoryIns: [] as FormInvDtProductListType[],
     },
     isOpenModal: {
       products: false,
       so: false,
+      po: false,
+      inv_in: false,
     },
     optionRefBtnRef: [
       {
@@ -118,8 +160,26 @@ const useInventoryStore = defineStore('InventoryStore', {
       },
       {
         cta: "Purchase Order",
+        key: "po",
+        icon: "mdi-alpha-p-circle-outline",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+    ] as RefBtnType[],
+    optionRefBtnRefOut: [
+      {
+        cta: "Sales Order",
         key: "so",
-        icon: "mdi-offer",
+        icon: "mdi-alpha-s-circle-outline",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+      {
+        cta: "Inventory In",
+        key: "inv_in",
+        icon: "mdi-clock-in",
         count: 0,
         type: "button",
         // textClass: 'text-grey1'
@@ -152,9 +212,9 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/orders/inventories",
+      parentPath: "/inventories/in",
       currentTab: 0,
-      tabs: ["Items", "Payments", "Remark", "Attachments"],
+      tabs: ["Items", "Remark"],
       button: {
         clear: {
           show: true,
@@ -205,6 +265,9 @@ const useInventoryStore = defineStore('InventoryStore', {
         },
       },
     } as FormLayoutType,
+    referenceOptions: {
+      vats: [] as FormVatType[],
+    }
   }),
 
   actions: {
@@ -229,16 +292,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.loading.editPageLoading = true
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/show-sales-order',
+          '/v1/inventories/show-inventory',
           {
             id: this.form.id
           }
         )
 
         this.form = response.data.data[0]
-        if (!this.form.attachments) {
-          this.form.attachments = []
-        }
+
         this.itemsCheck.checkMain = initCheckedInvDt(this.form.inv_dts)
 
         // this.itemsCheck.checkProducts = updateInvRefsModalFromMain(
@@ -278,7 +339,7 @@ const useInventoryStore = defineStore('InventoryStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/create-sales-order',
+          '/v1/inventories/create-inventory',
           this.form
         )
         this.form = JSON.parse(
@@ -329,7 +390,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         let id = this.form.id
 
         const response = await useMyFetch().post(
-          '/v1/inventories/update-sales-order',
+          '/v1/inventories/update-inventory',
           this.form
         )
         this.form = JSON.parse(
@@ -370,7 +431,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/delete-sales-order',
+          '/v1/inventories/delete-inventory',
           this.form
         )
         this.form = response.data.data[0]
@@ -386,7 +447,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/restore-sales-order',
+          '/v1/inventories/restore-inventory',
           this.form
         )
         this.form = response.data.data[0]
@@ -754,6 +815,24 @@ const useInventoryStore = defineStore('InventoryStore', {
 
         this.countSelectedReferences();
         this.isOpenModal.so = true;
+      } else if (ref.key == "po") {
+        this.itemsCheck.checkPurchaseOrders = updateInvRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "po",
+          this.itemsCheck.checkPurchaseOrders
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.po = true;
+      } else if (ref.key == "inv_in") {
+        this.itemsCheck.checkInventoryIns = updateInvRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "inv_in",
+          this.itemsCheck.checkInventoryIns
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.inv_in = true;
       }
 
       await this.fetchModalFilter();
@@ -833,6 +912,16 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.headAutocomplete.so.pph23_id = data.head_pph23_id;
       this.headAutocomplete.so.pph23_perc = data.head_pph23_perc as number;
       this.headAutocomplete.so.remark = data.head_remark
+    },
+
+    onClickSwitchVAT(data: any) {
+      if (!data) {
+        this.form.vat_id = null;
+        this.form.vat_perc = 0;
+        this.form.total_vat = 0;
+      } else {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      }
     },
 
     removeSalesOrder() {
@@ -939,17 +1028,6 @@ const useInventoryStore = defineStore('InventoryStore', {
 
       return response
     },
-
-    handleUploadFile(file: any) {
-      console.log('file', file);
-    },
-
-    handleDeleteFile(index: number) {
-      console.log('index', index);
-      this.form.attachments.splice(index, 1);
-    }
-
-
   },
   persist: [
     {

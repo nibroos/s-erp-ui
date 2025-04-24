@@ -100,6 +100,8 @@ export function generateInvDt(
   let selectedRefList = {
     products: [] as InvDtType[],
     so: [] as InvDtType[],
+    po: [] as InvDtType[],
+    inv_in: [] as InvDtType[],
   }
 
   selectedRefList.products = checkMain.filter((item: InvDtType) => {
@@ -110,14 +112,29 @@ export function generateInvDt(
     return item.ref_type == 'so'
   })
 
+  selectedRefList.po = checkMain.filter((item: InvDtType) => {
+    return item.ref_type == 'po'
+  })
+
+  selectedRefList.inv_in = checkMain.filter((item: InvDtType) => {
+    return item.ref_type == 'inv_in'
+  })
+
   // filter new ref items
   newRefItems = data.map((dt: FormInvDtRefType): InvDtType => {
     return convertInvItemRefProduct(dt, checkOpened)
   })
+
   if (checkOpened == 'products') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList.so, ...selectedRefList[checkOpened]]
   } else if (checkOpened == 'so') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
+  } else if (checkOpened == 'inv_in') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
+  } else if (checkOpened == 'po') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
   }
@@ -152,6 +169,8 @@ export function updateInvRefsModalFromMain(
 
         if (
           (mainItem.ref_type == 'so' && mainItem.ref_id == prodItem.ref_id) ||
+          (mainItem.ref_type == 'po' && mainItem.ref_id == prodItem.ref_id) ||
+          (mainItem.ref_type == 'inv_in' && mainItem.ref_id == prodItem.ref_id) ||
           (mainItem.ref_type == 'products' && mainItem.ref_id == prodItem.ref_id)
         ) {
           let combined: any = {

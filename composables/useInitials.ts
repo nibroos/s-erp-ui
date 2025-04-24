@@ -11,6 +11,7 @@ import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { FormProductType } from '~/types/masters/ProductType'
 import type { FormPurchaseOrderType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { FormQuotationType } from '~/types/quotations/QuotationType'
+import type { FormSalesInvoiceType } from '~/types/sales-invoices/SalesInvoiceType'
 import type { FormSalesOrderType, FormScheduleStepType } from '~/types/sales-orders/SalesOrderType'
 import type { FieldSelectableType, FilterSelectableType, FormOptionSelectableType } from '~/types/SelectTableType'
 
@@ -533,12 +534,10 @@ const formInventoryCreateEdit = {
 
   inv_dts: [],
 
-  attachments: [],
-
-
   email: "",
   phone: "",
   address: "",
+  io_type: "INVENTORY_IN",
 } as FormInventoryType
 
 const formInvoiceDpCreateEdit = {

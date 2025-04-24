@@ -43,7 +43,7 @@ const {
   isOpenModal,
   queryModal,
   metaModal,
-  optionRefBtnRef,
+  optionRefBtnRefOut,
   openedModal,
   formLayout: formLayoutStore,
 } = storeToRefs(inventoryStore);
@@ -54,21 +54,21 @@ definePageMeta({
 });
 
 useHead({
-  title: "Create Inventory IN",
+  title: "Create Inventory OUT",
 });
 
 const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
-  {
-    key: "ref_type",
-    title: "Ref Type",
-    sortable: true,
+  // {
+  //   key: "ref_type",
+  //   title: "Ref Type",
+  //   sortable: true,
 
-    cellProps: {
-      class: "capitalize",
-    },
-  },
+  //   cellProps: {
+  //     class: "capitalize",
+  //   },
+  // },
   { key: "ref_num", title: "Ref Num", sortable: true },
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
@@ -334,6 +334,13 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Out Qty",
+    key: "out_qty",
+    value: "out_qty",
+    align: "end",
+    sortable: true,
+  },
+  {
     title: "Qty",
     key: "qty",
     value: "qty",
@@ -379,6 +386,122 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     title: "Total Amount",
     key: "total_am",
     value: "total_am",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Remark",
+    key: "remark",
+    value: "remark",
+    align: "start",
+    sortable: true,
+  },
+]);
+
+const headersModalInventory = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
+  {
+    title: "IN Date",
+    key: "ingoing_at",
+    value: "ingoing_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Surat Jalan No",
+    key: "surat_jalan_no",
+    value: "surat_jalan_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "DO No",
+    key: "do_no",
+    value: "do_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "DO Date",
+    key: "do_at",
+    value: "do_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice Date",
+    key: "invoice_at",
+    value: "invoice_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Supplier",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Group",
+    key: "item_group_name",
+    value: "item_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Sub Group",
+    key: "item_sub_group_name",
+    value: "item_sub_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Code",
+    key: "item_code",
+    value: "item_code",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Name",
+    key: "item_name",
+    value: "item_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "SKU",
+    key: "item_sku",
+    value: "item_sku",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Unit",
+    key: "unit_name",
+    value: "unit_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Out Qty",
+    key: "out_qty",
+    value: "out_qty",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
     align: "end",
     sortable: true,
   },
@@ -605,7 +728,7 @@ onMounted(async () => {
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "Inventory IN";
+  topTitle.value = "Inventory OUT";
 });
 </script>
 
@@ -630,15 +753,15 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-text-input
               v-model="form.inventory_no"
-              :label="`Inventory In No`"
-              :placeholder="`Inventory In No`"
+              :label="`Inventory Out No`"
+              :placeholder="`Inventory Out No`"
               :errors="errors.inventory_no"
             />
           </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
               v-model="form.ingoing_at"
-              label="IN Date"
+              label="OUT Date"
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">
@@ -651,9 +774,9 @@ watchEffect(() => {
               item-value="id"
               method-api="post"
               inner-search-key="global"
-              label="IN Type"
+              label="OUT Type"
               :query="{
-                io_type: 'INVENTORY_IN',
+                io_type: 'INVENTORY_OUT',
               }"
               :errors="errors.io_type_id"
             ></d-autocomplete>
@@ -867,7 +990,7 @@ watchEffect(() => {
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <d-option-ref-btn
-            :refs="optionRefBtnRef"
+            :refs="optionRefBtnRefOut"
             class="col-span-2"
             @click:ref="
               (ref) => inventoryStore.onClickOpenModalOptionRefBtn(ref)
@@ -1169,7 +1292,7 @@ watchEffect(() => {
       :is-open="isOpenModal.so"
       size="xl"
       custom-class="overflow-y-auto"
-      label="List of SalesOrders"
+      label="List of Sales Orders"
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.so = $event"
     >
@@ -1310,7 +1433,144 @@ watchEffect(() => {
             @click="inventoryStore.onClickUpdateProductsModal()"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected SalesOrder ({{ itemsCheck.checkSalesOrders.length }})
+            Add Selected Sales Order ({{ itemsCheck.checkSalesOrders.length }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
+    <modals-final-modal
+      :is-open="isOpenModal.inv_in"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Inventory IN"
+      parent-class="!z-[1500]"
+      @update:is-open="isOpenModal.inv_in = $event"
+    >
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="inventoryStore.fetchModalFilter()"
+        >
+          <d-select-table
+            api="/v1/customers/index-customer"
+            detail-api="/v1/customers/index-customer"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Customer"
+            v-model="form.customer_id"
+            class=""
+            is-quick-select
+            @click:selected="
+              (data) => inventoryStore.autocompleteCustomer(data)
+            "
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="headersCustomer"
+            :filters="filtersCustomer"
+          />
+          <d-select-table
+            api="/v1/products/index-product"
+            detail-api="/v1/products/index-product"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Product"
+            v-model="queryModal.qIndexSalesOrders.product_id"
+            class=""
+            is-quick-select
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="useInitials.productFieldsFilterConfig.fields"
+            :filters="useInitials.productFieldsFilterConfig.filters"
+          />
+          <d-autocomplete
+            v-for="filter in filtersOptionsSalesOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
+            :api="filter.api"
+            :single-api="filter.singleApi"
+            :method-api="filter.methodApi"
+            inner-search-key="global"
+            :page-end-prop="filter.pageEndProp"
+            :label="filter.title"
+            :item-value="filter.itemValue"
+            :item-title="filter.itemTitle"
+            multiple
+            :placeholder="`Type ${filter.title} ...`"
+          ></d-autocomplete>
+
+          <d-text-input
+            v-for="filter in filtersTextSalesOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterTextType]"
+            :label="filter.title"
+            :placeholder="filter.title"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="inventoryStore.fetchModalFilter()"
+            @click:clear="inventoryStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="itemsCheck.checkInventoryIns"
+        v-model:page="queryModal.qIndexInventoryIns.page"
+        :items="metaModal.indexInventoryIns.data ?? []"
+        :headers="headersModalInventory"
+        :items-per-page="queryModal.qIndexInventoryIns.per_page"
+        :items-length="metaModal.indexInventoryIns.meta.total ?? 0"
+        :items-per-page-options="useInitials.perPageOptions"
+        :loading="metaModal.indexInventoryIns.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="quo_dt_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => inventoryStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize"
+            >{{ item.item_type ?? defineItemTypeInventory(item as InvDtType) }}
+          </span>
+        </template>
+        <template #item.ref_qty="{ item }">
+          <d-num-layout :value="item.ref_qty" />
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
+        </template>
+        <template #item.status="{ item }">
+          <d-active-status :value="item.status" />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="inventoryStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Inventory IN ({{
+              itemsCheck.checkInventoryIns.length
+            }})
           </button>
         </div>
       </template>
