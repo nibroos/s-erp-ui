@@ -190,13 +190,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Item Type",
-    key: "item_type",
-    value: "item_type",
-    align: "start",
-    sortable: true,
-  },
-  {
     title: "Code",
     key: "code",
     value: "code",
@@ -272,8 +265,15 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "PO Buyer No",
-    key: "po_buyer_no",
-    value: "po_buyer_no",
+    key: "ref_num",
+    value: "ref_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Order Date",
+    key: "order_at",
+    value: "order_at",
     align: "start",
     sortable: true,
   },
@@ -295,13 +295,6 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     title: "Sub Group",
     key: "item_sub_group_name",
     value: "item_sub_group_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Item Type",
-    key: "item_type",
-    value: "item_type",
     align: "start",
     sortable: true,
   },
@@ -335,60 +328,39 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
   },
   {
     title: "Out Qty",
-    key: "out_qty",
-    value: "out_qty",
+    key: "qty_out",
+    value: "qty_out",
     align: "end",
     sortable: true,
   },
   {
-    title: "Qty",
-    key: "qty",
-    value: "qty",
+    title: "Ref Qty",
+    key: "ref_qty",
+    value: "ref_qty",
     align: "end",
     sortable: true,
   },
   {
-    title: "Price",
-    key: "price_sell",
-    value: "price_sell",
+    title: "Balance",
+    key: "balance",
+    value: "balance",
     align: "end",
     sortable: true,
   },
-  {
-    title: "Subtotal",
-    key: "subtotal_sell",
-    value: "subtotal_sell",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Disc (%)",
-    key: "disc_perc",
-    value: "disc_perc",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Disc (Am)",
-    key: "disc_am",
-    value: "disc_am",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "VAT (%)",
-    key: "vat_perc",
-    value: "vat_perc",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Total Amount",
-    key: "total_am",
-    value: "total_am",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Price",
+  //   key: "price_sell",
+  //   value: "price_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  // {
+  //   title: "Subtotal",
+  //   key: "subtotal_sell",
+  //   value: "subtotal_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Remark",
     key: "remark",
@@ -1400,26 +1372,14 @@ watchEffect(() => {
             >{{ item.item_type ?? defineItemTypeInventory(item as InvDtType) }}
           </span>
         </template>
-        <template #item.qty="{ item }">
-          <d-num-layout :value="item.qty" />
+        <template #item.ref_qty="{ item }">
+          <d-num-layout :value="item.ref_qty" />
         </template>
-        <template #item.price_sell="{ item }">
-          <d-num-layout :value="item.price_sell" />
+        <template #item.qty_out="{ item }">
+          <d-num-layout :value="item.qty_out" />
         </template>
-        <template #item.subtotal_sell="{ item }">
-          <d-num-layout :value="item.subtotal_sell" />
-        </template>
-        <template #item.disc_perc="{ item }">
-          <d-num-layout :value="item.disc_perc" />
-        </template>
-        <template #item.disc_am="{ item }">
-          <d-num-layout :value="item.disc_am" />
-        </template>
-        <template #item.vat_perc="{ item }">
-          <d-num-layout :value="item.vat_perc" />
-        </template>
-        <template #item.total_am="{ item }">
-          <d-num-layout :value="item.total_am" />
+        <template #item.balance="{ item }">
+          <d-num-layout :value="item.balance" />
         </template>
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />

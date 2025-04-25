@@ -508,9 +508,9 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
-      if (this.itemsCheck.checkSalesOrders.length > 0) {
-        this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
-      }
+      // if (this.itemsCheck.checkSalesOrders.length > 0) {
+      //   this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
+      // }
 
       let params = this.queryModal.qIndexSalesOrders
 
@@ -528,9 +528,10 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
-                  resSalesOrder.so_dt_id === checkSalesOrder.so_dt_id ||
-                  resSalesOrder.so_dt_id === checkSalesOrder.ref_id
+                  !!checkSalesOrder.ref_id && resSalesOrder.so_dt_id === checkSalesOrder.ref_id
                 ) {
+
+                  console.log('abc', resSalesOrder.so_dt_id, checkSalesOrder.ref_id);
 
                   const combined = {
                     ...resSalesOrder,
