@@ -528,10 +528,10 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
-                  !!checkSalesOrder.ref_id && resSalesOrder.so_dt_id === checkSalesOrder.ref_id
+                  resSalesOrder.ref_id === checkSalesOrder.ref_id
                 ) {
 
-                  console.log('abc', resSalesOrder.so_dt_id, checkSalesOrder.ref_id);
+                  console.log('abc', resSalesOrder.ref_id, checkSalesOrder.ref_id);
 
                   const combined = {
                     ...resSalesOrder,
@@ -565,6 +565,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.isOpenModal.so) {
         this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
         this.isOpenModal.so = false
+      }
+      if (this.isOpenModal.po) {
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'po', this.itemsCheck.checkMain)
+        this.isOpenModal.po = false
+      }
+      if (this.isOpenModal.inv_in) {
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'inv_in', this.itemsCheck.checkMain)
+        this.isOpenModal.inv_in = false
       }
 
     },
@@ -617,9 +625,24 @@ const useInventoryStore = defineStore('InventoryStore', {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "products"
           ).length;
+        } else if (item.key == "po") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "po"
+          ).length;
+        }
+      });
+      this.optionRefBtnRefOut.map((item) => {
+        if (item.key == "products") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "products"
+          ).length;
         } else if (item.key == "so") {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "so"
+          ).length;
+        } else if (item.key == "inv_in") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "inv_in"
           ).length;
         }
       });
@@ -639,120 +662,12 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.email = data.email;
       this.form.phone = data.phone;
       this.form.address = data.address;
+      this.form.ship_dest = data.address;
 
       if (!!data.id) {
         this.queryModal.qIndexSalesOrders.customer_id = data.id;
         this.queryModal.qIndexSalesOrders.customer_ids = [data.id];
       }
-    },
-
-    autocompleteVat(data: FormVatType) {
-      this.form.vat_perc = Number(data.num);
-
-      // apply to all childs
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        // if (!item.vat_id) {
-        if (!!item.is_vat) {
-          item.vat_id = data.id as number;
-          item.vat_perc = Number(data.num);
-        }
-        // }
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    autocompleteVatDt(data: FormVatType, soDtType: InvDtType) {
-      soDtType.vat_perc = Number(data.num);
-      this.calculateTotalAmount();
-    },
-
-    autocompletePph23Dt(data: FormPph23Type, soDtType: InvDtType) {
-      soDtType.pph23_perc = Number(data.num);
-      this.calculateTotalAmount();
-    },
-
-    removeVat() {
-      this.form.vat_perc = 0;
-
-      this.calculateTotalAmount();
-    },
-
-    removeAllVat() {
-      this.form.vat_id = null;
-      this.form.vat_perc = 0;
-      this.form.total_vat = 0;
-
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.vat_id = null;
-        item.vat_perc = 0;
-        item.vat_perc_am = 0;
-        item.is_vat = 0;
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    removeVatDt(soDtType: InvDtType) {
-      if (!soDtType.vat_id) {
-        soDtType.vat_perc = 0;
-        soDtType.vat_perc_am = 0;
-      }
-
-      this.calculateTotalAmount();
-    },
-
-    removePph23Dt(soDtType: InvDtType) {
-      if (!soDtType.pph23_id) {
-        soDtType.pph23_perc = 0;
-        soDtType.pph23_perc_am = 0;
-      }
-
-      this.calculateTotalAmount();
-    },
-
-    removePph() {
-      this.form.pph23_perc = 0;
-      this.form.total_pph23 = 0;
-
-      // remove all childs
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.pph23_id = null;
-        item.pph23_perc = 0;
-        item.pph23_perc_am = 0;
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    removeAllPph() {
-      this.form.pph23_id = null;
-      this.form.pph23_perc = 0;
-
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.pph23_id = null;
-        item.pph23_perc = 0;
-        item.pph23_perc_am = 0;
-        item.is_pph23 = 0;
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    autocompletePph(data: FormPph23Type) {
-      this.form.pph23_perc = Number(data.num);
-
-      // apply to all childs
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        // if (!item.pph23_id) {
-        if (!!item.is_pph23) {
-          item.pph23_id = data.id as number;
-          item.pph23_perc = Number(data.num);
-        }
-        // }
-      });
-
-      this.calculateTotalAmount();
     },
 
     autocompleteCurrency(data: FormCurrencyType) {
@@ -764,6 +679,8 @@ const useInventoryStore = defineStore('InventoryStore', {
 
     closeAllModal() {
       this.isOpenModal.so = false;
+      this.isOpenModal.po = false;
+      this.isOpenModal.inv_in = false;
       this.isOpenModal.products = false;
     },
 
@@ -888,6 +805,34 @@ const useInventoryStore = defineStore('InventoryStore', {
         }
       }
 
+      if (this.isOpenModal.po) {
+        this.queryModal.qIndexPurchaseOrders.page = options.page;
+        this.queryModal.qIndexPurchaseOrders.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexPurchaseOrders.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexPurchaseOrders.order_direction =
+            options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexPurchaseOrders.order_column = "";
+          this.queryModal.qIndexPurchaseOrders.order_direction = "";
+        }
+      }
+
+      if (this.isOpenModal.inv_in) {
+        this.queryModal.qIndexInventoryIns.page = options.page;
+        this.queryModal.qIndexInventoryIns.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexInventoryIns.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexInventoryIns.order_direction =
+            options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexInventoryIns.order_column = "";
+          this.queryModal.qIndexInventoryIns.order_direction = "";
+        }
+      }
+
       await this.fetchModalFilter();
     },
 
@@ -961,11 +906,7 @@ const useInventoryStore = defineStore('InventoryStore', {
 
         let discFinal = subtotalSell;
 
-        item.vat_perc_am = 0;
-
-        item.pph23_perc_am = 0;
-
-        item.total_am = discFinal + item.vat_perc_am - item.pph23_perc_am;
+        item.total_am = discFinal;
       });
 
       // header calculation
@@ -978,33 +919,6 @@ const useInventoryStore = defineStore('InventoryStore', {
         (acc: number, item: InvDtType) => acc + item.qty,
         0
       );
-
-      if (!!this.form.vat_id) {
-        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvDtType) => {
-            if (!!item.is_vat) {
-              return acc + item.total_am;
-            }
-            return acc;
-          },
-          0
-        );
-
-        this.form.total_vat = totalAmIsVat * ((this.form.vat_perc ?? 0) / 100)
-      }
-
-      if (!!this.form.pph23_id) {
-        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvDtType) => {
-            if (!!item.is_pph23) {
-              return acc + item.subtotal_sell;
-            }
-            return acc;
-          },
-          0
-        );
-        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_perc ?? 0) / 100);
-      }
 
       this.form.grand_total =
         this.form.subtotal - this.form.total_vat - this.form.total_pph23;

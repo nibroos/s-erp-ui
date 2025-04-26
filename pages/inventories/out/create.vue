@@ -30,6 +30,7 @@ import type {
 } from "~/types/sales-orders/SalesOrderType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
 import { debounce } from "lodash-es";
+import useAuthStore from "~/stores/AuthStore";
 
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
@@ -70,10 +71,10 @@ const headers = ref<FieldSelectableType[]>([
   //   },
   // },
   { key: "ref_num", title: "Ref Num", sortable: true },
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
+  { key: "item_code", title: "Item Code", sortable: true },
+  { key: "item_name", title: "Item Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
-  { key: "price", title: "Price Buy", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
   { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
   { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
@@ -299,14 +300,14 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Code",
+    title: "Item Code",
     key: "item_code",
     value: "item_code",
     align: "start",
     sortable: true,
   },
   {
-    title: "Name",
+    title: "Item Name",
     key: "item_name",
     value: "item_name",
     align: "start",
@@ -608,7 +609,7 @@ const formLayout = ref({
   //   name: ["c_ms"],
   //   isActive: true,
   // },
-  summary: formLayoutStore.value.summary,
+  // summary: formLayoutStore.value.summary,
 } as FormLayoutType);
 
 const initialFormLayout = () => {
@@ -647,14 +648,14 @@ const fetchInitialData = async () => {
 const calculateTotalAmountLocal = () => {
   inventoryStore.calculateTotalAmount();
 
-  if (formLayout.value.summary) {
-    formLayout.value.summary.total_amount.value = form.value.subtotal;
-    formLayout.value.summary.total_vat.value = form.value.total_vat;
-    formLayout.value.summary.total_pph23.value = form.value.total_pph23;
-    formLayout.value.summary.grand_total.value = form.value.grand_total;
+  // if (formLayout.value.summary) {
+  //   formLayout.value.summary.total_amount.value = form.value.subtotal;
+  //   formLayout.value.summary.total_vat.value = form.value.total_vat;
+  //   formLayout.value.summary.total_pph23.value = form.value.total_pph23;
+  //   formLayout.value.summary.grand_total.value = form.value.grand_total;
 
-    // TODO foreach currency symbol
-  }
+  //   // TODO foreach currency symbol
+  // }
 };
 
 watch(
@@ -832,6 +833,7 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.warehouse_id"
+              :initial-value="useAuthStore().authUser.data?.warehouse_id"
               api="/v1/warehouses/index-warehouse"
               single-api="/v1/warehouses/show-warehouse"
               page-end-prop="meta.next_page_url"
@@ -1021,7 +1023,7 @@ watchEffect(() => {
               />
             </template>
             <template #item.price_sell="{ item }">
-              <div class="flex w-full gap-2 grow">
+              <!-- <div class="flex w-full gap-2 grow">
                 <d-num-v-format
                   v-model="item.price_sell"
                   :precision="{
@@ -1033,18 +1035,20 @@ watchEffect(() => {
                   label=""
                   class="w-[9rem]"
                 />
-              </div>
+              </div> -->
+              <d-num-layout :value="item.price_sell" />
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
                 v-model="item.qty"
+                :initial-value="item.balance"
                 :precision="{
                   min: 3,
                   max: 3,
                 }"
                 hide-currency-display
                 label=""
-                class="w-[9rem]"
+                class="w-full"
                 @update:modelValue="calculateTotalAmountLocal"
               />
             </template>

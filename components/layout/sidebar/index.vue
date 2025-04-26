@@ -114,30 +114,30 @@ const itemInventory = [
     link: "/inventories/out",
     permissions: ["r_invs"],
   },
-  {
-    title: "Inventory Status",
-    icon: "mdi-credit-card-outline",
-    link: "/inventories/status",
-    permissions: ["r_invs"],
-  },
+  // {
+  //   title: "Inventory Status",
+  //   icon: "mdi-credit-card-outline",
+  //   link: "/inventories/status",
+  //   permissions: ["r_invs"],
+  // },
   {
     title: "Card Stock",
     icon: "",
     link: "/inventories/stock",
     permissions: ["r_invs"],
   },
-  {
-    title: "BC Tracking",
-    icon: "",
-    link: "/inventories/bc-tracking",
-    permissions: ["r_invs"],
-  },
-  {
-    title: "Pabean Document",
-    icon: "mdi-file-sign",
-    link: "/inventories/pabean-document",
-    permissions: ["r_invs"],
-  },
+  // {
+  //   title: "BC Tracking",
+  //   icon: "",
+  //   link: "/inventories/bc-tracking",
+  //   permissions: ["r_invs"],
+  // },
+  // {
+  //   title: "Pabean Document",
+  //   icon: "mdi-file-sign",
+  //   link: "/inventories/pabean-document",
+  //   permissions: ["r_invs"],
+  // },
 ];
 
 const itemExim = [
@@ -561,7 +561,7 @@ onMounted(async () => {
             </template>
           </v-list-group>
 
-          <v-list-item
+          <!-- <v-list-item
             v-if="useAuth.permit('EXIM_READ')"
             color="#898F99"
             to="/inventories/exim"
@@ -572,7 +572,7 @@ onMounted(async () => {
             </template>
 
             <v-list-item-title>EXIM</v-list-item-title>
-          </v-list-item>
+          </v-list-item> -->
           <!-- <v-list-group value="Exim">
             <template #activator="{ props }">
               <v-list-item

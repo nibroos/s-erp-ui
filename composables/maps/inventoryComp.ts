@@ -48,10 +48,13 @@ export function convertInvItemRefProduct(
     optional.ref_id = item.product_id
     optional.item_id = item.product_id
   } else if (refType == 'so') {
-    optional.ref_id = item.so_dt_id
+    optional.ref_id = item.ref_id
     optional.item_id = item.item_id
   } else if (refType == 'po') {
-    optional.ref_id = item.po_dt_id
+    optional.ref_id = item.ref_id
+    optional.item_id = item.item_id
+  } else if (refType == 'inv_in') {
+    optional.ref_id = item.ref_id
     optional.item_id = item.item_id
   }
 
@@ -62,13 +65,11 @@ export function convertInvItemRefProduct(
     inventory_id: item.inventory_id,
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
-    ref_id: optional.ref_id as number,
+    ref_id: optional.ref_id as string | number,
     item_id: optional.item_id as number,
     product_uuid: productUuid,
     ref_type: refType,
     remark: item.remark,
-    vat_perc: item.vat_perc || 0,
-    vat_perc_am: item.vat_perc_am || 0,
     item_type: optional.item_type,
     qty: item.qty || 1,
     price_sell: (item.price_sell || 0) as number,

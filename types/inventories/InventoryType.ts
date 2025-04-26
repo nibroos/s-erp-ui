@@ -99,19 +99,13 @@ export type InvDtType = {
   item_unit_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
-  ref_id: number
+  ref_id: number | string | null
   item_id: number
   product_uuid: string
   ref_type: InvDtRefType
   item_type: InvDtItemType
   gen_code?: string | null
   remark?: string
-  vat_perc?: number
-  vat_perc_am?: number
-  pph23_perc?: number
-  pph23_perc_am?: number
-  is_vat?: number
-  is_pph23?: number
   qty_out?: number
   qty: number
   price_sell: number
@@ -128,6 +122,7 @@ export type InvDtType = {
   product_code?: string
   item_name?: string
   item_code?: string
+  balance?: number
 }
 
 export type InvDtsType = InvDtType
@@ -243,7 +238,7 @@ export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType 
 export type FormInvDtBomListType = ProductListType
 
 export type OptionalInvRefType = {
-  ref_id?: number | null
+  ref_id?: number | string | null
   item_type: InvDtItemType
   item_id?: number | null
   product_id?: number | null
