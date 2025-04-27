@@ -19,7 +19,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       qIndexIn: {
         page: 1,
         per_page: 100,
-        in_type: 'IN',
+        io_type: 'INVENTORY_IN',
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
@@ -28,7 +28,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       qIndexOut: {
         page: 1,
         per_page: 100,
-        in_type: 'OUT',
+        io_type: 'INVENTORY_OUT',
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
@@ -342,13 +342,19 @@ const useInventoryStore = defineStore('InventoryStore', {
           '/v1/inventories/create-inventory',
           this.form
         )
-        this.form = JSON.parse(
-          JSON.stringify(useInitials.formInventoryCreateEdit)
-        )
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/inventories/edit/${response.data.data[0].id}`)
+
+        let routeAfter = `/inventories/in`
+        if (this.form.io_type == 'INVENTORY_OUT') {
+          routeAfter = '/inventories/out'
+        }
+        navigateTo(routeAfter)
+
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formInventoryCreateEdit)
+        )
 
         return response
       } catch (error: any) {
@@ -508,9 +514,10 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
-      // if (this.itemsCheck.checkSalesOrders.length > 0) {
-      //   this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
-      // }
+      if (this.itemsCheck.checkSalesOrders.length > 0) {
+        // this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
+        this.queryModal.qIndexSalesOrders.customer_id = this.itemsCheck.checkSalesOrders[0].customer_id
+      }
 
       let params = this.queryModal.qIndexSalesOrders
 
@@ -528,10 +535,11 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
-                  resSalesOrder.ref_id === checkSalesOrder.ref_id
+                  (resSalesOrder.ref_so_dt_id && resSalesOrder.ref_so_dt_id === checkSalesOrder.ref_so_dt_id) ||
+                  (resSalesOrder.ref_so_dt_bom_id && resSalesOrder.ref_so_dt_bom_id === checkSalesOrder.ref_so_dt_bom_id)
                 ) {
 
-                  console.log('abc', resSalesOrder.ref_id, checkSalesOrder.ref_id);
+                  console.log('abc', resSalesOrder.ref_so_dt_id, checkSalesOrder.ref_so_dt_id);
 
                   const combined = {
                     ...resSalesOrder,
@@ -663,11 +671,44 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.phone = data.phone;
       this.form.address = data.address;
       this.form.ship_dest = data.address;
+      this.form.customer_code = data.shortname;
 
       if (!!data.id) {
         this.queryModal.qIndexSalesOrders.customer_id = data.id;
         this.queryModal.qIndexSalesOrders.customer_ids = [data.id];
       }
+    },
+
+    autocompleteVat(data: FormVatType) {
+      this.form.vat_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
+        // if (!item.vat_id) {
+        if (!!item.is_vat) {
+          item.vat_id = data.id as number;
+          item.vat_perc = Number(data.num);
+        }
+        // }
+      });
+
+      this.calculateTotalAmount();
+    },
+
+    autocompletePph(data: FormPph23Type) {
+      this.form.pph23_perc = Number(data.num);
+
+      // apply to all childs
+      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
+        // if (!item.pph23_id) {
+        if (!!item.is_pph23) {
+          item.pph23_id = data.id as number;
+          item.pph23_perc = Number(data.num);
+        }
+        // }
+      });
+
+      this.calculateTotalAmount();
     },
 
     autocompleteCurrency(data: FormCurrencyType) {
@@ -903,10 +944,6 @@ const useInventoryStore = defineStore('InventoryStore', {
 
         item.subtotal_sell = subtotalSell;
         item.subtotal_buy = subtotalBuy;
-
-        let discFinal = subtotalSell;
-
-        item.total_am = discFinal;
       });
 
       // header calculation

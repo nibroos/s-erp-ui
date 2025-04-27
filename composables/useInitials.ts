@@ -529,15 +529,22 @@ const formInventoryCreateEdit = {
   do_at: new Date().toISOString().split('T')[0],
   invoice_at: new Date().toISOString().split('T')[0],
   agree_at: "",
-  due_at: "",
-  expired_at: "",
+  is_vat: 0,
+  is_pph23: 0,
+  do_no: '',
+  surat_jalan_no: '',
+  invoice_no: '',
+  ship_dest: '',
+  // warehouse_id: null,
+  io_type_id: null,
+  payment_term_id: null,
+  inventory_no: '',
 
   inv_dts: [],
 
   email: "",
   phone: "",
   address: "",
-  io_type: "INVENTORY_IN",
 } as FormInventoryType
 
 const formInvoiceDpCreateEdit = {

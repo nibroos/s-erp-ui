@@ -46,17 +46,14 @@ export function convertInvItemRefProduct(
 
   if (refType == 'products') {
     optional.ref_id = item.product_id
-    optional.item_id = item.product_id
   } else if (refType == 'so') {
     optional.ref_id = item.ref_id
-    optional.item_id = item.item_id
   } else if (refType == 'po') {
     optional.ref_id = item.ref_id
-    optional.item_id = item.item_id
   } else if (refType == 'inv_in') {
     optional.ref_id = item.ref_id
-    optional.item_id = item.item_id
   }
+  optional.item_id = item.item_id
 
   const data: InvDtType = {
     ...item,
@@ -65,18 +62,23 @@ export function convertInvItemRefProduct(
     inventory_id: item.inventory_id,
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
-    ref_id: optional.ref_id as string | number,
+    ref_so_dt_id: item.ref_so_dt_id,
+    ref_so_dt_bom_id: item.ref_so_dt_bom_id,
+    ref_po_dt_id: item.ref_po_dt_id,
+    ref_po_dt_bom_id: item.ref_po_dt_bom_id,
+    ref_inv_dt_id: item.ref_inv_dt_id,
+    ref_product_id: item.ref_product_id,
     item_id: optional.item_id as number,
     product_uuid: productUuid,
     ref_type: refType,
     remark: item.remark,
     item_type: optional.item_type,
     qty: item.qty || 1,
+    qty_out: item.qty_out,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
     subtotal_sell: item.subtotal_sell || 0,
     subtotal_buy: item.subtotal_buy || 0,
-    total_am: item.total_am || 0,
 
     item_name: item.name ?? item.item_name ?? item.product_name,
     item_code: item.code ?? item.item_code ?? item.product_code,
@@ -169,10 +171,10 @@ export function updateInvRefsModalFromMain(
       checkProducts.forEach((prodItem: FormInvDtProductListType) => {
 
         if (
-          (mainItem.ref_type == 'so' && mainItem.ref_id == prodItem.ref_id) ||
-          (mainItem.ref_type == 'po' && mainItem.ref_id == prodItem.ref_id) ||
-          (mainItem.ref_type == 'inv_in' && mainItem.ref_id == prodItem.ref_id) ||
-          (mainItem.ref_type == 'products' && mainItem.ref_id == prodItem.ref_id)
+          (mainItem.ref_type == 'so' && (mainItem.ref_so_dt_id == prodItem.ref_so_dt_id || mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)) ||
+          (mainItem.ref_type == 'po' && (mainItem.ref_po_dt_id == prodItem.ref_po_dt_id || mainItem.ref_po_dt_bom_id == prodItem.ref_po_dt_bom_id)) ||
+          (mainItem.ref_type == 'inv_in' && mainItem.ref_inv_dt_id == prodItem.ref_inv_dt_id) ||
+          (mainItem.ref_type == 'products' && mainItem.ref_product_id == prodItem.ref_product_id)
         ) {
           let combined: any = {
             ...prodItem,

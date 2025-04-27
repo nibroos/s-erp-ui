@@ -609,7 +609,16 @@ const formLayout = ref({
   parentPath: "/inventories/out",
   currentTab: tabFormIndex.value,
   tabs: ["Items", "Remark"],
+  mode: "edit",
   button: {
+    create: {
+      path: "/inventories/out/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -623,8 +632,16 @@ const formLayout = ref({
 
 const initialFormLayout = () => {
   formLayout.value.currentTab = tabFormIndex.value;
-  formLayout.value.mode = "create";
+  formLayout.value.mode = "edit";
   formLayout.value.button = {
+    create: {
+      path: "/inventories/out/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -651,8 +668,14 @@ const handleSubmit = async () => {
   await inventoryStore.store();
 };
 
+const router = useRouter();
+const id = ref(router.currentRoute.value.params.id);
+
 const fetchInitialData = async () => {
+  form.value.id = Number(id.value);
   // await inventoryStore.indexProduct();
+
+  await Promise.all([await inventoryStore.show()]);
 };
 
 const calculateTotalAmountLocal = () => {

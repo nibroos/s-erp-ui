@@ -23,6 +23,13 @@ useHead({
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
+    title: "Inventory No",
+    key: "inventory_no",
+    value: "inventory_no",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "DO No",
     key: "do_no",
     value: "do_no",
@@ -51,9 +58,9 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Shipping Date",
-    key: "shipping_at",
-    value: "shipping_at",
+    title: "DO Date",
+    key: "do_at",
+    value: "do_at",
     align: "start",
     sortable: true,
   },
@@ -75,6 +82,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Exc. Rate",
     key: "exchange_rate",
     value: "exchange_rate",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Total Qty",
+    key: "total_qty",
+    value: "total_qty",
     align: "end",
     sortable: true,
   },
@@ -244,7 +258,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         delete-api="/v1/inventories/delete-inventory"
         :fields="fieldsConfig"
         :filters="filtersConfig"
-        :query-modal="queryModal.qIndexIn"
+        :query-modal="queryModal.qIndexOut"
         :create-option="{
           link: '/inventories/out/create',
           show: true,
@@ -258,9 +272,6 @@ const filtersConfig = ref<FilterSelectableType[]>([
       >
         <template #item.total_vat="{ item }">
           <d-num-layout :value="item.total_vat" />
-        </template>
-        <template #item.total_discount="{ item }">
-          <d-num-layout :value="item.total_discount" />
         </template>
         <template #item.total_pph23="{ item }">
           <d-num-layout :value="item.total_pph23" />

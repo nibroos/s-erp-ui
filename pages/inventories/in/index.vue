@@ -51,9 +51,9 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Shipping Date",
-    key: "shipping_at",
-    value: "shipping_at",
+    title: "DO Date",
+    key: "do_at",
+    value: "do_at",
     align: "start",
     sortable: true,
   },

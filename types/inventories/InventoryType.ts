@@ -71,6 +71,7 @@ export type FormInventoryType = {
   status: string
   exchange_rate?: number | null
   is_vat?: number | null
+  is_pph23?: number | null
   vat_perc: number
   pph23_perc: number
   total_qty: number
@@ -88,6 +89,7 @@ export type FormInventoryType = {
   email?: string
   phone?: string
   address?: string
+  customer_code?: string
 
   io_type?: 'INVENTORY_IN' | 'INVENTORY_OUT'
 }
@@ -99,7 +101,12 @@ export type InvDtType = {
   item_unit_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
-  ref_id: number | string | null
+  ref_so_dt_id: number | string | null
+  ref_so_dt_bom_id: number | string | null
+  ref_po_dt_id: number | string | null
+  ref_po_dt_bom_id: number | string | null
+  ref_inv_dt_id: number | string | null
+  ref_product_id: number | string | null
   item_id: number
   product_uuid: string
   ref_type: InvDtRefType
@@ -112,7 +119,13 @@ export type InvDtType = {
   price_buy: number
   subtotal_sell: number
   subtotal_buy: number
-  total_am: number
+  is_vat?: number
+  is_pph23?: number
+  vat_perc?: number
+  vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  // total_am: number
   expired_at: string | null
 
   code?: string
@@ -145,6 +158,7 @@ export type QInvIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
+  io_type: 'INVENTORY_OUT' | 'INVENTORY_IN'
   global: string
   order_column: string
   order_direction: string
