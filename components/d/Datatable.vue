@@ -436,6 +436,8 @@ const showHideFilter = (event: any) => {
 };
 
 const onDoubleClick = async (event: any, row: any) => {
+  if (!props.editLink) return;
+
   navigateTo(`${props.editLink}/${row.item.id}`);
 };
 

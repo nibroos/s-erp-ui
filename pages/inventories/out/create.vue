@@ -85,9 +85,24 @@ const headers = ref<FieldSelectableType[]>([
   { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
   { key: "qty_out", title: "Qty Out", sortable: true, align: "end" },
   { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
-  { key: "qty", title: "Qty", sortable: true, align: "end" },
+  {
+    key: "qty",
+    title: "Qty",
+    sortable: true,
+    align: "end",
+    cellProps: {
+      class: "w-[12rem]",
+    },
+  },
   { key: "subtotal_sell", title: "Total Amount", sortable: true, align: "end" },
-  { key: "remark", title: "Remark", sortable: true },
+  {
+    key: "remark",
+    title: "Remark",
+    sortable: true,
+    cellProps: {
+      class: "w-[15rem]",
+    },
+  },
   {
     key: "action",
     title: "Action",
@@ -1040,7 +1055,7 @@ watchEffect(() => {
                 v-model="item.remark"
                 :label="``"
                 :placeholder="`Remark`"
-                class="w-[9rem]"
+                class="w-full"
               />
             </template>
             <template #item.price_sell="{ item }">
@@ -1076,6 +1091,13 @@ watchEffect(() => {
             <template #item.subtotal_sell="{ item }">
               <d-num-layout :value="item.qty * item.price_sell" />
             </template>
+            <template #item.qty_out="{ item }">
+              <d-num-layout :value="item.qty_out ?? 0" />
+            </template>
+            <template #item.ref_qty="{ item }">
+              <d-num-layout :value="item.ref_qty ?? 0" />
+            </template>
+
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt

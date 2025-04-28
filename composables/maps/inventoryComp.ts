@@ -73,7 +73,7 @@ export function convertInvItemRefProduct(
     ref_type: refType,
     remark: item.remark,
     item_type: optional.item_type,
-    qty: item.qty || 1,
+    qty: item.qty || (item.balance as number) || 1,
     qty_out: item.qty_out,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,

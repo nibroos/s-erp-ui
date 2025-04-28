@@ -123,7 +123,7 @@ const itemInventory = [
   {
     title: "Card Stock",
     icon: "",
-    link: "/inventories/stock",
+    link: "/inventories/stocks",
     permissions: ["r_invs"],
   },
   // {

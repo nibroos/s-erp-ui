@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType } from '~/types/inventories/InventoryType'
+import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType, QInvStockIndexType } from '~/types/inventories/InventoryType'
 
 const useInventoryStore = defineStore('InventoryStore', {
   state: () => ({
@@ -34,6 +34,14 @@ const useInventoryStore = defineStore('InventoryStore', {
         order_column: 'ingoing_at',
         order_direction: 'desc'
       } as QInvIndexType,
+      qIndexStock: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        global: '',
+        order_column: 'id',
+        order_direction: 'desc'
+      } as QInvStockIndexType,
 
       qIndexProducts: {
         page: 1,
@@ -621,6 +629,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkProducts = []
       this.errors = {};
+      this.form.warehouse_id = AuthStore().authUser.data?.warehouse_id
 
       this.resetSummary()
       this.countSelectedReferences()

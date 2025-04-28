@@ -128,6 +128,7 @@ export type InvDtType = {
   // total_am: number
   expired_at: string | null
 
+  ref_qty?: number
   code?: string
   name?: string
   unit_name?: string
@@ -159,6 +160,15 @@ export type QInvIndexType = {
   per_page: number
   parent_ids: number[]
   io_type: 'INVENTORY_OUT' | 'INVENTORY_IN'
+  global: string
+  order_column: string
+  order_direction: string
+}
+
+export type QInvStockIndexType = {
+  page: number
+  per_page: number
+  parent_ids: number[]
   global: string
   order_column: string
   order_direction: string
