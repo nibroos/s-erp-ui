@@ -9,6 +9,7 @@ import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
+import useScheduleStore from './ScheduleStore'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -255,7 +256,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       } else {
         this.form.id = this.form.id
       }
-
 
       if (!!this.loading.editPageLoading) return
       this.loading.editPageLoading = true
@@ -529,14 +529,85 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         }
 
         const response = await useMyFetch().post(
-          '/v1/sales-orders/update-sales-order-schedule',
+          '/v1/sales-orders/update-schedule',
           this.form.schedule
         )
+
+        useScheduleStore().isOpen.detailEvent = false
 
         // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
 
         this.form.id = id
-        await this.show()
+        // await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async createSchedule() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      let actionText = 'create'
+
+      if (!this.form.is_scheduled && this.form.schedule && this.form.schedule.id) {
+        actionText = 'delete'
+      }
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        `Are you sure to ${actionText} this data?`,
+        `Schedule will be ${actionText}d`
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        let id = this.form.id
+        if (!!this.form.schedule) {
+          this.form.schedule.sales_order_id = id as number
+          this.form.schedule.is_delete = 0
+        }
+
+        if (!this.form.is_scheduled && this.form.schedule) {
+          this.form.schedule.id = null
+          this.form.schedule.is_delete = 1
+        }
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/create-schedule',
+          this.form.schedule
+        )
+
+        useScheduleStore().isOpen.createEvent = false
+
+        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        // await this.show()
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)

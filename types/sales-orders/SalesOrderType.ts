@@ -143,6 +143,7 @@ export type SalesOrderAttachmentsType = {
 export type FormScheduleType = {
   id: number | null
   sales_order_id: number | null
+  customer_id: number | null
   assignee_id: number | null
   schedule_no: string
   title: string

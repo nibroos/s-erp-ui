@@ -6,7 +6,7 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const emits = defineEmits(["update:schedule"]);
+const emits = defineEmits(["create:schedule"]);
 
 const headersCustomer = ref<FieldSelectableType[]>([
   {
@@ -98,9 +98,9 @@ const { form, errors, loading } = storeToRefs(salesOrderStore);
 
 const kanbanBoardExposeRef = ref();
 
-const handleUpdateSchedule = () => {
-  salesOrderStore.updateSchedule().then(() => {
-    emits("update:schedule");
+const handleCreateSchedule = () => {
+  salesOrderStore.createSchedule().then(() => {
+    emits("create:schedule");
   });
 };
 
@@ -230,15 +230,8 @@ const resetBoard = async () => {
           @click="resetBoard()"
         />
 
-        <d-switch-status
-          v-if="form.is_scheduled"
-          v-model="form.is_scheduled"
-          :true-value="1"
-          :false-value="0"
-          label=""
-        />
         <d-bt
-          :cta="'Update Schedule'"
+          :cta="'Create Schedule'"
           :class="
             classMerge(
               'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
@@ -247,7 +240,7 @@ const resetBoard = async () => {
           :text-class="classMerge('text-white mx-auto !font-bold')"
           :no-icon="true"
           type="button"
-          @click="handleUpdateSchedule"
+          @click="handleCreateSchedule"
         />
         <d-autocomplete-client
           v-model="form.schedule.steps_id"

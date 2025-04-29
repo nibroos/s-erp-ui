@@ -680,7 +680,7 @@ const handleSubmit = async () => {
   form.value.inv_dts = itemsCheck.value.checkMain;
   form.value.io_type = "INVENTORY_OUT";
 
-  await inventoryStore.store();
+  await inventoryStore.update();
 };
 
 const router = useRouter();

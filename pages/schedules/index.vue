@@ -17,9 +17,18 @@ import {
 import "@schedule-x/theme-default/dist/index.css";
 import useScheduleStore from "~/stores/orders/ScheduleStore";
 import useAuthStore from "~/stores/AuthStore";
+import type { FormScheduleType } from "~/types/sales-orders/SalesOrderType";
 
 const scheduleStore = useScheduleStore();
-const { queryModal, metaModal, modalData, isOpen } = storeToRefs(scheduleStore);
+const salesOrderStore = useSalesOrderStore();
+const {
+  queryModal,
+  metaModal,
+  modalData,
+  isOpen,
+  form: formSchedule,
+} = storeToRefs(scheduleStore);
+const { form: formSalesOrder } = storeToRefs(salesOrderStore);
 
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
@@ -309,12 +318,21 @@ const calendarApp = createCalendar({
       scheduleStore.openDetailEventModal(calendarEvent);
     },
     onClickDate(date) {
-      isOpen.value.createEvent = true;
+      scheduleStore.openCreateEventModal();
     },
   },
 });
 
 const updateSchedule = () => {
+  scheduleStore.indexSchedule().then(() => {
+    // calendarApp.events.set(metaModal.value.index.data as any[]);
+    calendarApp.events.set(
+      metaModal.value.index.data as CalendarEventExternal[]
+    );
+  });
+};
+
+const createScheduleNoRef = () => {
   scheduleStore.indexSchedule().then(() => {
     // calendarApp.events.set(metaModal.value.index.data as any[]);
     calendarApp.events.set(
@@ -333,6 +351,21 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => isOpen.value.detailEvent,
+  (newValue, oldValue) => {
+    console.log(newValue, oldValue, "detailEvent open");
+
+    if (!newValue) {
+      formSalesOrder.value = cloneObject(useInitials.formSalesOrderCreateEdit);
+      formSchedule.value = cloneObject(
+        useInitials.formSalesOrderCreateEdit.schedule as FormScheduleType
+      );
+    }
+  },
+  { immediate: true, deep: true }
 );
 </script>
 
@@ -431,7 +464,14 @@ watch(
       :focus-trap="false"
     >
       <div class="flex flex-col gap-3 p-3">
-        <d-schedule-single @update:schedule="updateSchedule" />
+        <d-schedule-single-no-ref
+          @update:schedule="updateSchedule"
+          v-if="scheduleStore.form.id"
+        />
+        <d-schedule-single
+          @update:schedule="updateSchedule"
+          v-else-if="useSalesOrderStore().form.id"
+        />
       </div>
 
       <template #footer>
@@ -440,7 +480,7 @@ watch(
             :cta="'Close'"
             :class="
               classMerge(
-                'w-1/3 whitespace-nowrap border-scDarker dark:hover:bg-scDarker dark:bg-scDarker3 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-sc hover:bg-scDarker border-1.5 p-2 transition-all ease-in-out'
+                'grow whitespace-nowrap border-scDarker dark:hover:bg-scDarker dark:bg-scDarker3 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-sc hover:bg-scDarker border-1.5 p-2 transition-all ease-in-out'
               )
             "
             :text-class="classMerge('text-primary1')"
@@ -450,10 +490,11 @@ watch(
           />
 
           <d-bt
+            v-if="useSalesOrderStore().form.id"
             :cta="'Sales Order Details'"
             :class="
               classMerge(
-                'grow whitespace-nowrap border-scDarker text-scDarker dark:text-primary1 dark:hover:bg-dark1 dark:bg-dark2 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-primaryDarker hover:bg-primaryDarkest border-1.5 p-2 transition-all ease-in-out'
+                'w-1/3 whitespace-nowrap border-scDarker text-scDarker dark:text-primary1 dark:hover:bg-dark1 dark:bg-dark2 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-primaryDarker hover:bg-primaryDarkest border-1.5 p-2 transition-all ease-in-out'
               )
             "
             :text-class="classMerge('text-scDarker dark:text-white')"
@@ -477,50 +518,53 @@ watch(
     </modals-final-modal>
     <modals-final-modal
       :is-open="isOpen.createEvent"
-      custom-class="overflow-y-auto !w-3/12"
+      custom-class="overflow-y-auto !w-11/12"
       :label="`New Schedule`"
       parent-class="!z-[1502]"
       @update:is-open="isOpen.createEvent = $event"
       :focus-trap="false"
     >
       <div class="flex flex-col gap-3 p-3">
-        <!-- <d-schedule-single @update:schedule="updateSchedule" /> -->
-
-        <d-select-table
-          api="/v1/sales-orders/index-sales-order"
-          detail-api="/v1/sales-orders/index-sales-order"
-          method-api="post"
-          detail-method-api="post"
-          mapping-detail="data[0]"
-          total-prop="meta.total"
-          cta="Go To Sales Order"
-          label="Sales Order"
-          v-model="nextSalesOrder"
-          class="col-span-2 lg:col-span-1"
-          is-quick-select
-          @click:selected="
-            (data) => {
-              if (!!data) {
-                useSalesOrderStore().tabFormIndex = 2;
-                useSalesOrderStore()
-                  .goToSalesOrder(data.id)
-                  .then(() => {
-                    isOpen.detailEvent = false;
-                    isOpen.plusEvent = false;
-                    isOpen.createEvent = false;
-                  });
-              }
-            }
-          "
-          :query="{
-            is_schedule_not_exists: 1,
-          }"
-          modal-parent-class="!z-[2500]"
-          modal-custom-class="!w-4/5"
-          :fields="fieldsConfig"
-          :filters="filtersConfig"
-        />
+        <d-create-schedule-single @create:schedule="createScheduleNoRef" />
       </div>
+
+      <template #footer>
+        <div class="flex gap-3 w-full">
+          <d-select-table
+            api="/v1/sales-orders/index-sales-order"
+            detail-api="/v1/sales-orders/index-sales-order"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            cta="Go To Sales Order"
+            label="Sales Order"
+            v-model="nextSalesOrder"
+            is-quick-select
+            @click:selected="
+              (data) => {
+                if (!!data) {
+                  useSalesOrderStore().tabFormIndex = 2;
+                  useSalesOrderStore()
+                    .goToSalesOrder(data.id)
+                    .then(() => {
+                      isOpen.detailEvent = false;
+                      isOpen.plusEvent = false;
+                      isOpen.createEvent = false;
+                    });
+                }
+              }
+            "
+            :query="{
+              is_schedule_not_exists: 1,
+            }"
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="fieldsConfig"
+            :filters="filtersConfig"
+          />
+        </div>
+      </template>
     </modals-final-modal>
   </div>
 </template>

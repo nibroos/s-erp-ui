@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
 import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
+import useScheduleStore from "~/stores/orders/ScheduleStore";
 import type {
   FieldSelectableType,
   FilterSelectableType,
@@ -93,12 +94,15 @@ const filtersCustomer = ref<FilterSelectableType[]>([
 ]);
 
 const salesOrderStore = useSalesOrderStore();
+const scheduleStore = useScheduleStore();
 
-const { form, errors, loading } = storeToRefs(salesOrderStore);
+// const { form, errors, loading } = storeToRefs(salesOrderStore);
+const { form, errors, loading } = storeToRefs(scheduleStore);
 
 const kanbanBoardExposeRef = ref();
 
 const handleUpdateSchedule = () => {
+  salesOrderStore.form.is_scheduled = 1;
   salesOrderStore.updateSchedule().then(() => {
     emits("update:schedule");
   });
@@ -119,11 +123,11 @@ const resetBoard = async () => {
 </script>
 
 <template>
-  <div v-if="form.is_scheduled && form.schedule != null">
+  <div v-if="!loading.editPageLoading">
     <div class="grid grid-cols-6 gap-2 items-center content-center">
       <div class="lg:col-span-6">
         <d-text-input
-          v-model="form.schedule.title"
+          v-model="form.title"
           :label="`Title`"
           :placeholder="`Title`"
           :errors="errors.title"
@@ -133,7 +137,7 @@ const resetBoard = async () => {
       <!-- assignee_id -->
       <div class="lg:col-span-6">
         <d-autocomplete
-          v-model="form.schedule.assignee_id"
+          v-model="form.assignee_id"
           api="/v1/users/index-user"
           single-api="/v1/users/show-user"
           page-end-prop="meta.next_page_url"
@@ -153,7 +157,7 @@ const resetBoard = async () => {
           mapping-detail="data[0]"
           total-prop="meta.total"
           label="Customer"
-          v-model="form.schedule.customer_id"
+          v-model="form.customer_id"
           class=""
           is-quick-select
           @click:selected="(data) => salesOrderStore.autocompleteCustomer(data)"
@@ -166,13 +170,13 @@ const resetBoard = async () => {
 
       <div class="lg:col-span-6">
         <d-date-picker-light
-          v-model="form.schedule.start_at"
+          v-model="form.start_at"
           label="Start Date"
         ></d-date-picker-light>
       </div>
       <div class="lg:col-span-6">
         <d-date-picker-light
-          v-model="form.schedule.end_at"
+          v-model="form.end_at"
           label="End Date"
         ></d-date-picker-light>
       </div>
@@ -200,8 +204,8 @@ const resetBoard = async () => {
               >
               <div
                 :style="{
-                  backgroundColor: form.schedule.color,
-                  color: form.schedule.color ? 'white' : 'black',
+                  backgroundColor: form.color,
+                  color: form.color ? 'white' : 'black',
                 }"
                 class="w-6 h-6 rounded-full border border-solid border-grey2 ml-2"
               ></div>
@@ -209,7 +213,7 @@ const resetBoard = async () => {
           </template>
           <v-color-picker
             show-swatches
-            v-model="form.schedule.color"
+            v-model="form.color"
             :modes="['hex']"
             hide-inputs
           >
@@ -230,13 +234,6 @@ const resetBoard = async () => {
           @click="resetBoard()"
         />
 
-        <d-switch-status
-          v-if="form.is_scheduled"
-          v-model="form.is_scheduled"
-          :true-value="1"
-          :false-value="0"
-          label=""
-        />
         <d-bt
           :cta="'Update Schedule'"
           :class="
@@ -250,7 +247,7 @@ const resetBoard = async () => {
           @click="handleUpdateSchedule"
         />
         <d-autocomplete-client
-          v-model="form.schedule.steps_id"
+          v-model="form.steps_id"
           :items="useInitials.defaultSteps"
           label="Steps"
           item-value="id"

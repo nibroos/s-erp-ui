@@ -253,6 +253,7 @@ const formSalesOrderCreateEdit = {
   schedule: {
     id: null,
     sales_order_id: null,
+    customer_id: null,
     assignee_id: null,
     schedule_no: "",
     title: "",

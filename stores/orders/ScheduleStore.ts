@@ -1,12 +1,12 @@
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
-import type { FormSalesOrderType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSalesOrderType, FormScheduleType } from '~/types/sales-orders/SalesOrderType'
 import useSalesOrderStore from './SalesOrderStore'
 
 const useScheduleStore = defineStore('ScheduleStore', {
   state: () => ({
-    form: {} as FormSalesOrderType,
+    form: {} as FormScheduleType,
     queryModal: {
       qListIndex: {
         start_at: '',
@@ -32,7 +32,12 @@ const useScheduleStore = defineStore('ScheduleStore', {
       plusEvents: [] as any[],
       detailEvents: [] as any[],
       selectedPlusEvent: {} as any,
-    }
+    },
+    loading: {
+      formLoading: false,
+      editPageLoading: false,
+      imageDownloadLoading: false,
+    },
   }),
 
   actions: {
@@ -56,24 +61,34 @@ const useScheduleStore = defineStore('ScheduleStore', {
       }
     },
 
-    async show() {
+    async show(id?: number | string | string[] | undefined) {
+      if (id) {
+        this.form.id = id as number
+      } else {
+        this.form.id = this.form.id
+      }
+
+      if (!!this.loading.editPageLoading) return
+      this.loading.editPageLoading = true
       try {
         const response = await useMyFetch().post(
-          '/v1/item-groups/show-item-group',
+          '/v1/sales-orders/show-schedule',
           this.form
         )
+
         this.form = response.data.data[0]
+        useSalesOrderStore().form.schedule = response.data.data[0]
 
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.editPageLoading = false
       }
     },
 
     getAllEventsByDate(date: string) {
       this.isOpen.plusEvent = true
-
-      console.log('getAllEventsByDate', date);
 
       // get all events by date from metaModal.index.data, get between start_at and end_at
       if (!this.metaModal.index.data) {
@@ -90,8 +105,6 @@ const useScheduleStore = defineStore('ScheduleStore', {
         return startDate <= date && endDate >= date
       })
 
-      console.log('events', events);
-
       this.modalData.plusEvents = events
 
       return events
@@ -101,7 +114,19 @@ const useScheduleStore = defineStore('ScheduleStore', {
       this.isOpen.detailEvent = true
       this.modalData.selectedPlusEvent = event
 
-      useSalesOrderStore().show(event.sales_order_id)
+      if (event.sales_order_id) {
+        useSalesOrderStore().show(event.sales_order_id)
+      } else {
+        this.show(event.id)
+      }
+    },
+
+    openCreateEventModal() {
+      this.isOpen.createEvent = true;
+      // this.modalData.selectedPlusEvent = event
+
+      useSalesOrderStore().form.is_scheduled = 1
+      useSalesOrderStore().form.schedule = useInitials.formSalesOrderCreateEdit.schedule
     },
 
   },
