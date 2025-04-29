@@ -78,6 +78,7 @@ export type FormSalesOrderType = {
   payment_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  ref_type?: string | null
   rev_no?: number | null
   sales_order_no?: string
   po_buyer_no: string

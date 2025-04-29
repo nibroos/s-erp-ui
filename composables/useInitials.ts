@@ -222,6 +222,7 @@ const formSalesOrderCreateEdit = {
   po_buyer_no: "",
   remark: "Price not include VAT",
   status: "PROCESS",
+  ref_type: "sales_orders",
   exchange_rate: null,
   vat_perc: 0,
   vat_perc_am: 0,

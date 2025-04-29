@@ -415,13 +415,32 @@ watch(
             <div class="text-lg font-semibold">{{ event.title }}</div>
           </div>
 
-          <div class="flex gap-2 items-center">
-            <v-icon
-              icon="mdi-calendar"
-              :size="24"
-              class="text-dark1 dark:text-primaryDarkest"
-            />
-            <div>{{ event.start }} - {{ event.end }}</div>
+          <div class="flex justify-between">
+            <div class="flex gap-2 items-center">
+              <v-icon
+                icon="mdi-calendar"
+                :size="24"
+                class="text-dark1 dark:text-primaryDarkest"
+              />
+              <div>{{ event.start }} - {{ event.end }}</div>
+            </div>
+            <div class="flex gap-2 items-center">
+              <v-icon
+                icon="mdi-account-details-outline"
+                :size="24"
+                class="text-dark1 dark:text-primaryDarkest"
+              />
+              <div>
+                {{ event.total_all_tasks_done }}/{{ event.total_tasks }} Tasks
+                ({{
+                  useNumber.formatNumberSeparator(
+                    (event.total_all_tasks_done * 100) / event.total_tasks,
+                    0,
+                    0
+                  )
+                }}%)
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -334,6 +334,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule = null
         }
 
+        this.form.ref_type = 'sales_orders'
+
         // Handle files first
         if (this.form.files) {
           if (Array.isArray(this.form.files)) {
@@ -430,6 +432,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         //     }
         //   }
         // })
+
+        this.form.ref_type = 'sales_orders'
 
         // Handle files first
         if (this.form.files) {
@@ -528,6 +532,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule.is_delete = 1
         }
 
+        this.form.ref_type = 'sales_orders'
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-schedule',
           this.form.schedule
@@ -596,6 +602,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule.id = null
           this.form.schedule.is_delete = 1
         }
+
+        this.form.ref_type = 'sales_orders'
 
         const response = await useMyFetch().post(
           '/v1/sales-orders/create-schedule',
