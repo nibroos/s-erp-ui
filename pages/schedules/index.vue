@@ -28,7 +28,12 @@ const {
   isOpen,
   form: formSchedule,
 } = storeToRefs(scheduleStore);
-const { form: formSalesOrder } = storeToRefs(salesOrderStore);
+const {
+  form: formSalesOrder,
+  loading: loadingSalesOrder,
+  isOpenModal,
+  modals,
+} = storeToRefs(salesOrderStore);
 
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
@@ -326,9 +331,12 @@ const calendarApp = createCalendar({
 const updateSchedule = () => {
   scheduleStore.indexSchedule().then(() => {
     // calendarApp.events.set(metaModal.value.index.data as any[]);
+
     calendarApp.events.set(
       metaModal.value.index.data as CalendarEventExternal[]
     );
+
+    isOpen.value.detailEvent = false;
   });
 };
 
@@ -385,6 +393,13 @@ watch(
           }"
         >
           {{ event.title }}
+          ({{
+            useNumber.formatNumberSeparator(
+              (event.total_all_tasks_done * 100) / event.total_tasks,
+              0,
+              0
+            )
+          }}%)
         </div>
       </template>
       <template #monthGridDate="{ date }">
@@ -483,14 +498,260 @@ watch(
       :focus-trap="false"
     >
       <div class="flex flex-col gap-3 p-3">
-        <d-schedule-single-no-ref
-          @update:schedule="updateSchedule"
-          v-if="scheduleStore.form.id"
-        />
-        <d-schedule-single
-          @update:schedule="updateSchedule"
+        <div v-if="scheduleStore.form.id" class="flex flex-col gap-3">
+          <d-schedule-single-no-ref @update:schedule="updateSchedule" />
+          <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+            <!-- attached files -->
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-medium dark:text-primary1"
+                >Uploaded Files</span
+              >
+              <div>
+                <div
+                  v-if="
+                    !formSchedule.attachments ||
+                    formSchedule.attachments.length == 0
+                  "
+                >
+                  <span
+                    class="text-sm font-normal text-grey3 dark:text-primary1"
+                    >No files attached</span
+                  >
+                </div>
+                <div
+                  v-else
+                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                >
+                  <div
+                    v-for="(file, index) in formSchedule.attachments"
+                    :key="index"
+                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                  >
+                    <div class="flex gap-2">
+                      <lazy-d-img
+                        v-if="file.file_type.includes('image')"
+                        :aspect-ratio="1"
+                        :alt="file.file_name"
+                        :src="file.file_url"
+                        width="50"
+                        class="border border-solid border-grey3 cursor-pointer"
+                        @click="
+                          scheduleStore.openModalAttachmentImg(true, file)
+                        "
+                      ></lazy-d-img>
+
+                      <div v-if="!file.file_type.includes('image')">
+                        <v-icon
+                          icon="mdi-file-document-outline"
+                          class="text-sc dark:text-primary1"
+                          size="50"
+                        />
+                      </div>
+
+                      <div class="flex flex-col justify-center">
+                        <input
+                          v-model="file.file_name"
+                          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                        />
+                        <div class="text-xs dark:text-grey1">
+                          {{ shortenBytes(file.file_size) }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <d-bt
+                        v-if="file.file_type.includes('image')"
+                        icon="mdi-information-outline"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="full view"
+                        icon-size="16"
+                        :loading="loadingSalesOrder.imageDownloadLoading"
+                        @click="scheduleStore.handleViewFullPageFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        icon="mdi-download"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="download"
+                        icon-size="16"
+                        :loading="loadingSalesOrder.imageDownloadLoading"
+                        @click="scheduleStore.handleDownloadFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        @click="scheduleStore.handleExistingFile(file, index)"
+                        icon="mdi-delete"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                        icon-class="text-cancel dark:text-primary1"
+                        rounded="xl"
+                        cta="delete"
+                        icon-size="16"
+                      ></d-bt>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="">
+            <v-file-upload
+              v-model="formSchedule.files"
+              clearable
+              density="compact"
+              variant="compact"
+              multiple
+            >
+              <template v-slot:item="{ props: itemProps }">
+                <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                  <template v-slot:prepend>
+                    <v-avatar size="32" rounded></v-avatar>
+                  </template>
+
+                  <template v-slot:clear="{ props: clearProps }">
+                    <v-btn
+                      class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                      v-bind="clearProps"
+                    ></v-btn>
+                  </template>
+                </v-file-upload-item>
+              </template>
+            </v-file-upload>
+          </div>
+        </div>
+
+        <div
           v-else-if="useSalesOrderStore().form.id"
-        />
+          class="flex flex-col gap-3"
+        >
+          <d-schedule-single @update:schedule="updateSchedule" />
+          <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+            <!-- attached files -->
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-medium dark:text-primary1"
+                >Uploaded Files</span
+              >
+              <div>
+                <div
+                  v-if="
+                    !formSalesOrder.attachments ||
+                    formSalesOrder.attachments.length == 0
+                  "
+                >
+                  <span
+                    class="text-sm font-normal text-grey3 dark:text-primary1"
+                    >No files attached</span
+                  >
+                </div>
+                <div
+                  v-else
+                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                >
+                  <div
+                    v-for="(file, index) in formSalesOrder.attachments"
+                    :key="index"
+                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                  >
+                    <div class="flex gap-2">
+                      <lazy-d-img
+                        v-if="file.file_type.includes('image')"
+                        :aspect-ratio="1"
+                        :alt="file.file_name"
+                        :src="file.file_url"
+                        width="50"
+                        class="border border-solid border-grey3 cursor-pointer"
+                        @click="
+                          salesOrderStore.openModalAttachmentImg(true, file)
+                        "
+                      ></lazy-d-img>
+
+                      <div v-if="!file.file_type.includes('image')">
+                        <v-icon
+                          icon="mdi-file-document-outline"
+                          class="text-sc dark:text-primary1"
+                          size="50"
+                        />
+                      </div>
+
+                      <div class="flex flex-col justify-center">
+                        <input
+                          v-model="file.file_name"
+                          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                        />
+                        <div class="text-xs dark:text-grey1">
+                          {{ shortenBytes(file.file_size) }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <d-bt
+                        v-if="file.file_type.includes('image')"
+                        icon="mdi-information-outline"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="full view"
+                        icon-size="16"
+                        :loading="loadingSalesOrder.imageDownloadLoading"
+                        @click="salesOrderStore.handleViewFullPageFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        icon="mdi-download"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="download"
+                        icon-size="16"
+                        :loading="loadingSalesOrder.imageDownloadLoading"
+                        @click="salesOrderStore.handleDownloadFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        @click="salesOrderStore.handleExistingFile(file, index)"
+                        icon="mdi-delete"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                        icon-class="text-cancel dark:text-primary1"
+                        rounded="xl"
+                        cta="delete"
+                        icon-size="16"
+                      ></d-bt>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="">
+            <v-file-upload
+              v-model="formSalesOrder.files"
+              clearable
+              density="compact"
+              variant="compact"
+              multiple
+            >
+              <template v-slot:item="{ props: itemProps }">
+                <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                  <template v-slot:prepend>
+                    <v-avatar size="32" rounded></v-avatar>
+                  </template>
+
+                  <template v-slot:clear="{ props: clearProps }">
+                    <v-btn
+                      class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                      v-bind="clearProps"
+                    ></v-btn>
+                  </template>
+                </v-file-upload-item>
+              </template>
+            </v-file-upload>
+          </div>
+        </div>
       </div>
 
       <template #footer>
@@ -545,6 +806,31 @@ watch(
     >
       <div class="flex flex-col gap-3 p-3">
         <d-create-schedule-single @create:schedule="createScheduleNoRef" />
+
+        <div class="lg:col-span-6">
+          <v-file-upload
+            v-model="formSalesOrder.files"
+            clearable
+            density="compact"
+            variant="compact"
+            multiple
+          >
+            <template v-slot:item="{ props: itemProps }">
+              <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                <template v-slot:prepend>
+                  <v-avatar size="32" rounded></v-avatar>
+                </template>
+
+                <template v-slot:clear="{ props: clearProps }">
+                  <v-btn
+                    class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                    v-bind="clearProps"
+                  ></v-btn>
+                </template>
+              </v-file-upload-item>
+            </template>
+          </v-file-upload>
+        </div>
       </div>
 
       <template #footer>
@@ -584,6 +870,58 @@ watch(
           />
         </div>
       </template>
+    </modals-final-modal>
+
+    <modals-final-modal
+      :is-open="isOpenModal.attachment_imgs"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Uploaded Image"
+      parent-class="!z-[1503]"
+      @update:is-open="isOpenModal.attachment_imgs = $event"
+    >
+      <v-carousel
+        height="500"
+        progress="brown"
+        v-model="isOpenModal.attachment_opened"
+        class="pt-2"
+      >
+        <v-carousel-item
+          v-for="(attachment, i) in modals.attachment_imgs"
+          :key="i"
+        >
+          <div class="flex gap-2 pt-2">
+            <div class="w-2/3">
+              <lazy-d-img
+                v-if="attachment.file_type.includes('image')"
+                :aspect-ratio="1"
+                :alt="attachment.file_name"
+                :src="attachment.file_url"
+                :cover="false"
+                width="100%"
+                class="border border-solid border-grey3 h-[25rem] cursor-pointer ease-in-out scale-95 hover:scale-100 transition-all"
+                @click="salesOrderStore.handleViewFullPageFile(attachment)"
+              />
+            </div>
+            <div class="grid grid-cols-1 content-start gap-4 grow">
+              <d-text-input
+                v-model="attachment.file_name"
+                :label="`Name`"
+                :placeholder="`Name`"
+                class="h-[2rem]"
+              />
+              <d-text-area-input
+                v-model="attachment.remark"
+                :label="`Remark`"
+                :placeholder="`Remark`"
+                class=""
+                :auto-grow="false"
+                :rows="3"
+              />
+            </div>
+          </div>
+        </v-carousel-item>
+      </v-carousel>
     </modals-final-modal>
   </div>
 </template>

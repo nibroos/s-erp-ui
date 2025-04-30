@@ -149,6 +149,7 @@ export type FormScheduleType = {
   schedule_no: string
   title: string
   module_type: 'sales_orders' | 'feedbacks'
+  ref_type: 'sales_orders' | 'schedules'
   start_at: string
   end_at: string
   color: string
@@ -156,6 +157,10 @@ export type FormScheduleType = {
   remark: string | null
   steps_id?: number | null
   steps?: FormScheduleStepType[]
+
+  attachments: SalesOrderAttachmentsType[]
+  files?: File[]
+  deleted_files: number[]
 
   is_scheduled?: number
   is_delete?: number

@@ -104,6 +104,13 @@ const handleUpdateSchedule = () => {
   });
 };
 
+const handleDeleteSchedule = () => {
+  if (!form.value.schedule) return;
+  salesOrderStore.deleteSchedule(form.value.schedule.id as number).then(() => {
+    emits("update:schedule");
+  });
+};
+
 // Trigger the openModal method
 const resetBoard = async () => {
   if (kanbanBoardExposeRef.value) {
@@ -230,13 +237,20 @@ const resetBoard = async () => {
           @click="resetBoard()"
         />
 
-        <d-switch-status
-          v-if="form.is_scheduled"
-          v-model="form.is_scheduled"
-          :true-value="1"
-          :false-value="0"
-          label=""
+        <d-bt
+          :cta="'Delete Schedule'"
+          :class="
+            classMerge(
+              '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+            )
+          "
+          :text-class="classMerge('text-cancel dark:text-white mx-auto')"
+          :icon-class="classMerge('text-cancel dark:text-white mx-auto')"
+          icon="mdi-delete"
+          type="button"
+          @click="handleDeleteSchedule()"
         />
+
         <d-bt
           :cta="'Update Schedule'"
           :class="

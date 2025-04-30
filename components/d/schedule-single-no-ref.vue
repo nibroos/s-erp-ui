@@ -102,8 +102,14 @@ const { form, errors, loading } = storeToRefs(scheduleStore);
 const kanbanBoardExposeRef = ref();
 
 const handleUpdateSchedule = () => {
-  salesOrderStore.form.is_scheduled = 1;
-  salesOrderStore.updateSchedule().then(() => {
+  scheduleStore.form.is_scheduled = 1;
+  scheduleStore.updateSchedule().then(() => {
+    emits("update:schedule");
+  });
+};
+
+const handleDeleteSchedule = () => {
+  scheduleStore.deleteSchedule(form.value.id as number).then(() => {
     emits("update:schedule");
   });
 };
@@ -232,6 +238,20 @@ const resetBoard = async () => {
           icon="mdi-refresh"
           type="button"
           @click="resetBoard()"
+        />
+
+        <d-bt
+          :cta="'Delete Schedule'"
+          :class="
+            classMerge(
+              '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+            )
+          "
+          :text-class="classMerge('text-cancel dark:text-white mx-auto')"
+          :icon-class="classMerge('text-cancel dark:text-white mx-auto')"
+          icon="mdi-delete"
+          type="button"
+          @click="handleDeleteSchedule()"
         />
 
         <d-bt

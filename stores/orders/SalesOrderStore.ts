@@ -534,12 +534,40 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.form.ref_type = 'sales_orders'
 
+        const formData = new FormData()
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form.schedule,
+          deleted_files: this.form.deleted_files,
+          attachments: this.form.attachments,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/update-schedule',
-          this.form.schedule
+          // this.form.schedule
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
 
-        useScheduleStore().isOpen.detailEvent = false
+        // useScheduleStore().isOpen.detailEvent = false
 
         // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
 
@@ -605,9 +633,35 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.form.ref_type = 'sales_orders'
 
+        const formData = new FormData()
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form.schedule,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
           '/v1/sales-orders/create-schedule',
-          this.form.schedule
+          // this.form.schedule
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
 
         useScheduleStore().isOpen.createEvent = false
@@ -642,6 +696,42 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    async deleteSchedule(id: number | string | string[] | undefined) {
+      this.form.id = id
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        `Are you sure to delete this data?`,
+        `Schedule will be deleted`
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      if (!this.form.schedule) {
+        useAlert.alertError('Schedule not found')
+
+        return;
+      }
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/delete-schedule',
+          {
+            id: this.form.schedule.id,
+          }
+        )
+
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+        useAlert.alertError(error.response.data.message)
+      }
+    },
+
     async delete(id: number | string | string[] | undefined) {
       this.form.id = id
       try {
@@ -651,10 +741,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         )
         this.form = response.data.data[0]
 
+        useAlert.alertSuccess(response.data.message)
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
         useAlert.alertError(error.response.data.message)
+      } finally {
+        this.form.id = null
       }
     },
 
