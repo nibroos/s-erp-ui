@@ -739,14 +739,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.countSelectedReferences();
       this.closeAllModal();
 
-      this.form.io_type_id = this.headAutocomplete.so.io_type_id;
-      this.form.currency_id = this.headAutocomplete.so.currency_id;
-      this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
-      this.form.vat_id = this.headAutocomplete.so.vat_id;
-      this.form.vat_perc = this.headAutocomplete.so.vat_perc as number;
-      this.form.pph23_id = this.headAutocomplete.so.pph23_id;
-      this.form.pph23_perc = this.headAutocomplete.so.pph23_perc as number;
-      this.form.remark = this.headAutocomplete.so.remark
+      this.form.io_type_id = this.form.io_type_id ?? this.headAutocomplete.so.io_type_id
+      this.form.currency_id = this.form.currency_id ?? this.headAutocomplete.so.currency_id;
+      this.form.exchange_rate = this.form.exchange_rate ?? this.headAutocomplete.so.exchange_rate;
+      this.form.vat_id = this.form.vat_id ?? this.headAutocomplete.so.vat_id;
+      this.form.vat_perc = this.form.vat_perc ?? this.headAutocomplete.so.vat_perc as number;
+      this.form.pph23_id = this.form.pph23_id ?? this.headAutocomplete.so.pph23_id;
+      this.form.pph23_perc = this.form.pph23_perc ?? this.headAutocomplete.so.pph23_perc as number;
+      this.form.remark = this.form.remark ?? this.headAutocomplete.so.remark
     },
 
     onClickDeleteSelected(item: any, index: number) {

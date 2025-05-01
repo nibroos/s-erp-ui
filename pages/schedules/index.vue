@@ -349,6 +349,15 @@ const createScheduleNoRef = () => {
   });
 };
 
+const refreshCalendar = async () => {
+  await scheduleStore.indexSchedule().then(() => {
+    // calendarApp.events.set(metaModal.value.index.data as any[]);
+    calendarApp.events.set(
+      metaModal.value.index.data as CalendarEventExternal[]
+    );
+  });
+};
+
 watch(
   () => useAuthStore().theme,
   (newValue) => {
@@ -380,6 +389,20 @@ watch(
 <template>
   <div class="flex flex-col gap-2">
     <ScheduleXCalendar :calendar-app="calendarApp">
+      <template #headerContentRightPrepend>
+        <!-- refresh -->
+        <d-bt
+          icon="mdi-refresh"
+          class="px-2 py-1.5 gap-1 !bg-sc hover:!bg-scDarker3 rounded-lg ease-in-out transition-all"
+          icon-class="text-primary1"
+          text-class="text-primary1"
+          rounded="xl"
+          cta="Refresh"
+          icon-size="16"
+          :loading="metaModal.index.loading"
+          @click="refreshCalendar()"
+        ></d-bt>
+      </template>
       <template #monthGridEvent="{ calendarEvent: event }">
         <div
           :class="

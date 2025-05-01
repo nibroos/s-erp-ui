@@ -162,7 +162,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "date_type",
     type: "autocomplete-client",
     others: {
-      items: useStatics.invIndexDateType,
+      items: useStatics.invOutdexDateType,
     },
   },
   {

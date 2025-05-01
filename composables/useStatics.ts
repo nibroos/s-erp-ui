@@ -416,6 +416,25 @@ const invIndexDateType = [
   },
 ]
 
+const invOutdexDateType = [
+  {
+    value: 'ingoing_at',
+    title: 'OUT Date',
+  },
+  {
+    value: 'shipping_at',
+    title: 'Shipping Date',
+  },
+  {
+    value: 'do_at',
+    title: 'DO Date',
+  },
+  {
+    value: 'invoice_at',
+    title: 'Invoice Date',
+  },
+]
+
 const formStatusInventory = [
   { id: 'DELIVERY', name: 'DELIVERY' },
   { id: 'INVOICE', name: 'INVOICE' },
@@ -518,5 +537,6 @@ export const useStatics = {
   formStatusInvoiceDp,
   SalesInvoiceIndexStatus,
   formTabSalesInvoice,
-  formStatusSalesInvoice
+  formStatusSalesInvoice,
+  invOutdexDateType
 }
