@@ -141,7 +141,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         no-delete
         @update:filters="
           (filters: QInvIndexType) => {
-            queryModal.qIndexIn = filters;
+            queryModal.qIndexStock = filters;
           }
         "
       >

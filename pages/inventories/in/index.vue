@@ -23,6 +23,13 @@ useHead({
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
+    title: "Inventory No",
+    key: "inventory_no",
+    value: "inventory_no",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "DO No",
     key: "do_no",
     value: "do_no",
@@ -33,6 +40,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Invoice No",
     key: "invoice_no",
     value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "IN Type",
+    key: "io_type_name",
+    value: "io_type_name",
     align: "start",
     sortable: true,
   },
@@ -75,6 +89,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Exc. Rate",
     key: "exchange_rate",
     value: "exchange_rate",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Total Qty",
+    key: "total_qty",
+    value: "total_qty",
     align: "end",
     sortable: true,
   },
@@ -162,6 +183,29 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "date",
   },
   {
+    title: "IN Type",
+    key: "io_type_ids",
+    type: "autocomplete",
+    others: {
+      methodApi: "post",
+      api: "/v1/io-types/index-io-type",
+      singleApi: "/v1/io-types/index-io-type",
+      mappingDetail: "data",
+      itemsProp: "data",
+      pageEndProp: "meta.next_page_url",
+      itemTitle: "name",
+      itemValue: "id",
+      query: {
+        io_type: "INVENTORY_IN",
+      },
+      label: "Roles",
+      innerSearchKey: "global",
+      multiple: true,
+      returnObject: false,
+      itemColor: "brown-lighten-2",
+    },
+  },
+  {
     title: "Currency",
     key: "currency_ids",
     type: "autocomplete",
@@ -210,9 +254,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
 //   layoutStore.defineTitlePath(config);
 // };
 
-// onMounted(() => {
-//   changeTitle();
-// });
+onMounted(() => {
+  queryModal.qIndexIn.io_type = "INVENTORY_IN";
+});
 
 // watchEffect(() => {
 //   changeTitle();

@@ -22,7 +22,6 @@ import type {
   InvDtDiscType,
   InvDtType,
   VatModeType,
-  ModalIndexRefFilterDateType,
 } from "~/types/inventories/InventoryType";
 import { updateInvRefsModalFromMain } from "~/composables/maps/inventoryComp";
 import type {
@@ -45,7 +44,7 @@ const {
   isOpenModal,
   queryModal,
   metaModal,
-  optionRefBtnRefOut,
+  optionRefBtnRef,
   openedModal,
   formLayout: formLayoutStore,
 } = storeToRefs(inventoryStore);
@@ -56,7 +55,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Create Inventory OUT",
+  title: "Edit Inventory IN",
 });
 
 const headers = ref<FieldSelectableType[]>([
@@ -84,7 +83,7 @@ const headers = ref<FieldSelectableType[]>([
     },
   },
   { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
-  { key: "qty_out", title: "Qty OUT", sortable: true, align: "end" },
+  { key: "qty_in", title: "Qty IN", sortable: true, align: "end" },
   { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
   {
     key: "qty",
@@ -101,7 +100,7 @@ const headers = ref<FieldSelectableType[]>([
     title: "Remark",
     sortable: true,
     cellProps: {
-      class: "w-[15rem]",
+      class: "w-[12rem]",
     },
   },
   {
@@ -353,9 +352,9 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "OUT Qty",
-    key: "qty_out",
-    value: "qty_out",
+    title: "IN Qty",
+    key: "qty_in",
+    value: "qty_in",
     align: "end",
     sortable: true,
   },
@@ -399,9 +398,9 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
 const headersModalInventory = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
-    title: "Inventory No",
-    key: "inventory_no",
-    value: "inventory_no",
+    title: "IN Date",
+    key: "ingoing_at",
+    value: "ingoing_at",
     align: "start",
     sortable: true,
   },
@@ -430,13 +429,6 @@ const headersModalInventory = ref<FieldSelectableType[]>([
     title: "DO Date",
     key: "do_at",
     value: "do_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "IN Date",
-    key: "ingoing_at",
-    value: "ingoing_at",
     align: "start",
     sortable: true,
   },
@@ -482,13 +474,13 @@ const headersModalInventory = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  // {
-  //   title: "SKU",
-  //   key: "item_sku",
-  //   value: "item_sku",
-  //   align: "start",
-  //   sortable: true,
-  // },
+  {
+    title: "SKU",
+    key: "item_sku",
+    value: "item_sku",
+    align: "start",
+    sortable: true,
+  },
   {
     title: "Unit",
     key: "unit_name",
@@ -497,16 +489,16 @@ const headersModalInventory = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Out Qty",
-    key: "qty_out",
-    value: "qty_out",
+    title: "IN Qty",
+    key: "out_qty",
+    value: "out_qty",
     align: "end",
     sortable: true,
   },
   {
-    title: "Ref Qty",
-    key: "ref_qty",
-    value: "ref_qty",
+    title: "Qty",
+    key: "qty",
+    value: "qty",
     align: "end",
     sortable: true,
   },
@@ -627,48 +619,21 @@ const filtersTextSalesOrders = ref([
   },
 ]);
 
-const filtersTextInventories = ref([
-  {
-    title: "Inventory No",
-    key: "inventory_no",
-  },
-  {
-    title: "Surat Jalan No",
-    key: "surat_jalan_no",
-  },
-  {
-    title: "DO No",
-    key: "do_no",
-  },
-  {
-    title: "Invoice No",
-    key: "invoice_no",
-  },
-  {
-    title: "Global",
-    key: "global",
-  },
-]);
-
-const filtersDateInventories = ref([
-  {
-    title: "Start Date",
-    key: "start_date",
-    type: "date",
-  },
-  {
-    title: "End Date",
-    key: "end_date",
-    type: "date",
-  },
-]);
-
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/inventories/out",
+  parentPath: "/inventories/in",
   currentTab: tabFormIndex.value,
   tabs: ["Items", "Remark"],
+  mode: "edit",
   button: {
+    create: {
+      path: "/inventories/in/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -682,8 +647,16 @@ const formLayout = ref({
 
 const initialFormLayout = () => {
   formLayout.value.currentTab = tabFormIndex.value;
-  formLayout.value.mode = "create";
+  formLayout.value.mode = "edit";
   formLayout.value.button = {
+    create: {
+      path: "/inventories/in/create",
+    },
+    save: {
+      show: true,
+      loading: false,
+      type: "submit",
+    },
     clear: {
       show: true,
     },
@@ -705,13 +678,19 @@ const handleSubmit = async () => {
   // }
 
   form.value.inv_dts = itemsCheck.value.checkMain;
-  form.value.io_type = "INVENTORY_OUT";
+  form.value.io_type = "INVENTORY_IN";
 
-  await inventoryStore.store();
+  await inventoryStore.update();
 };
 
+const router = useRouter();
+const id = ref(router.currentRoute.value.params.id);
+
 const fetchInitialData = async () => {
+  form.value.id = Number(id.value);
   // await inventoryStore.indexProduct();
+
+  await Promise.all([await inventoryStore.show()]);
 };
 
 const calculateTotalAmountLocal = () => {
@@ -764,14 +743,14 @@ watch(
 
 onMounted(async () => {
   inventoryStore.handleClickClear();
-  form.value.io_type = "INVENTORY_OUT";
+  form.value.io_type = "INVENTORY_IN";
   await fetchInitialData();
   initialFormLayout();
 });
 
 watchEffect(() => {
   // changeTitle();
-  topTitle.value = "Inventory OUT";
+  topTitle.value = "Inventory IN";
 });
 </script>
 
@@ -796,15 +775,15 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-text-input
               v-model="form.inventory_no"
-              :label="`Inventory OUT No`"
-              :placeholder="`Inventory OUT No`"
+              :label="`Inventory IN No`"
+              :placeholder="`Inventory IN No`"
               :errors="errors.inventory_no"
             />
           </div>
           <div class="sm:col-span-1">
             <d-date-picker-light
               v-model="form.ingoing_at"
-              label="OUT Date"
+              label="IN Date"
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">
@@ -817,9 +796,9 @@ watchEffect(() => {
               item-value="id"
               method-api="post"
               inner-search-key="global"
-              label="OUT Type"
+              label="IN Type"
               :query="{
-                io_type: 'INVENTORY_OUT',
+                io_type: 'INVENTORY_IN',
               }"
               :errors="errors.io_type_id"
             ></d-autocomplete>
@@ -1034,7 +1013,7 @@ watchEffect(() => {
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <d-option-ref-btn
-            :refs="optionRefBtnRefOut"
+            :refs="optionRefBtnRef"
             class="col-span-2"
             @click:ref="
               (ref) => inventoryStore.onClickOpenModalOptionRefBtn(ref)
@@ -1135,13 +1114,12 @@ watchEffect(() => {
             <template #item.subtotal_sell="{ item }">
               <d-num-layout :value="item.qty * item.price_sell" />
             </template>
-            <template #item.qty_out="{ item }">
-              <d-num-layout :value="item.qty_out ?? 0" />
+            <template #item.qty_in="{ item }">
+              <d-num-layout :value="item.qty_in ?? 0" />
             </template>
             <template #item.ref_qty="{ item }">
               <d-num-layout :value="item.ref_qty ?? 0" />
             </template>
-
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt
@@ -1363,20 +1341,6 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="inventoryStore.fetchModalFilter()"
         >
-          <d-autocomplete-client
-            v-model="queryModal.qIndexSalesOrders.date_type"
-            :items="useStatics.SoIndexDateType"
-            label="Date Type"
-            item-value="value"
-            item-title="title"
-            :clearable="false"
-          />
-          <d-date-picker-light
-            v-for="filter in filtersDateInventories"
-            :key="filter.key"
-            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexRefFilterDateType]"
-            :label="filter.title"
-          />
           <d-select-table
             api="/v1/customers/index-customer"
             detail-api="/v1/customers/index-customer"
@@ -1479,8 +1443,8 @@ watchEffect(() => {
         <template #item.ref_qty="{ item }">
           <d-num-layout :value="item.ref_qty" />
         </template>
-        <template #item.qty_out="{ item }">
-          <d-num-layout :value="item.qty_out" />
+        <template #item.qty_in="{ item }">
+          <d-num-layout :value="item.qty_in" />
         </template>
         <template #item.balance="{ item }">
           <d-num-layout :value="item.balance" />
@@ -1515,19 +1479,24 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="inventoryStore.fetchModalFilter()"
         >
-          <d-autocomplete-client
-            v-model="queryModal.qIndexInventoryIns.date_type"
-            :items="useStatics.invIndexDateType"
-            label="Date Type"
-            item-value="value"
-            item-title="title"
-            :clearable="false"
-          />
-          <d-date-picker-light
-            v-for="filter in filtersDateInventories"
-            :key="filter.key"
-            v-model="queryModal.qIndexInventoryIns[filter.key as ModalIndexRefFilterDateType]"
-            :label="filter.title"
+          <d-select-table
+            api="/v1/customers/index-customer"
+            detail-api="/v1/customers/index-customer"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Customer"
+            v-model="form.customer_id"
+            class=""
+            is-quick-select
+            @click:selected="
+              (data) => inventoryStore.autocompleteCustomer(data)
+            "
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="headersCustomer"
+            :filters="filtersCustomer"
           />
           <d-select-table
             api="/v1/products/index-product"
@@ -1537,7 +1506,7 @@ watchEffect(() => {
             mapping-detail="data[0]"
             total-prop="meta.total"
             label="Product"
-            v-model="queryModal.qIndexInventoryIns.product_id"
+            v-model="queryModal.qIndexSalesOrders.product_id"
             class=""
             is-quick-select
             modal-parent-class="!z-[2500]"
@@ -1548,7 +1517,7 @@ watchEffect(() => {
           <d-autocomplete
             v-for="filter in filtersOptionsSalesOrders"
             :key="filter.key"
-            v-model="queryModal.qIndexInventoryIns[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
             :api="filter.api"
             :single-api="filter.singleApi"
             :method-api="filter.methodApi"
@@ -1562,9 +1531,9 @@ watchEffect(() => {
           ></d-autocomplete>
 
           <d-text-input
-            v-for="filter in filtersTextInventories"
+            v-for="filter in filtersTextSalesOrders"
             :key="filter.key"
-            v-model="queryModal.qIndexInventoryIns[filter.key as ModalIndexSalesOrderFilterTextType]"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterTextType]"
             :label="filter.title"
             :placeholder="filter.title"
             append-inner-icon="mdi-magnify"
@@ -1611,9 +1580,6 @@ watchEffect(() => {
         </template>
         <template #item.ref_qty="{ item }">
           <d-num-layout :value="item.ref_qty" />
-        </template>
-        <template #item.qty_out="{ item }">
-          <d-num-layout :value="item.qty_out" />
         </template>
         <template #item.qty="{ item }">
           <d-num-layout :value="item.qty" />

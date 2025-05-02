@@ -44,6 +44,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "OUT Type",
+    key: "io_type_name",
+    value: "io_type_name",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "Customer",
     key: "customer_name",
     value: "customer_name",
@@ -176,6 +183,29 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "date",
   },
   {
+    title: "OUT Type",
+    key: "io_type_ids",
+    type: "autocomplete",
+    others: {
+      methodApi: "post",
+      api: "/v1/io-types/index-io-type",
+      singleApi: "/v1/io-types/index-io-type",
+      mappingDetail: "data",
+      itemsProp: "data",
+      pageEndProp: "meta.next_page_url",
+      itemTitle: "name",
+      itemValue: "id",
+      query: {
+        io_type: "INVENTORY_OUT",
+      },
+      label: "Roles",
+      innerSearchKey: "global",
+      multiple: true,
+      returnObject: false,
+      itemColor: "brown-lighten-2",
+    },
+  },
+  {
     title: "Currency",
     key: "currency_ids",
     type: "autocomplete",
@@ -224,9 +254,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
 //   layoutStore.defineTitlePath(config);
 // };
 
-// onMounted(() => {
-//   changeTitle();
-// });
+onMounted(() => {
+  queryModal.qIndexOut.io_type = "INVENTORY_OUT";
+});
 
 // watchEffect(() => {
 //   changeTitle();
@@ -266,7 +296,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         }"
         @update:filters="
           (filters: QInvIndexType) => {
-            queryModal.qIndexIn = filters;
+            queryModal.qIndexOut = filters;
           }
         "
       >

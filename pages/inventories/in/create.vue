@@ -30,6 +30,7 @@ import type {
 } from "~/types/sales-orders/SalesOrderType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
 import { debounce } from "lodash-es";
+import useAuthStore from "~/stores/AuthStore";
 
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
@@ -60,24 +61,48 @@ useHead({
 const headers = ref<FieldSelectableType[]>([
   // { key: "ref_type", title: "Ref Type", sortable: true },
   { title: "", key: "expand", width: 20, sortable: false },
-  {
-    key: "ref_type",
-    title: "Ref Type",
-    sortable: true,
+  // {
+  //   key: "ref_type",
+  //   title: "Ref Type",
+  //   sortable: true,
 
+  //   cellProps: {
+  //     class: "capitalize",
+  //   },
+  // },
+  { key: "ref_num", title: "Ref Num", sortable: true },
+  { key: "item_code", title: "Item Code", sortable: true },
+  { key: "item_name", title: "Item Name", sortable: true },
+  { key: "unit_name", title: "Unit", sortable: true },
+  {
+    key: "expired_at",
+    title: "Expired Date",
+    sortable: true,
     cellProps: {
-      class: "capitalize",
+      class: "w-[15rem]",
     },
   },
-  { key: "ref_num", title: "Ref Num", sortable: true },
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
-  { key: "price", title: "Price Buy", sortable: true, align: "end" },
+  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
+  { key: "qty_in", title: "Qty IN", sortable: true, align: "end" },
   { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
-  { key: "qty", title: "Qty", sortable: true, align: "end" },
-  { key: "total_am", title: "Total Amount", sortable: true, align: "end" },
-  { key: "remark", title: "Remark", sortable: true },
+  {
+    key: "qty",
+    title: "Qty",
+    sortable: true,
+    align: "end",
+    cellProps: {
+      class: "w-[12rem]",
+    },
+  },
+  { key: "subtotal_sell", title: "Total Amount", sortable: true, align: "end" },
+  {
+    key: "remark",
+    title: "Remark",
+    sortable: true,
+    cellProps: {
+      class: "w-[15rem]",
+    },
+  },
   {
     key: "action",
     title: "Action",
@@ -190,13 +215,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Item Type",
-    key: "item_type",
-    value: "item_type",
-    align: "start",
-    sortable: true,
-  },
-  {
     title: "Code",
     key: "code",
     value: "code",
@@ -272,8 +290,15 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "PO Buyer No",
-    key: "po_buyer_no",
-    value: "po_buyer_no",
+    key: "ref_num",
+    value: "ref_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Order Date",
+    key: "order_at",
+    value: "order_at",
     align: "start",
     sortable: true,
   },
@@ -299,21 +324,14 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Item Type",
-    key: "item_type",
-    value: "item_type",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
+    title: "Item Code",
     key: "item_code",
     value: "item_code",
     align: "start",
     sortable: true,
   },
   {
-    title: "Name",
+    title: "Item Name",
     key: "item_name",
     value: "item_name",
     align: "start",
@@ -334,54 +352,40 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Qty",
-    key: "qty",
-    value: "qty",
+    title: "IN Qty",
+    key: "qty_in",
+    value: "qty_in",
     align: "end",
     sortable: true,
   },
   {
-    title: "Price",
-    key: "price_sell",
-    value: "price_sell",
+    title: "Ref Qty",
+    key: "ref_qty",
+    value: "ref_qty",
     align: "end",
     sortable: true,
   },
   {
-    title: "Subtotal",
-    key: "subtotal_sell",
-    value: "subtotal_sell",
+    title: "Balance",
+    key: "balance",
+    value: "balance",
     align: "end",
     sortable: true,
   },
-  {
-    title: "Disc (%)",
-    key: "disc_perc",
-    value: "disc_perc",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Disc (Am)",
-    key: "disc_am",
-    value: "disc_am",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "VAT (%)",
-    key: "vat_perc",
-    value: "vat_perc",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Total Amount",
-    key: "total_am",
-    value: "total_am",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Price",
+  //   key: "price_sell",
+  //   value: "price_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  // {
+  //   title: "Subtotal",
+  //   key: "subtotal_sell",
+  //   value: "subtotal_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Remark",
     key: "remark",
@@ -501,7 +505,7 @@ const filtersTextSalesOrders = ref([
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/inventories/in",
+  parentPath: "/inventories/out",
   currentTab: tabFormIndex.value,
   tabs: ["Items", "Remark"],
   button: {
@@ -513,7 +517,7 @@ const formLayout = ref({
   //   name: ["c_ms"],
   //   isActive: true,
   // },
-  summary: formLayoutStore.value.summary,
+  // summary: formLayoutStore.value.summary,
 } as FormLayoutType);
 
 const initialFormLayout = () => {
@@ -541,6 +545,7 @@ const handleSubmit = async () => {
   // }
 
   form.value.inv_dts = itemsCheck.value.checkMain;
+  form.value.io_type = "INVENTORY_IN";
 
   await inventoryStore.store();
 };
@@ -552,14 +557,14 @@ const fetchInitialData = async () => {
 const calculateTotalAmountLocal = () => {
   inventoryStore.calculateTotalAmount();
 
-  if (formLayout.value.summary) {
-    formLayout.value.summary.total_amount.value = form.value.subtotal;
-    formLayout.value.summary.total_vat.value = form.value.total_vat;
-    formLayout.value.summary.total_pph23.value = form.value.total_pph23;
-    formLayout.value.summary.grand_total.value = form.value.grand_total;
+  // if (formLayout.value.summary) {
+  //   formLayout.value.summary.total_amount.value = form.value.subtotal;
+  //   formLayout.value.summary.total_vat.value = form.value.total_vat;
+  //   formLayout.value.summary.total_pph23.value = form.value.total_pph23;
+  //   formLayout.value.summary.grand_total.value = form.value.grand_total;
 
-    // TODO foreach currency symbol
-  }
+  //   // TODO foreach currency symbol
+  // }
 };
 
 watch(
@@ -599,6 +604,7 @@ watch(
 
 onMounted(async () => {
   inventoryStore.handleClickClear();
+  form.value.io_type = "INVENTORY_IN";
   await fetchInitialData();
   initialFormLayout();
 });
@@ -630,8 +636,8 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-text-input
               v-model="form.inventory_no"
-              :label="`Inventory In No`"
-              :placeholder="`Inventory In No`"
+              :label="`Inventory IN No`"
+              :placeholder="`Inventory IN No`"
               :errors="errors.inventory_no"
             />
           </div>
@@ -737,6 +743,7 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.warehouse_id"
+              :initial-value="useAuthStore().authUser.data?.warehouse_id"
               api="/v1/warehouses/index-warehouse"
               single-api="/v1/warehouses/show-warehouse"
               page-end-prop="meta.next_page_url"
@@ -914,6 +921,16 @@ watchEffect(() => {
               class: 'whitespace-nowrap',
             }"
           >
+            <template #item.expired_at="{ item }">
+              <div class="!w-full">
+                <d-date-picker-light
+                  v-model="item.expired_at"
+                  label=""
+                  placeholder="Expired Date"
+                  dp-class="!w-full"
+                ></d-date-picker-light>
+              </div>
+            </template>
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
             </template>
@@ -922,11 +939,11 @@ watchEffect(() => {
                 v-model="item.remark"
                 :label="``"
                 :placeholder="`Remark`"
-                class="w-[9rem]"
+                class="w-full"
               />
             </template>
             <template #item.price_sell="{ item }">
-              <div class="flex w-full gap-2 grow">
+              <!-- <div class="flex w-full gap-2 grow">
                 <d-num-v-format
                   v-model="item.price_sell"
                   :precision="{
@@ -938,7 +955,8 @@ watchEffect(() => {
                   label=""
                   class="w-[9rem]"
                 />
-              </div>
+              </div> -->
+              <d-num-layout :value="item.price_sell" />
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
@@ -949,14 +967,21 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 label=""
-                class="w-[9rem]"
+                class="w-full"
                 @update:modelValue="calculateTotalAmountLocal"
               />
             </template>
 
-            <template #item.total_am="{ item }">
-              <d-num-layout :value="item.total_am" />
+            <template #item.subtotal_sell="{ item }">
+              <d-num-layout :value="item.qty * item.price_sell" />
             </template>
+            <template #item.qty_in="{ item }">
+              <d-num-layout :value="item.qty_in ?? 0" />
+            </template>
+            <template #item.ref_qty="{ item }">
+              <d-num-layout :value="item.ref_qty ?? 0" />
+            </template>
+
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt
@@ -1160,157 +1185,6 @@ watchEffect(() => {
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
-          </button>
-        </div>
-      </template>
-    </modals-final-modal>
-
-    <modals-final-modal
-      :is-open="isOpenModal.so"
-      size="xl"
-      custom-class="overflow-y-auto"
-      label="List of SalesOrders"
-      parent-class="!z-[1500]"
-      @update:is-open="isOpenModal.so = $event"
-    >
-      <template #top>
-        <form
-          class="grid grid-cols-5 w-full flex-row items-center gap-2"
-          @submit.prevent="inventoryStore.fetchModalFilter()"
-        >
-          <d-select-table
-            api="/v1/customers/index-customer"
-            detail-api="/v1/customers/index-customer"
-            method-api="post"
-            detail-method-api="post"
-            mapping-detail="data[0]"
-            total-prop="meta.total"
-            label="Customer"
-            v-model="form.customer_id"
-            class=""
-            is-quick-select
-            @click:selected="
-              (data) => inventoryStore.autocompleteCustomer(data)
-            "
-            modal-parent-class="!z-[2500]"
-            modal-custom-class="!w-4/5"
-            :fields="headersCustomer"
-            :filters="filtersCustomer"
-          />
-          <d-select-table
-            api="/v1/products/index-product"
-            detail-api="/v1/products/index-product"
-            method-api="post"
-            detail-method-api="post"
-            mapping-detail="data[0]"
-            total-prop="meta.total"
-            label="Product"
-            v-model="queryModal.qIndexSalesOrders.product_id"
-            class=""
-            is-quick-select
-            modal-parent-class="!z-[2500]"
-            modal-custom-class="!w-4/5"
-            :fields="useInitials.productFieldsFilterConfig.fields"
-            :filters="useInitials.productFieldsFilterConfig.filters"
-          />
-          <d-autocomplete
-            v-for="filter in filtersOptionsSalesOrders"
-            :key="filter.key"
-            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
-            :api="filter.api"
-            :single-api="filter.singleApi"
-            :method-api="filter.methodApi"
-            inner-search-key="global"
-            :page-end-prop="filter.pageEndProp"
-            :label="filter.title"
-            :item-value="filter.itemValue"
-            :item-title="filter.itemTitle"
-            multiple
-            :placeholder="`Type ${filter.title} ...`"
-          ></d-autocomplete>
-
-          <d-text-input
-            v-for="filter in filtersTextSalesOrders"
-            :key="filter.key"
-            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexSalesOrderFilterTextType]"
-            :label="filter.title"
-            :placeholder="filter.title"
-            append-inner-icon="mdi-magnify"
-          />
-
-          <d-submit-button
-            @click:submit="inventoryStore.fetchModalFilter()"
-            @click:clear="inventoryStore.handleClearQuery()"
-            class="grid-cols-1"
-          />
-        </form>
-      </template>
-
-      <v-data-table-server
-        v-model="itemsCheck.checkSalesOrders"
-        v-model:page="queryModal.qIndexSalesOrders.page"
-        :items="metaModal.indexSalesOrders.data ?? []"
-        :headers="headersModalSalesOrders"
-        :items-per-page="queryModal.qIndexSalesOrders.per_page"
-        :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
-        :items-per-page-options="useInitials.perPageOptions"
-        :loading="metaModal.indexSalesOrders.loading"
-        density="compact"
-        :header-props="{
-          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
-        }"
-        :row-props="{
-          class: 'cursor-pointer',
-        }"
-        item-value="quo_dt_id"
-        show-current-page
-        return-object
-        multiple
-        show-select
-        @update:options="(data:any) => inventoryStore.fetchDataServerFetch(data)"
-        fixed-header
-        height="450"
-        hover
-      >
-        <template #item.item_type="{ item }">
-          <span class="capitalize"
-            >{{ item.item_type ?? defineItemTypeInventory(item as InvDtType) }}
-          </span>
-        </template>
-        <template #item.qty="{ item }">
-          <d-num-layout :value="item.qty" />
-        </template>
-        <template #item.price_sell="{ item }">
-          <d-num-layout :value="item.price_sell" />
-        </template>
-        <template #item.subtotal_sell="{ item }">
-          <d-num-layout :value="item.subtotal_sell" />
-        </template>
-        <template #item.disc_perc="{ item }">
-          <d-num-layout :value="item.disc_perc" />
-        </template>
-        <template #item.disc_am="{ item }">
-          <d-num-layout :value="item.disc_am" />
-        </template>
-        <template #item.vat_perc="{ item }">
-          <d-num-layout :value="item.vat_perc" />
-        </template>
-        <template #item.total_am="{ item }">
-          <d-num-layout :value="item.total_am" />
-        </template>
-        <template #item.status="{ item }">
-          <d-active-status :value="item.status" />
-        </template>
-      </v-data-table-server>
-
-      <template #footer>
-        <div class="flex h-max w-full justify-end">
-          <button
-            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="inventoryStore.onClickUpdateProductsModal()"
-          >
-            <Icon name="material-symbols:save-rounded" size="20" />
-            Add Selected SalesOrder ({{ itemsCheck.checkSalesOrders.length }})
           </button>
         </div>
       </template>

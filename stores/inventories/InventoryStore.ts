@@ -94,6 +94,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
+        io_type: 'INVENTORY_IN',
         order_column: 'order_at',
         order_direction: 'desc'
       } as QIndexInventoryInsType,
@@ -188,6 +189,14 @@ const useInventoryStore = defineStore('InventoryStore', {
         cta: "Inventory In",
         key: "inv_in",
         icon: "mdi-clock-in",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+      {
+        cta: "Ms. Product",
+        key: "products",
+        icon: "mdi-alpha-m-box-outline",
         count: 0,
         type: "button",
         // textClass: 'text-grey1'
@@ -519,8 +528,8 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
 
     async indexSalesOrder() {
-      if (this.metaModal.index.loading) return
-      this.metaModal.index.loading = true
+      if (this.metaModal.indexSalesOrders.loading) return
+      this.metaModal.indexSalesOrders.loading = true
 
       if (this.itemsCheck.checkSalesOrders.length > 0) {
         // this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
@@ -569,7 +578,54 @@ const useInventoryStore = defineStore('InventoryStore', {
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response?.data);
       } finally {
-        this.metaModal.index.loading = false
+        this.metaModal.indexSalesOrders.loading = false
+      }
+    },
+
+    async indexInventoryIn() {
+      if (this.metaModal.indexInventoryIns.loading) return
+      this.metaModal.indexInventoryIns.loading = true
+
+      let params = this.queryModal.qIndexInventoryIns
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-ref-inv-dt',
+          params
+        )
+
+        if (this.isOpenModal.inv_in) {
+          this.metaModal.indexInventoryIns = response.data
+
+          if (this.itemsCheck.checkInventoryIns.length > 0) {
+            this.itemsCheck.checkInventoryIns.forEach((checkInventory: FormInvDtProductListType, iCheckInventory: number) => {
+              (this.metaModal.indexInventoryIns.data as FormInvDtProductListType[]).forEach((resInventory: FormInvDtProductListType, iResInventory: number) => {
+
+                if (
+                  (resInventory.ref_inv_dt_id && resInventory.ref_inv_dt_id === checkInventory.ref_inv_dt_id)
+                ) {
+
+                  console.log('abc', resInventory.ref_inv_dt_id, checkInventory.ref_inv_dt_id);
+
+                  const combined = {
+                    ...resInventory,
+                    ...checkInventory
+                  }
+
+                  this.metaModal.indexInventoryIns.data[iResInventory] = combined
+                  this.itemsCheck.checkInventoryIns[iCheckInventory] = combined
+                }
+              })
+            })
+          }
+        }
+
+        // return this.metaModal.indexInventoryIns
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexInventoryIns.loading = false
       }
     },
 
@@ -583,11 +639,11 @@ const useInventoryStore = defineStore('InventoryStore', {
         this.isOpenModal.so = false
       }
       if (this.isOpenModal.po) {
-        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'po', this.itemsCheck.checkMain)
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkPurchaseOrders, 'po', this.itemsCheck.checkMain)
         this.isOpenModal.po = false
       }
       if (this.isOpenModal.inv_in) {
-        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'inv_in', this.itemsCheck.checkMain)
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkInventoryIns, 'inv_in', this.itemsCheck.checkMain)
         this.isOpenModal.inv_in = false
       }
 
@@ -818,6 +874,8 @@ const useInventoryStore = defineStore('InventoryStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
         await this.indexSalesOrder();
+      } else if (this.isOpenModal.inv_in) {
+        await this.indexInventoryIn();
       }
       // } else if (showModal.value.listWip) {
       //   // queryModal.value.qListWip.customer_id = form.value.customer_id

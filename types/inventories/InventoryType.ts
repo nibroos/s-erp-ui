@@ -113,6 +113,7 @@ export type InvDtType = {
   item_type: InvDtItemType
   gen_code?: string | null
   remark?: string
+  qty_in?: number
   qty_out?: number
   qty: number
   price_sell: number
@@ -154,6 +155,7 @@ export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory
 
 export type ModalIndexSalesOrderFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexSalesOrderFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
+export type ModalIndexRefFilterDateType = 'start_date' | 'end_date'
 
 export type QInvIndexType = {
   page: number
@@ -189,6 +191,9 @@ export type QIndexSalesOrdersType = {
   name?: string
   sku?: string
   factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
   order_column?: string
   order_direction?: string
 }
@@ -208,6 +213,9 @@ export type QIndexPurchaseOrdersType = {
   name?: string
   sku?: string
   factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
   order_column?: string
   order_direction?: string
 }
@@ -227,6 +235,10 @@ export type QIndexInventoryInsType = {
   name?: string
   sku?: string
   factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
+  io_type?: 'INVENTORY_IN' | 'INVENTORY_OUT'
   order_column?: string
   order_direction?: string
 }

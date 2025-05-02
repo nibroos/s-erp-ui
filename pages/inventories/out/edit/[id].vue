@@ -22,6 +22,7 @@ import type {
   InvDtDiscType,
   InvDtType,
   VatModeType,
+  ModalIndexRefFilterDateType,
 } from "~/types/inventories/InventoryType";
 import { updateInvRefsModalFromMain } from "~/composables/maps/inventoryComp";
 import type {
@@ -398,13 +399,6 @@ const headersModalSalesOrders = ref<FieldSelectableType[]>([
 const headersModalInventory = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
-    title: "IN Date",
-    key: "ingoing_at",
-    value: "ingoing_at",
-    align: "start",
-    sortable: true,
-  },
-  {
     title: "Surat Jalan No",
     key: "surat_jalan_no",
     value: "surat_jalan_no",
@@ -422,6 +416,13 @@ const headersModalInventory = ref<FieldSelectableType[]>([
     title: "Invoice No",
     key: "invoice_no",
     value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "IN Date",
+    key: "ingoing_at",
+    value: "ingoing_at",
     align: "start",
     sortable: true,
   },
@@ -616,6 +617,42 @@ const filtersTextSalesOrders = ref([
   {
     title: "Global",
     key: "global",
+  },
+]);
+
+const filtersTextInventories = ref([
+  {
+    title: "Inventory No",
+    key: "inventory_no",
+  },
+  {
+    title: "Surat Jalan No",
+    key: "surat_jalan_no",
+  },
+  {
+    title: "DO No",
+    key: "do_no",
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+  },
+  {
+    title: "Global",
+    key: "global",
+  },
+]);
+
+const filtersDateInventories = ref([
+  {
+    title: "Start Date",
+    key: "start_date",
+    type: "date",
+  },
+  {
+    title: "End Date",
+    key: "end_date",
+    type: "date",
   },
 ]);
 
@@ -1341,6 +1378,20 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="inventoryStore.fetchModalFilter()"
         >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexSalesOrders.date_type"
+            :items="useStatics.SoIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-for="filter in filtersDateInventories"
+            :key="filter.key"
+            v-model="queryModal.qIndexSalesOrders[filter.key as ModalIndexRefFilterDateType]"
+            :label="filter.title"
+          />
           <d-select-table
             api="/v1/customers/index-customer"
             detail-api="/v1/customers/index-customer"
