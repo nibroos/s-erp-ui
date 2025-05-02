@@ -7,7 +7,7 @@
     >
       <div
         v-auto-animate
-        class="flex items-center p-10 lg:p-6 py-auto w-full bg-zinc-50 dark:bg-zinc-800"
+        class="flex items-center p-10 lg:p-6 py-auto w-full bg-zinc-100 dark:bg-zinc-800"
       >
         <form
           @submit.prevent="authStore.loginAuth()"
@@ -15,7 +15,7 @@
         >
           <div class="flex justify-between items-center">
             <div class="mb-4 text-left w-1/2">
-              <p class="text-2xl font-bold mb-1">
+              <p class="text-2xl font-bold mb-1 text-dark3 dark:text-primary1">
                 <span>Sign-in</span>
               </p>
               <p

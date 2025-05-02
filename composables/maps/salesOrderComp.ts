@@ -42,11 +42,8 @@ export function convertSoItemRefProduct(
 
   let productUuid = randomId()
 
-  console.log('convertSoItemRefProduct-item', item);
-
   let productId = item.product_id ?? item.ref_id
 
-  console.log('convertSoItemRefProduct-productId', productId);
   if (!!item.boms) {
     item.boms = generateSoBoms(item.boms, productUuid, 'bom', productId)
   }

@@ -581,9 +581,14 @@ watch(
         class="flex flex-col gap-1 text-rose-500 text-sm text-left justify-start"
       >
         <slot name="errors" />
-        <div v-for="error in props.errors" :key="error" class="text-sm">
+        {{ props.errors }}
+        <!-- <div
+          v-for="(error, index) in props.errors"
+          :key="error"
+          class="text-sm"
+        >
           {{ error }}
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

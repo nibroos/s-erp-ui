@@ -6,7 +6,7 @@
     :class="classMerge(props.parentClass)"
     :classes="['flex justify-center items-center']"
     :content-class="[
-      'relative flex flex-col border dark:border-zinc-800 rounded-lg bg-white dark:!bg-zinc-900 p-4 max-h-[52rem] overflow-hidden',
+      'relative flex flex-col border dark:border-zinc-800 rounded-lg bg-white dark:!bg-zinc-900 p-4 overflow-hidden',
       props.customClass,
       size,
     ]"
@@ -39,7 +39,12 @@
 
       <slot name="top"></slot>
 
-      <div class="max-h-[35rem] overflow-y-auto">
+      <div
+        :class="classMerge('max-h-[35rem] overflow-y-auto', props.bodyClass)"
+        :style="{
+          maxHeight: 'calc(100vh - 10rem)',
+        }"
+      >
         <slot></slot>
       </div>
 
@@ -56,6 +61,7 @@ interface IProps {
   size?: string;
   parentClass?: string | string[];
   customClass?: string | string[];
+  bodyClass?: string | string[];
   focusTrap?: boolean;
   escToClose?: boolean;
   resize?: boolean;

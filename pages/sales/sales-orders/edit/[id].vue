@@ -1756,9 +1756,8 @@ watchEffect(() => {
               density="compact"
               variant="compact"
               multiple
-              @update:modelValue="salesOrderStore.handleUploadFile"
             >
-              <template v-slot:item="{ file: itemProps }">
+              <template v-slot:item="{ props: itemProps }">
                 <v-file-upload-item v-bind="itemProps" lines="one" nav>
                   <template v-slot:prepend>
                     <v-avatar size="32" rounded></v-avatar>

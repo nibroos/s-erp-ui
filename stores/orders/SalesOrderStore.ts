@@ -9,6 +9,7 @@ import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
+import useScheduleStore from './ScheduleStore'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -256,7 +257,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.id = this.form.id
       }
 
-
       if (!!this.loading.editPageLoading) return
       this.loading.editPageLoading = true
       try {
@@ -333,6 +333,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         if (!this.form.is_scheduled) {
           this.form.schedule = null
         }
+
+        this.form.ref_type = 'sales_orders'
 
         // Handle files first
         if (this.form.files) {
@@ -431,6 +433,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         //   }
         // })
 
+        this.form.ref_type = 'sales_orders'
+
         // Handle files first
         if (this.form.files) {
           if (Array.isArray(this.form.files)) {
@@ -528,15 +532,47 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule.is_delete = 1
         }
 
+        this.form.ref_type = 'sales_orders'
+
+        const formData = new FormData()
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form.schedule,
+          deleted_files: this.form.deleted_files,
+          attachments: this.form.attachments,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
         const response = await useMyFetch().post(
-          '/v1/sales-orders/update-sales-order-schedule',
-          this.form.schedule
+          '/v1/sales-orders/update-schedule',
+          // this.form.schedule
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         )
+
+        // useScheduleStore().isOpen.detailEvent = false
 
         // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
 
         this.form.id = id
-        await this.show()
+        // await this.show()
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
@@ -563,6 +599,139 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    async createSchedule() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      let actionText = 'create'
+
+      if (!this.form.is_scheduled && this.form.schedule && this.form.schedule.id) {
+        actionText = 'delete'
+      }
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        `Are you sure to ${actionText} this data?`,
+        `Schedule will be ${actionText}d`
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        let id = this.form.id
+        if (!!this.form.schedule) {
+          this.form.schedule.sales_order_id = id as number
+          this.form.schedule.is_delete = 0
+        }
+
+        if (!this.form.is_scheduled && this.form.schedule) {
+          this.form.schedule.id = null
+          this.form.schedule.is_delete = 1
+        }
+
+        this.form.ref_type = 'sales_orders'
+
+        const formData = new FormData()
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form.schedule,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/create-schedule',
+          // this.form.schedule
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        )
+
+        useScheduleStore().isOpen.createEvent = false
+
+        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        // await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async deleteSchedule(id: number | string | string[] | undefined) {
+      this.form.id = id
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        `Are you sure to delete this data?`,
+        `Schedule will be deleted`
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      if (!this.form.schedule) {
+        useAlert.alertError('Schedule not found')
+
+        return;
+      }
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/delete-schedule',
+          {
+            id: this.form.schedule.id,
+          }
+        )
+
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+        useAlert.alertError(error.response.data.message)
+      }
+    },
+
     async delete(id: number | string | string[] | undefined) {
       this.form.id = id
       try {
@@ -572,10 +741,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         )
         this.form = response.data.data[0]
 
+        useAlert.alertSuccess(response.data.message)
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
         useAlert.alertError(error.response.data.message)
+      } finally {
+        this.form.id = null
       }
     },
 

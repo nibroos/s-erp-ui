@@ -436,6 +436,8 @@ const showHideFilter = (event: any) => {
 };
 
 const onDoubleClick = async (event: any, row: any) => {
+  if (!props.editLink) return;
+
   navigateTo(`${props.editLink}/${row.item.id}`);
 };
 
@@ -526,6 +528,7 @@ onMounted(async () => {
             v-model="filters[filter.key]"
             :label="filter.title"
             :api="filter.others?.api"
+            :query="filter.others?.query"
             :item-value="filter.others?.itemValue"
             :item-title="filter.others?.itemTitle"
             :mapping-detail="filter.others?.mappingDetail"

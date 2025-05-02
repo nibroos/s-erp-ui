@@ -6,7 +6,7 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const emits = defineEmits(["update:schedule"]);
+const emits = defineEmits(["create:schedule"]);
 
 const headersCustomer = ref<FieldSelectableType[]>([
   {
@@ -98,16 +98,9 @@ const { form, errors, loading } = storeToRefs(salesOrderStore);
 
 const kanbanBoardExposeRef = ref();
 
-const handleUpdateSchedule = () => {
-  salesOrderStore.updateSchedule().then(() => {
-    emits("update:schedule");
-  });
-};
-
-const handleDeleteSchedule = () => {
-  if (!form.value.schedule) return;
-  salesOrderStore.deleteSchedule(form.value.schedule.id as number).then(() => {
-    emits("update:schedule");
+const handleCreateSchedule = () => {
+  salesOrderStore.createSchedule().then(() => {
+    emits("create:schedule");
   });
 };
 
@@ -238,21 +231,7 @@ const resetBoard = async () => {
         />
 
         <d-bt
-          :cta="'Delete Schedule'"
-          :class="
-            classMerge(
-              '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
-            )
-          "
-          :text-class="classMerge('text-cancel dark:text-white mx-auto')"
-          :icon-class="classMerge('text-cancel dark:text-white mx-auto')"
-          icon="mdi-delete"
-          type="button"
-          @click="handleDeleteSchedule()"
-        />
-
-        <d-bt
-          :cta="'Update Schedule'"
+          :cta="'Create Schedule'"
           :class="
             classMerge(
               'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
@@ -261,7 +240,7 @@ const resetBoard = async () => {
           :text-class="classMerge('text-white mx-auto !font-bold')"
           :no-icon="true"
           type="button"
-          @click="handleUpdateSchedule"
+          @click="handleCreateSchedule"
         />
         <d-autocomplete-client
           v-model="form.schedule.steps_id"

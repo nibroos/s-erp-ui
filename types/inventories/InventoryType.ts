@@ -8,16 +8,20 @@ export type IndexInventoryType = {
   customer_id: number | null
   io_type_id: number | null
   currency_id: number | null
+  payment_term_id: number | null
   warehouse_id?: number | null
   vat_id: number | null
   pph23_id: number | null
   branch_id: number | null
+  inventory_no?: string
   do_no?: string
+  surat_jalan_no?: string
   invoice_no?: string
   ship_dest: string
   remark: string | null
   status: string
   exchange_rate: number | null
+  is_vat?: number | null
   vat_perc: number | null
   pph23_perc: number | null
 
@@ -52,16 +56,22 @@ export type FormInventoryType = {
   customer_id?: number | null
   io_type_id?: number | null
   currency_id?: number | null
+  payment_term_id?: number | null
   warehouse_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  inventory_no?: string
+  inventory_no_ori?: string
   do_no?: string
+  surat_jalan_no?: string
   invoice_no?: string
   ship_dest?: string
   remark?: string | null
   status: string
   exchange_rate?: number | null
+  is_vat?: number | null
+  is_pph23?: number | null
   vat_perc: number
   pph23_perc: number
   total_qty: number
@@ -74,13 +84,14 @@ export type FormInventoryType = {
   invoice_at: string
   inv_dts: InvDtType[]
 
-  attachments: any[]
-
   summary?: Record<string, SummaryPartType>
 
   email?: string
   phone?: string
   address?: string
+  customer_code?: string
+
+  io_type?: 'INVENTORY_IN' | 'INVENTORY_OUT'
 }
 
 export type InvDtType = {
@@ -90,30 +101,35 @@ export type InvDtType = {
   item_unit_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
-  ref_id: number
+  ref_so_dt_id: number | string | null
+  ref_so_dt_bom_id: number | string | null
+  ref_po_dt_id: number | string | null
+  ref_po_dt_bom_id: number | string | null
+  ref_inv_dt_id: number | string | null
+  ref_product_id: number | string | null
   item_id: number
   product_uuid: string
   ref_type: InvDtRefType
   item_type: InvDtItemType
   gen_code?: string | null
   remark?: string
-  vat_perc?: number
-  vat_perc_am?: number
-  pph23_perc?: number
-  pph23_perc_am?: number
-  is_vat?: number
-  is_pph23?: number
-  qty_so?: number
-  qty_po?: number
   qty_in?: number
+  qty_out?: number
   qty: number
   price_sell: number
   price_buy: number
   subtotal_sell: number
   subtotal_buy: number
-  total_am: number
+  is_vat?: number
+  is_pph23?: number
+  vat_perc?: number
+  vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  // total_am: number
   expired_at: string | null
 
+  ref_qty?: number
   code?: string
   name?: string
   unit_name?: string
@@ -121,13 +137,14 @@ export type InvDtType = {
   product_code?: string
   item_name?: string
   item_code?: string
+  balance?: number
 }
 
 export type InvDtsType = InvDtType
 
 export type InvDtDiscType = 'p' | 'a' | 'all' | null
 
-export type InvDtRefType = 'products' | 'so'
+export type InvDtRefType = 'products' | 'so' | 'po' | 'inv_in'
 
 export type InvDtItemType = 'item' | 'product'
 
@@ -138,8 +155,19 @@ export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory
 
 export type ModalIndexSalesOrderFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexSalesOrderFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
+export type ModalIndexRefFilterDateType = 'start_date' | 'end_date'
 
 export type QInvIndexType = {
+  page: number
+  per_page: number
+  parent_ids: number[]
+  io_type: 'INVENTORY_OUT' | 'INVENTORY_IN'
+  global: string
+  order_column: string
+  order_direction: string
+}
+
+export type QInvStockIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
@@ -163,12 +191,59 @@ export type QIndexSalesOrdersType = {
   name?: string
   sku?: string
   factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
+  order_column?: string
+  order_direction?: string
+}
+
+export type QIndexPurchaseOrdersType = {
+  page: number
+  per_page: number
+  sales_order_ids?: number[] | null
+  item_group_ids?: number[] | null
+  item_sub_group_ids?: number[] | null
+  quotation_ids?: number[] | null
+  customer_ids?: number[] | null
+  product_ids?: number[] | null
+  customer_id?: number | null
+  product_id?: number[] | null
+  code?: string
+  name?: string
+  sku?: string
+  factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
+  order_column?: string
+  order_direction?: string
+}
+
+export type QIndexInventoryInsType = {
+  page: number
+  per_page: number
+  sales_order_ids?: number[] | null
+  item_group_ids?: number[] | null
+  item_sub_group_ids?: number[] | null
+  quotation_ids?: number[] | null
+  customer_ids?: number[] | null
+  product_ids?: number[] | null
+  customer_id?: number | null
+  product_id?: number[] | null
+  code?: string
+  name?: string
+  sku?: string
+  factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
+  io_type?: 'INVENTORY_IN' | 'INVENTORY_OUT'
   order_column?: string
   order_direction?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null
-
 
 export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType & {
   customer_id?: number | null
@@ -180,6 +255,7 @@ export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType 
   sales_order_id?: number | null
   io_type_id?: number | null
   currency_id?: number | null
+  payment_term_id?: number | null
   head_vat_id?: number | null
   head_vat_perc?: number | null
   head_pph23_id?: number | null
@@ -198,7 +274,7 @@ export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType 
 export type FormInvDtBomListType = ProductListType
 
 export type OptionalInvRefType = {
-  ref_id?: number | null
+  ref_id?: number | string | null
   item_type: InvDtItemType
   item_id?: number | null
   product_id?: number | null

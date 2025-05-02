@@ -35,6 +35,7 @@ export type AuthUserType = {
 export type AuthUserDataType = {
   id: number
   branch_id: number
+  warehouse_id?: number
   branch_name: string
   name: string
   username: string

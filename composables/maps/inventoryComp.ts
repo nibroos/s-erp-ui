@@ -46,14 +46,14 @@ export function convertInvItemRefProduct(
 
   if (refType == 'products') {
     optional.ref_id = item.product_id
-    optional.item_id = item.product_id
   } else if (refType == 'so') {
-    optional.ref_id = item.so_dt_id
-    optional.item_id = item.item_id
+    optional.ref_id = item.ref_id
   } else if (refType == 'po') {
-    optional.ref_id = item.po_dt_id
-    optional.item_id = item.item_id
+    optional.ref_id = item.ref_id
+  } else if (refType == 'inv_in') {
+    optional.ref_id = item.ref_id
   }
+  optional.item_id = item.item_id
 
   const data: InvDtType = {
     ...item,
@@ -62,20 +62,23 @@ export function convertInvItemRefProduct(
     inventory_id: item.inventory_id,
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
-    ref_id: optional.ref_id as number,
-    item_id: optional.item_id as number,
+    ref_so_dt_id: item.ref_so_dt_id,
+    ref_so_dt_bom_id: item.ref_so_dt_bom_id,
+    ref_po_dt_id: item.ref_po_dt_id,
+    ref_po_dt_bom_id: item.ref_po_dt_bom_id,
+    ref_inv_dt_id: item.ref_inv_dt_id,
+    ref_product_id: item.ref_product_id ?? (optional.ref_id as number),
+    item_id: (optional.item_id ?? optional.ref_id) as number,
     product_uuid: productUuid,
     ref_type: refType,
     remark: item.remark,
-    vat_perc: item.vat_perc || 0,
-    vat_perc_am: item.vat_perc_am || 0,
     item_type: optional.item_type,
-    qty: item.qty || 1,
+    qty: item.qty || (item.balance as number) || 1,
+    qty_out: item.qty_out,
     price_sell: (item.price_sell || 0) as number,
     price_buy: (item.price_buy || 0) as number,
     subtotal_sell: item.subtotal_sell || 0,
     subtotal_buy: item.subtotal_buy || 0,
-    total_am: item.total_am || 0,
 
     item_name: item.name ?? item.item_name ?? item.product_name,
     item_code: item.code ?? item.item_code ?? item.product_code,
@@ -100,6 +103,8 @@ export function generateInvDt(
   let selectedRefList = {
     products: [] as InvDtType[],
     so: [] as InvDtType[],
+    po: [] as InvDtType[],
+    inv_in: [] as InvDtType[],
   }
 
   selectedRefList.products = checkMain.filter((item: InvDtType) => {
@@ -110,14 +115,29 @@ export function generateInvDt(
     return item.ref_type == 'so'
   })
 
+  selectedRefList.po = checkMain.filter((item: InvDtType) => {
+    return item.ref_type == 'po'
+  })
+
+  selectedRefList.inv_in = checkMain.filter((item: InvDtType) => {
+    return item.ref_type == 'inv_in'
+  })
+
   // filter new ref items
   newRefItems = data.map((dt: FormInvDtRefType): InvDtType => {
     return convertInvItemRefProduct(dt, checkOpened)
   })
+
   if (checkOpened == 'products') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList.so, ...selectedRefList[checkOpened]]
   } else if (checkOpened == 'so') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
+  } else if (checkOpened == 'inv_in') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
+  } else if (checkOpened == 'po') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
   }
@@ -151,8 +171,10 @@ export function updateInvRefsModalFromMain(
       checkProducts.forEach((prodItem: FormInvDtProductListType) => {
 
         if (
-          (mainItem.ref_type == 'so' && mainItem.ref_id == prodItem.ref_id) ||
-          (mainItem.ref_type == 'products' && mainItem.ref_id == prodItem.ref_id)
+          (mainItem.ref_type == 'so' && (mainItem.ref_so_dt_id == prodItem.ref_so_dt_id || mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)) ||
+          (mainItem.ref_type == 'po' && (mainItem.ref_po_dt_id == prodItem.ref_po_dt_id || mainItem.ref_po_dt_bom_id == prodItem.ref_po_dt_bom_id)) ||
+          (mainItem.ref_type == 'inv_in' && mainItem.ref_inv_dt_id == prodItem.ref_inv_dt_id) ||
+          (mainItem.ref_type == 'products' && mainItem.ref_product_id == prodItem.ref_product_id)
         ) {
           let combined: any = {
             ...prodItem,

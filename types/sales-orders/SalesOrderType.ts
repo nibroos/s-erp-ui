@@ -78,6 +78,7 @@ export type FormSalesOrderType = {
   payment_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  ref_type?: string | null
   rev_no?: number | null
   sales_order_no?: string
   po_buyer_no: string
@@ -143,10 +144,12 @@ export type SalesOrderAttachmentsType = {
 export type FormScheduleType = {
   id: number | null
   sales_order_id: number | null
+  customer_id: number | null
   assignee_id: number | null
   schedule_no: string
   title: string
   module_type: 'sales_orders' | 'feedbacks'
+  ref_type: 'sales_orders' | 'schedules'
   start_at: string
   end_at: string
   color: string
@@ -154,6 +157,10 @@ export type FormScheduleType = {
   remark: string | null
   steps_id?: number | null
   steps?: FormScheduleStepType[]
+
+  attachments: SalesOrderAttachmentsType[]
+  files?: File[]
+  deleted_files: number[]
 
   is_scheduled?: number
   is_delete?: number

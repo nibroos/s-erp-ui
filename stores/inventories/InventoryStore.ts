@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType } from '~/types/inventories/InventoryType'
+import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType, QInvStockIndexType } from '~/types/inventories/InventoryType'
 
 const useInventoryStore = defineStore('InventoryStore', {
   state: () => ({
@@ -19,7 +19,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       qIndexIn: {
         page: 1,
         per_page: 100,
-        in_type: 'IN',
+        io_type: 'INVENTORY_IN',
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
@@ -28,12 +28,20 @@ const useInventoryStore = defineStore('InventoryStore', {
       qIndexOut: {
         page: 1,
         per_page: 100,
-        in_type: 'OUT',
+        io_type: 'INVENTORY_OUT',
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
         order_direction: 'desc'
       } as QInvIndexType,
+      qIndexStock: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        global: '',
+        order_column: 'id',
+        order_direction: 'desc'
+      } as QInvStockIndexType,
 
       qIndexProducts: {
         page: 1,
@@ -58,9 +66,38 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
-        order_column: 'due_at',
+        order_column: 'order_at',
         order_direction: 'desc'
       } as QIndexSalesOrdersType,
+      qIndexPurchaseOrders: {
+        page: 1,
+        per_page: 100,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        order_column: 'order_at',
+        order_direction: 'desc'
+      } as QIndexPurchaseOrdersType,
+      qIndexInventoryIns: {
+        page: 1,
+        per_page: 100,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        io_type: 'INVENTORY_IN',
+        order_column: 'order_at',
+        order_direction: 'desc'
+      } as QIndexInventoryInsType,
       qIndexBoms: {
         page: 1,
         per_page: 100,
@@ -90,6 +127,16 @@ const useInventoryStore = defineStore('InventoryStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexPurchaseOrders: {
+        data: [] as FormInvDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexInventoryIns: {
+        data: [] as FormInvDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
@@ -102,10 +149,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       checkMain: [] as InvDtType[],
       checkProducts: [] as FormInvDtProductListType[],
       checkSalesOrders: [] as FormInvDtProductListType[],
+      checkPurchaseOrders: [] as FormInvDtProductListType[],
+      checkInventoryIns: [] as FormInvDtProductListType[],
     },
     isOpenModal: {
       products: false,
       so: false,
+      po: false,
+      inv_in: false,
     },
     optionRefBtnRef: [
       {
@@ -118,8 +169,34 @@ const useInventoryStore = defineStore('InventoryStore', {
       },
       {
         cta: "Purchase Order",
+        key: "po",
+        icon: "mdi-alpha-p-circle-outline",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+    ] as RefBtnType[],
+    optionRefBtnRefOut: [
+      {
+        cta: "Sales Order",
         key: "so",
-        icon: "mdi-offer",
+        icon: "mdi-alpha-s-circle-outline",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+      {
+        cta: "Inventory In",
+        key: "inv_in",
+        icon: "mdi-clock-in",
+        count: 0,
+        type: "button",
+        // textClass: 'text-grey1'
+      },
+      {
+        cta: "Ms. Product",
+        key: "products",
+        icon: "mdi-alpha-m-box-outline",
         count: 0,
         type: "button",
         // textClass: 'text-grey1'
@@ -152,9 +229,9 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/orders/inventories",
+      parentPath: "/inventories/in",
       currentTab: 0,
-      tabs: ["Items", "Payments", "Remark", "Attachments"],
+      tabs: ["Items", "Remark"],
       button: {
         clear: {
           show: true,
@@ -205,6 +282,9 @@ const useInventoryStore = defineStore('InventoryStore', {
         },
       },
     } as FormLayoutType,
+    referenceOptions: {
+      vats: [] as FormVatType[],
+    }
   }),
 
   actions: {
@@ -229,16 +309,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.loading.editPageLoading = true
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/show-sales-order',
+          '/v1/inventories/show-inventory',
           {
             id: this.form.id
           }
         )
 
         this.form = response.data.data[0]
-        if (!this.form.attachments) {
-          this.form.attachments = []
-        }
+
         this.itemsCheck.checkMain = initCheckedInvDt(this.form.inv_dts)
 
         // this.itemsCheck.checkProducts = updateInvRefsModalFromMain(
@@ -278,16 +356,22 @@ const useInventoryStore = defineStore('InventoryStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/create-sales-order',
+          '/v1/inventories/create-inventory',
           this.form
-        )
-        this.form = JSON.parse(
-          JSON.stringify(useInitials.formInventoryCreateEdit)
         )
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/orders/inventories/edit/${response.data.data[0].id}`)
+
+        let routeAfter = `/inventories/in`
+        if (this.form.io_type == 'INVENTORY_OUT') {
+          routeAfter = '/inventories/out'
+        }
+        navigateTo(routeAfter)
+
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formInventoryCreateEdit)
+        )
 
         return response
       } catch (error: any) {
@@ -329,7 +413,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         let id = this.form.id
 
         const response = await useMyFetch().post(
-          '/v1/inventories/update-sales-order',
+          '/v1/inventories/update-inventory',
           this.form
         )
         this.form = JSON.parse(
@@ -370,7 +454,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/delete-sales-order',
+          '/v1/inventories/delete-inventory',
           this.form
         )
         this.form = response.data.data[0]
@@ -386,7 +470,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/inventories/restore-sales-order',
+          '/v1/inventories/restore-inventory',
           this.form
         )
         this.form = response.data.data[0]
@@ -444,11 +528,12 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
 
     async indexSalesOrder() {
-      if (this.metaModal.index.loading) return
-      this.metaModal.index.loading = true
+      if (this.metaModal.indexSalesOrders.loading) return
+      this.metaModal.indexSalesOrders.loading = true
 
       if (this.itemsCheck.checkSalesOrders.length > 0) {
-        this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
+        // this.queryModal.qIndexSalesOrders.sales_order_ids = this.itemsCheck.checkSalesOrders.map((item: FormInvDtProductListType) => (item.sales_order_id as number))
+        this.queryModal.qIndexSalesOrders.customer_id = this.itemsCheck.checkSalesOrders[0].customer_id
       }
 
       let params = this.queryModal.qIndexSalesOrders
@@ -467,9 +552,11 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
-                  resSalesOrder.so_dt_id === checkSalesOrder.so_dt_id ||
-                  resSalesOrder.so_dt_id === checkSalesOrder.ref_id
+                  (resSalesOrder.ref_so_dt_id && resSalesOrder.ref_so_dt_id === checkSalesOrder.ref_so_dt_id) ||
+                  (resSalesOrder.ref_so_dt_bom_id && resSalesOrder.ref_so_dt_bom_id === checkSalesOrder.ref_so_dt_bom_id)
                 ) {
+
+                  console.log('abc', resSalesOrder.ref_so_dt_id, checkSalesOrder.ref_so_dt_id);
 
                   const combined = {
                     ...resSalesOrder,
@@ -491,7 +578,54 @@ const useInventoryStore = defineStore('InventoryStore', {
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response?.data);
       } finally {
-        this.metaModal.index.loading = false
+        this.metaModal.indexSalesOrders.loading = false
+      }
+    },
+
+    async indexInventoryIn() {
+      if (this.metaModal.indexInventoryIns.loading) return
+      this.metaModal.indexInventoryIns.loading = true
+
+      let params = this.queryModal.qIndexInventoryIns
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-ref-inv-dt',
+          params
+        )
+
+        if (this.isOpenModal.inv_in) {
+          this.metaModal.indexInventoryIns = response.data
+
+          if (this.itemsCheck.checkInventoryIns.length > 0) {
+            this.itemsCheck.checkInventoryIns.forEach((checkInventory: FormInvDtProductListType, iCheckInventory: number) => {
+              (this.metaModal.indexInventoryIns.data as FormInvDtProductListType[]).forEach((resInventory: FormInvDtProductListType, iResInventory: number) => {
+
+                if (
+                  (resInventory.ref_inv_dt_id && resInventory.ref_inv_dt_id === checkInventory.ref_inv_dt_id)
+                ) {
+
+                  console.log('abc', resInventory.ref_inv_dt_id, checkInventory.ref_inv_dt_id);
+
+                  const combined = {
+                    ...resInventory,
+                    ...checkInventory
+                  }
+
+                  this.metaModal.indexInventoryIns.data[iResInventory] = combined
+                  this.itemsCheck.checkInventoryIns[iCheckInventory] = combined
+                }
+              })
+            })
+          }
+        }
+
+        // return this.metaModal.indexInventoryIns
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexInventoryIns.loading = false
       }
     },
 
@@ -503,6 +637,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.isOpenModal.so) {
         this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
         this.isOpenModal.so = false
+      }
+      if (this.isOpenModal.po) {
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkPurchaseOrders, 'po', this.itemsCheck.checkMain)
+        this.isOpenModal.po = false
+      }
+      if (this.isOpenModal.inv_in) {
+        this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkInventoryIns, 'inv_in', this.itemsCheck.checkMain)
+        this.isOpenModal.inv_in = false
       }
 
     },
@@ -543,6 +685,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkProducts = []
       this.errors = {};
+      this.form.warehouse_id = AuthStore().authUser.data?.warehouse_id
 
       this.resetSummary()
       this.countSelectedReferences()
@@ -555,9 +698,24 @@ const useInventoryStore = defineStore('InventoryStore', {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "products"
           ).length;
+        } else if (item.key == "po") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "po"
+          ).length;
+        }
+      });
+      this.optionRefBtnRefOut.map((item) => {
+        if (item.key == "products") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "products"
+          ).length;
         } else if (item.key == "so") {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "so"
+          ).length;
+        } else if (item.key == "inv_in") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "inv_in"
           ).length;
         }
       });
@@ -577,6 +735,8 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.email = data.email;
       this.form.phone = data.phone;
       this.form.address = data.address;
+      this.form.ship_dest = data.address;
+      this.form.customer_code = data.shortname;
 
       if (!!data.id) {
         this.queryModal.qIndexSalesOrders.customer_id = data.id;
@@ -595,83 +755,6 @@ const useInventoryStore = defineStore('InventoryStore', {
           item.vat_perc = Number(data.num);
         }
         // }
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    autocompleteVatDt(data: FormVatType, soDtType: InvDtType) {
-      soDtType.vat_perc = Number(data.num);
-      this.calculateTotalAmount();
-    },
-
-    autocompletePph23Dt(data: FormPph23Type, soDtType: InvDtType) {
-      soDtType.pph23_perc = Number(data.num);
-      this.calculateTotalAmount();
-    },
-
-    removeVat() {
-      this.form.vat_perc = 0;
-
-      this.calculateTotalAmount();
-    },
-
-    removeAllVat() {
-      this.form.vat_id = null;
-      this.form.vat_perc = 0;
-      this.form.total_vat = 0;
-
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.vat_id = null;
-        item.vat_perc = 0;
-        item.vat_perc_am = 0;
-        item.is_vat = 0;
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    removeVatDt(soDtType: InvDtType) {
-      if (!soDtType.vat_id) {
-        soDtType.vat_perc = 0;
-        soDtType.vat_perc_am = 0;
-      }
-
-      this.calculateTotalAmount();
-    },
-
-    removePph23Dt(soDtType: InvDtType) {
-      if (!soDtType.pph23_id) {
-        soDtType.pph23_perc = 0;
-        soDtType.pph23_perc_am = 0;
-      }
-
-      this.calculateTotalAmount();
-    },
-
-    removePph() {
-      this.form.pph23_perc = 0;
-      this.form.total_pph23 = 0;
-
-      // remove all childs
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.pph23_id = null;
-        item.pph23_perc = 0;
-        item.pph23_perc_am = 0;
-      });
-
-      this.calculateTotalAmount();
-    },
-
-    removeAllPph() {
-      this.form.pph23_id = null;
-      this.form.pph23_perc = 0;
-
-      this.itemsCheck.checkMain.forEach((item: InvDtType) => {
-        item.pph23_id = null;
-        item.pph23_perc = 0;
-        item.pph23_perc_am = 0;
-        item.is_pph23 = 0;
       });
 
       this.calculateTotalAmount();
@@ -702,6 +785,8 @@ const useInventoryStore = defineStore('InventoryStore', {
 
     closeAllModal() {
       this.isOpenModal.so = false;
+      this.isOpenModal.po = false;
+      this.isOpenModal.inv_in = false;
       this.isOpenModal.products = false;
     },
 
@@ -710,14 +795,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.countSelectedReferences();
       this.closeAllModal();
 
-      this.form.io_type_id = this.headAutocomplete.so.io_type_id;
-      this.form.currency_id = this.headAutocomplete.so.currency_id;
-      this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
-      this.form.vat_id = this.headAutocomplete.so.vat_id;
-      this.form.vat_perc = this.headAutocomplete.so.vat_perc as number;
-      this.form.pph23_id = this.headAutocomplete.so.pph23_id;
-      this.form.pph23_perc = this.headAutocomplete.so.pph23_perc as number;
-      this.form.remark = this.headAutocomplete.so.remark
+      this.form.io_type_id = this.form.io_type_id ?? this.headAutocomplete.so.io_type_id
+      this.form.currency_id = this.form.currency_id ?? this.headAutocomplete.so.currency_id;
+      this.form.exchange_rate = this.form.exchange_rate ?? this.headAutocomplete.so.exchange_rate;
+      this.form.vat_id = this.form.vat_id ?? this.headAutocomplete.so.vat_id;
+      this.form.vat_perc = this.form.vat_perc ?? this.headAutocomplete.so.vat_perc as number;
+      this.form.pph23_id = this.form.pph23_id ?? this.headAutocomplete.so.pph23_id;
+      this.form.pph23_perc = this.form.pph23_perc ?? this.headAutocomplete.so.pph23_perc as number;
+      this.form.remark = this.form.remark ?? this.headAutocomplete.so.remark
     },
 
     onClickDeleteSelected(item: any, index: number) {
@@ -754,6 +839,24 @@ const useInventoryStore = defineStore('InventoryStore', {
 
         this.countSelectedReferences();
         this.isOpenModal.so = true;
+      } else if (ref.key == "po") {
+        this.itemsCheck.checkPurchaseOrders = updateInvRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "po",
+          this.itemsCheck.checkPurchaseOrders
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.po = true;
+      } else if (ref.key == "inv_in") {
+        this.itemsCheck.checkInventoryIns = updateInvRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "inv_in",
+          this.itemsCheck.checkInventoryIns
+        );
+
+        this.countSelectedReferences();
+        this.isOpenModal.inv_in = true;
       }
 
       await this.fetchModalFilter();
@@ -771,6 +874,8 @@ const useInventoryStore = defineStore('InventoryStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
         await this.indexSalesOrder();
+      } else if (this.isOpenModal.inv_in) {
+        await this.indexInventoryIn();
       }
       // } else if (showModal.value.listWip) {
       //   // queryModal.value.qListWip.customer_id = form.value.customer_id
@@ -808,6 +913,34 @@ const useInventoryStore = defineStore('InventoryStore', {
         }
       }
 
+      if (this.isOpenModal.po) {
+        this.queryModal.qIndexPurchaseOrders.page = options.page;
+        this.queryModal.qIndexPurchaseOrders.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexPurchaseOrders.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexPurchaseOrders.order_direction =
+            options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexPurchaseOrders.order_column = "";
+          this.queryModal.qIndexPurchaseOrders.order_direction = "";
+        }
+      }
+
+      if (this.isOpenModal.inv_in) {
+        this.queryModal.qIndexInventoryIns.page = options.page;
+        this.queryModal.qIndexInventoryIns.per_page = options.itemsPerPage;
+
+        if (options.sortBy.length > 0) {
+          this.queryModal.qIndexInventoryIns.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexInventoryIns.order_direction =
+            options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexInventoryIns.order_column = "";
+          this.queryModal.qIndexInventoryIns.order_direction = "";
+        }
+      }
+
       await this.fetchModalFilter();
     },
 
@@ -833,6 +966,16 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.headAutocomplete.so.pph23_id = data.head_pph23_id;
       this.headAutocomplete.so.pph23_perc = data.head_pph23_perc as number;
       this.headAutocomplete.so.remark = data.head_remark
+    },
+
+    onClickSwitchVAT(data: any) {
+      if (!data) {
+        this.form.vat_id = null;
+        this.form.vat_perc = 0;
+        this.form.total_vat = 0;
+      } else {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      }
     },
 
     removeSalesOrder() {
@@ -868,14 +1011,6 @@ const useInventoryStore = defineStore('InventoryStore', {
 
         item.subtotal_sell = subtotalSell;
         item.subtotal_buy = subtotalBuy;
-
-        let discFinal = subtotalSell;
-
-        item.vat_perc_am = 0;
-
-        item.pph23_perc_am = 0;
-
-        item.total_am = discFinal + item.vat_perc_am - item.pph23_perc_am;
       });
 
       // header calculation
@@ -888,33 +1023,6 @@ const useInventoryStore = defineStore('InventoryStore', {
         (acc: number, item: InvDtType) => acc + item.qty,
         0
       );
-
-      if (!!this.form.vat_id) {
-        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvDtType) => {
-            if (!!item.is_vat) {
-              return acc + item.total_am;
-            }
-            return acc;
-          },
-          0
-        );
-
-        this.form.total_vat = totalAmIsVat * ((this.form.vat_perc ?? 0) / 100)
-      }
-
-      if (!!this.form.pph23_id) {
-        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: InvDtType) => {
-            if (!!item.is_pph23) {
-              return acc + item.subtotal_sell;
-            }
-            return acc;
-          },
-          0
-        );
-        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_perc ?? 0) / 100);
-      }
 
       this.form.grand_total =
         this.form.subtotal - this.form.total_vat - this.form.total_pph23;
@@ -939,17 +1047,6 @@ const useInventoryStore = defineStore('InventoryStore', {
 
       return response
     },
-
-    handleUploadFile(file: any) {
-      console.log('file', file);
-    },
-
-    handleDeleteFile(index: number) {
-      console.log('index', index);
-      this.form.attachments.splice(index, 1);
-    }
-
-
   },
   persist: [
     {

@@ -18,7 +18,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Inventory IN",
+  title: "Inventory OUT",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
@@ -44,7 +44,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "IN Type",
+    title: "OUT Type",
     key: "io_type_name",
     value: "io_type_name",
     align: "start",
@@ -58,7 +58,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "IN Date",
+    title: "OUT Date",
     key: "ingoing_at",
     value: "ingoing_at",
     align: "start",
@@ -169,7 +169,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "date_type",
     type: "autocomplete-client",
     others: {
-      items: useStatics.invIndexDateType,
+      items: useStatics.invOutdexDateType,
     },
   },
   {
@@ -183,7 +183,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "date",
   },
   {
-    title: "IN Type",
+    title: "OUT Type",
     key: "io_type_ids",
     type: "autocomplete",
     others: {
@@ -196,7 +196,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
       itemTitle: "name",
       itemValue: "id",
       query: {
-        io_type: "INVENTORY_IN",
+        io_type: "INVENTORY_OUT",
       },
       label: "Roles",
       innerSearchKey: "global",
@@ -255,7 +255,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
 // };
 
 onMounted(() => {
-  queryModal.qIndexIn.io_type = "INVENTORY_IN";
+  queryModal.qIndexOut.io_type = "INVENTORY_OUT";
 });
 
 // watchEffect(() => {
@@ -275,7 +275,7 @@ onMounted(() => {
     >
       <d-datatable
         api="/v1/inventories/index-inventory"
-        detail-link="/inventories/in"
+        detail-link="/inventories/out"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -284,27 +284,24 @@ onMounted(() => {
         search-placeholder="Search anything related to inventory.."
         is-quick-select
         no-title
-        edit-link="/inventories/in/edit"
+        edit-link="/inventories/out/edit"
         delete-api="/v1/inventories/delete-inventory"
         :fields="fieldsConfig"
         :filters="filtersConfig"
-        :query-modal="queryModal.qIndexIn"
+        :query-modal="queryModal.qIndexOut"
         :create-option="{
-          link: '/inventories/in/create',
+          link: '/inventories/out/create',
           show: true,
           cta: '+ Create',
         }"
         @update:filters="
           (filters: QInvIndexType) => {
-            queryModal.qIndexIn = filters;
+            queryModal.qIndexOut = filters;
           }
         "
       >
         <template #item.total_vat="{ item }">
           <d-num-layout :value="item.total_vat" />
-        </template>
-        <template #item.total_discount="{ item }">
-          <d-num-layout :value="item.total_discount" />
         </template>
         <template #item.total_pph23="{ item }">
           <d-num-layout :value="item.total_pph23" />
