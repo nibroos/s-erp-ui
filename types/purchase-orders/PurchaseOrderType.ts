@@ -16,6 +16,8 @@ export type IndexPurchaseOrderType = {
   delivery_date: string | null
   shipping_destination: string
   remark: string | null
+  is_vat?: number
+  is_pph23?: number
   exchange_rate: number | null
   discount_percentage: number | null
   discount_amount: number | null
@@ -66,6 +68,8 @@ export type FormPurchaseOrderType = {
   shipping_term_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  is_vat?: number
+  is_pph23?: number
   po_no?: string
   po_date: string
   delivery_date: string
@@ -127,6 +131,11 @@ export type PoDtType = {
   is_vat?: number
   is_pph23?: number
   total_amount: number
+  vat_perc?: number
+  vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  expired_at: string
 
   code?: string
   name?: string
