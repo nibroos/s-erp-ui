@@ -322,18 +322,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
 
-        // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
-        //   this.itemsCheck.checkMain,
-        //   "products",
-        //   this.itemsCheck.checkProducts
-        // );
-
-        // this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
-        //   this.itemsCheck.checkMain,
-        //   "quotations",
-        //   this.itemsCheck.checkQuotations
-        // );
-
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
@@ -1083,6 +1071,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
+    autocompleteIsVat() {
+      if (!!this.form.is_vat) {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      } else {
+        this.form.vat_id = null;
+      }
+    },
+
     autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
       soDtType.vat_perc = Number(data.num);
       this.calculateTotalAmount();
@@ -1472,6 +1468,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     calculateTotalAmount() {
+      this.autocompleteIsVat()
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
         // if (!!item.so_dts_boms) {
         //   item.so_dts_boms.forEach((bom: SoDtBomType) => {
@@ -1544,17 +1541,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       // header calculation
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.subtotal_sell,
+        (acc: number, item: SoDtType) => acc + (item.subtotal_sell || 0),
         0
       );
 
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.qty,
+        (acc: number, item: SoDtType) => acc + (item.qty || 0),
         0
       );
 
       this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + (item.disc_perc_am + item.disc_am),
+        (acc: number, item: SoDtType) => acc + ((item.disc_perc_am + item.disc_am) || 0),
         0
       ));
 
@@ -1582,6 +1579,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
 
       this.form.disc_type = null;
+      this.form.total_vat = 0;
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SoDtType) => {
@@ -1611,6 +1609,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         }
       }
 
+      this.form.total_pph23 = 0;
       if (!!this.form.pph23_id) {
         let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SoDtType) => {
@@ -1628,7 +1627,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
-        console.log('calculateTotalAmount-summary-total_vat', this.form.total_vat);
         this.formLayout.summary.total_amount.value = this.form.subtotal;
         this.formLayout.summary.total_after_disc.value = this.form.total_after_disc;
         this.formLayout.summary.total_discount.value = this.form.total_discount;

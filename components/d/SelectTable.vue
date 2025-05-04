@@ -341,6 +341,11 @@ const fetchSingle = async (id: number, oldId: number | null) => {
     return;
   }
 
+  if (multiple.value) {
+    selectedText.value = props.modelValue.length + " selected";
+    return;
+  }
+
   showMetaModal.value.loading = true;
   let apiUrl;
 
@@ -424,6 +429,10 @@ const onSelectItems = async () => {
     emits("update:modelValue", itemsCheck.value[0]);
   } else if (multiple.value && itemsCheck.value.length > 0) {
     emits("update:modelValue", itemsCheck.value);
+  }
+
+  if (multiple.value) {
+    selectedText.value = itemsCheck.value.length + " selected";
   }
 
   // selectedText.value = itemsCheck.value.map((item) => item.name).join(', ')

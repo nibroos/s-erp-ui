@@ -1197,7 +1197,15 @@ watchEffect(() => {
             ></d-autocomplete>
           </div>
           <div class="lg:col-span-6 flex gap-2">
-            <d-switch-status v-model="form.is_vat" :label="`VAT`" />
+            <d-switch-status
+              v-model="form.is_vat"
+              :label="`VAT`"
+              @update:modelValue="
+                (data) => {
+                  calculateTotalAmountLocal();
+                }
+              "
+            />
           </div>
 
           <div class="lg:col-span-6 col-span-6">

@@ -26,8 +26,8 @@ export interface Meta {
   total: number
 }
 
-export interface PaginationMeta {
-  data: Record<string, any>[]
+export interface PaginationMeta<T = Record<string, any>> {
+  data: T[]
   meta: Meta
   loading: boolean
 }

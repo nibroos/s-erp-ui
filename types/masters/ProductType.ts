@@ -159,6 +159,7 @@ export type QIndexProductsType = {
   name?: string
   sku?: string
   factory_code?: string
+  prod_type?: 'single' | 'product'
   order_column?: string
   order_direction?: string
 }

@@ -52,6 +52,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
+        prod_type: 'single',
         order_column: 'name',
         order_direction: 'desc'
       } as QIndexProductsType,
@@ -486,6 +487,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
+      this.queryModal.qIndexProducts.prod_type = 'single'
       let params = this.queryModal.qIndexProducts
 
       try {

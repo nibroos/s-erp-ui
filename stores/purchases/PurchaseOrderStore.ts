@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { FormPoDtProductListType, FormPurchaseOrderType, IndexPurchaseOrderType, PoDtDiscType, PoDtRefType, PoDtType, QIndexProductsType, QIndexType } from '~/types/purchase-orders/PurchaseOrderType'
-import type { SoDtDiscType } from '~/types/sales-orders/SalesOrderType'
+import type { SoDtDiscType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
 const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
   state: () => ({
@@ -28,15 +28,16 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } as QIndexType,
 
       qIndexProducts: {
-
         page: 1,
         per_page: 10,
         item_group_ids: [],
         item_sub_group_ids: [],
+        product_bom_ids: [],
         code: '',
         name: '',
         sku: '',
         factory_code: '',
+        prod_type: 'single',
         order_column: 'name',
         order_direction: 'desc'
       } as QIndexProductsType,
@@ -63,7 +64,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         data: [] as FormPoDtProductListType[],
         loading: false,
         meta: {} as Meta
-      } as PaginationMeta,
+      } as PaginationMeta<FormPoDtProductListType>,
       indexSo: {
         data: [] as FormPoDtProductListType[],
         loading: false,
@@ -71,6 +72,11 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } as PaginationMeta,
       indexRo: {
         data: [] as FormPoDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta
@@ -140,7 +146,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         },
       },
       summary: {
-        total_amount_products: {
+        subtotal: {
           label: "Sub Amount",
           symbol: '',
           value: 0,
@@ -156,7 +162,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
             precision: 2,
           },
         },
-        subtotal: {
+        total_after_disc: {
           label: "After Discount",
           symbol: '',
           value: 0,
@@ -193,6 +199,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       },
     } as FormLayoutType,
     parentProductsSelected: [] as number[],
+    referenceOptions: {
+      vats: [] as FormVatType[],
+    },
   }),
 
   actions: {
@@ -208,6 +217,30 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+
+      let params = this.queryModal.qIndex
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/purchase-orders/widget-purchase-order',
+          params
+        )
+
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+
+        // return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
       }
     },
 
@@ -308,8 +341,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         )
 
         this.form.id = id
-        await this.show()
+        // await this.show()
 
+        navigateTo(`/purchases/purchase-orders`)
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
@@ -371,6 +405,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
+      this.queryModal.qIndexProducts.prod_type = 'single'
       let params = this.queryModal.qIndexProducts
 
       try {
@@ -382,10 +417,17 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         if (this.isOpenModal.products) {
           this.metaModal.indexProducts = response.data
 
+          // uid
+          this.metaModal.indexProducts.data.forEach((product: FormPoDtProductListType) => {
+            product.uid = randomId()
+          })
+
           if (this.itemsCheck.checkProducts.length > 0) {
             this.itemsCheck.checkProducts.forEach((checkProduct: FormPoDtProductListType, iCheckProduct: number) => {
               (this.metaModal.indexProducts.data as FormPoDtProductListType[]).forEach((resProduct: FormPoDtProductListType, iResProduct: number) => {
-                if (resProduct.ref_id === checkProduct.ref_id && checkProduct.ref_type === 'products') {
+                console.log('resProduct.ref_product_id', resProduct.ref_product_id, "checkProduct.ref_product_id", checkProduct.ref_product_id);
+
+                if (resProduct.ref_product_id === checkProduct.ref_product_id && checkProduct.ref_type === 'products') {
                   const combined = {
                     ...resProduct,
                     ...checkProduct
@@ -489,47 +531,47 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
     selectItemRefModal() {
       if (this.isOpenModal.products) {
-        const flattenedItems: FormPoDtProductListType[] = [];
+        // const flattenedItems: FormPoDtProductListType[] = [];
 
-        this.parentProductsSelected = [];
+        // this.parentProductsSelected = [];
 
-        this.itemsCheck.checkProducts.forEach(product => {
-          if (defineItemTypePurchaseOrder(product) === 'product') {
-            this.parentProductsSelected.push(product.ref_id);
+        // this.itemsCheck.checkProducts.forEach(product => {
+        //   if (defineItemTypePurchaseOrder(product) === 'product') {
+        //     this.parentProductsSelected.push(product.ref_id);
 
-            if (product.boms && product.boms.length > 0) {
-              product.boms.forEach(bom => {
-                flattenedItems.push({
-                  ...bom,
-                  ref_type: 'products',
-                  product_id: bom.product_id || bom.item_id || bom.ref_id,
-                  product_name: bom.item_name,
-                  product_code: bom.item_code,
-                  unit_name: bom.item_unit_name || bom.unit_name,
-                  price: bom.price_buy || 0,
-                  qty: (bom.qty && bom.qty > 0) ? bom.qty : 1,
-                  discount_amount: 0,
-                  discount_percentage: 0,
-                  subtotal: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
-                  total_amount: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
-                  product_type: 'bom',
-                  parent_product_ref_id: product.ref_id,
-                  is_vat: product.is_vat || 0,
-                  is_pph23: product.is_pph23 || 0,
-                } as FormPoDtProductListType);
-              });
-            }
-          } else {
-            flattenedItems.push({
-              ...product,
-              qty: (product.qty && product.qty > 0) ? product.qty : 1,
-              subtotal: (product.price || product.price_buy || 0) * ((product.qty && product.qty > 0) ? product.qty : 1),
-              total_amount: (product.price || product.price_buy || 0) * ((product.qty && product.qty > 0) ? product.qty : 1),
-            });
-          }
-        });
+        //     if (product.boms && product.boms.length > 0) {
+        //       product.boms.forEach(bom => {
+        //         flattenedItems.push({
+        //           ...bom,
+        //           ref_type: 'products',
+        //           product_id: bom.product_id || bom.item_id || bom.ref_id,
+        //           product_name: bom.item_name,
+        //           product_code: bom.item_code,
+        //           unit_name: bom.item_unit_name || bom.unit_name,
+        //           price: bom.price_buy || 0,
+        //           qty: (bom.qty && bom.qty > 0) ? bom.qty : 1,
+        //           discount_amount: 0,
+        //           discount_percentage: 0,
+        //           subtotal: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
+        //           total_amount: (bom.price_buy || 0) * ((bom.qty && bom.qty > 0) ? bom.qty : 1),
+        //           product_type: 'bom',
+        //           parent_product_ref_id: product.ref_id,
+        //           is_vat: product.is_vat || 0,
+        //           is_pph23: product.is_pph23 || 0,
+        //         } as FormPoDtProductListType);
+        //       });
+        //     }
+        //   } else {
+        //     flattenedItems.push({
+        //       ...product,
+        //       qty: (product.qty && product.qty > 0) ? product.qty : 1,
+        //       subtotal: (product.price || product.price_buy || 0) * ((product.qty && product.qty > 0) ? product.qty : 1),
+        //       total_amount: (product.price || product.price_buy || 0) * ((product.qty && product.qty > 0) ? product.qty : 1),
+        //     });
+        //   }
+        // });
 
-        this.itemsCheck.checkMain = generatePoDt(flattenedItems, 'products', this.itemsCheck.checkMain);
+        this.itemsCheck.checkMain = generatePoDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain);
 
         if (this.form.vat_id) {
           this.itemsCheck.checkMain.forEach(item => {
@@ -587,9 +629,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
     resetSummary() {
       if (this.formLayout?.summary) {
-        this.formLayout.summary.total_amount_products.value = 0;
-        this.formLayout.summary.total_discount.value = 0
         this.formLayout.summary.subtotal.value = 0
+        this.formLayout.summary.total_discount.value = 0
+        this.formLayout.summary.total_after_disc.value = 0;
         this.formLayout.summary.total_vat.value = 0
         this.formLayout.summary.total_pph23.value = 0
         this.formLayout.summary.grand_total.value = 0
@@ -599,7 +641,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     handleClickClear() {
       this.form = cloneObject(useInitials.formPurchaseOrderCreateEdit);
       this.form.status = "PROCESS";
-      this.form.po_no = this.generatePoNumber();
+      // this.form.po_no = this.generatePoNumber();
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkProducts = []
       this.itemsCheck.checkSo = []
@@ -655,6 +697,11 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       this.form.email = data.email;
       this.form.phone = data.phone;
       this.form.address = data.address;
+      this.form.customer_code = data.shortname;
+
+      if (!!data.currency_id && !this.form.currency_id) {
+        this.form.currency_id = data.currency_id
+      }
     },
 
     autocompleteVat(data: FormVatType) {
@@ -665,10 +712,21 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       this.itemsCheck.checkMain.forEach((item: PoDtType) => {
         if (item.is_vat) {
           item.vat_id = data.id as number;
+          item.vat_perc = Number(data.num);
         }
       });
 
       this.calculateTotalAmount();
+    },
+
+    autocompleteIsVat() {
+      if (this.referenceOptions.vats.length === 0) return;
+
+      if (!!this.form.is_vat) {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      } else {
+        this.form.vat_id = null;
+      }
     },
 
     autocompleteVatDt(data: FormVatType, poDtType: PoDtType) {
@@ -738,6 +796,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       this.itemsCheck.checkMain.forEach((item: PoDtType) => {
         if (item.is_pph23) {
           item.pph23_id = data.id as number;
+          item.pph23_perc = Number(data.num);
         }
       });
 
@@ -771,8 +830,6 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         remark: this.form.remark
       };
 
-      const existingItems = [...this.itemsCheck.checkMain];
-
       this.selectItemRefModal();
       this.countSelectedReferences();
       this.closeAllModal();
@@ -803,24 +860,29 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       if (ref.key == "products") {
         this.itemsCheck.checkProducts = [];
 
-        const directProducts = this.itemsCheck.checkMain.filter(item =>
-          item.ref_type === 'products' && !item.parent_product_ref_id
+        // const directProducts = this.itemsCheck.checkMain.filter(item =>
+        //   item.ref_type === 'products' && !item.parent_product_ref_id
+        // );
+
+        // directProducts.forEach(item => {
+        //   const productInModal = this.metaModal.indexProducts.data.find(p => p.ref_id === item.ref_id);
+        //   if (productInModal && !this.itemsCheck.checkProducts.some(p => p.ref_id === item.ref_id)) {
+        //     this.itemsCheck.checkProducts.push(productInModal);
+        //   }
+        // });
+
+        // this.parentProductsSelected.forEach(parentRefId => {
+        //   const productInModal = this.metaModal.indexProducts.data.find(p => p.ref_id === parentRefId);
+        //   if (productInModal && !this.itemsCheck.checkProducts.some(p => p.ref_id === parentRefId)) {
+        //     this.itemsCheck.checkProducts.push(productInModal);
+        //   }
+        // });
+
+        this.itemsCheck.checkProducts = updatePoRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "products",
+          this.itemsCheck.checkProducts
         );
-
-        directProducts.forEach(item => {
-          const productInModal = this.metaModal.indexProducts.data.find(p => p.ref_id === item.ref_id);
-          if (productInModal && !this.itemsCheck.checkProducts.some(p => p.ref_id === item.ref_id)) {
-            this.itemsCheck.checkProducts.push(productInModal);
-          }
-        });
-
-        this.parentProductsSelected.forEach(parentRefId => {
-          const productInModal = this.metaModal.indexProducts.data.find(p => p.ref_id === parentRefId);
-          if (productInModal && !this.itemsCheck.checkProducts.some(p => p.ref_id === parentRefId)) {
-            this.itemsCheck.checkProducts.push(productInModal);
-          }
-        });
-
         this.countSelectedReferences();
         this.isOpenModal.products = true;
       } else if (ref.key == "so") {
@@ -850,18 +912,18 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       if (this.isOpenModal.products) {
         await this.indexProduct();
 
-        this.metaModal.indexProducts.data.forEach(product => {
-          const isParentSelected = this.parentProductsSelected.includes(product.ref_id);
+        // this.metaModal.indexProducts.data.forEach(product => {
+        //   const isParentSelected = this.parentProductsSelected.includes(product.ref_id);
 
-          const isDirectlySelected = this.itemsCheck.checkMain.some(item =>
-            item.ref_type === 'products' && item.ref_id === product.ref_id
-          );
+        //   const isDirectlySelected = this.itemsCheck.checkMain.some(item =>
+        //     item.ref_type === 'products' && item.ref_id === product.ref_id
+        //   );
 
-          if ((isParentSelected || isDirectlySelected) &&
-            !this.itemsCheck.checkProducts.some(p => p.ref_id === product.ref_id)) {
-            this.itemsCheck.checkProducts.push(product);
-          }
-        });
+        //   if ((isParentSelected || isDirectlySelected) &&
+        //     !this.itemsCheck.checkProducts.some(p => p.ref_id === product.ref_id)) {
+        //     this.itemsCheck.checkProducts.push(product);
+        //   }
+        // });
       } else if (this.isOpenModal.so) {
         await this.indexSalesOrder();
       } else if (this.isOpenModal.ro) {
@@ -913,6 +975,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     },
 
     calculateTotalAmount() {
+      this.autocompleteIsVat()
       this.itemsCheck.checkMain.forEach((item: PoDtType) => {
         item.subtotal = item.qty * item.price;
 
@@ -963,8 +1026,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
         item.discount_percentage_num = 0;
         item.discount_final = discFinal
+        item.discount_percentage_num = discPercNum;
+        item.discount_percentage_amount = discPercAm;
         if (discPercentage) {
-          item.discount_percentage_num = discPercNum;
         }
 
         item.vat_perc_am = 0;
@@ -987,55 +1051,117 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       );
 
       this.form.discount_amount_product = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: PoDtType) => acc + (item.discount_amount || 0), 0
+        (acc: number, item: PoDtType) => acc + ((item.discount_amount + item.discount_percentage_amount) || 0), 0
       );
 
-      this.form.total_discount = this.form.discount_final_header + this.form.discount_amount_product;
+      this.form.discount_percentage_amount = 0
 
-      const afterDiscount = this.form.total_amount_products - this.form.discount_final_header;
+      if (!!this.form.discount_percentage) {
+        // this.form.discount_percentage_amount = this.form.disc_final * (((this.form.discount_percentage ?? 0) / 100));
 
-      if (this.form.vat_id) {
-        const vatableAmount = this.itemsCheck.checkMain.reduce(
+        let discPercAm = this.itemsCheck.checkMain.reduce(
           (acc: number, item: PoDtType) => {
-            if (item.is_vat) {
-              return acc + (item.total_amount || 0);
-            }
-            return acc;
-          }, 0
+            return acc + (item.total_amount * (this.form.discount_percentage / 100));
+          },
+          0
         );
-        this.form.total_vat = (vatableAmount * (this.form.vat_percentage || 0)) / 100;
-      } else {
-        this.form.total_vat = 0;
+
+        this.form.discount_percentage_amount = discPercAm;
       }
 
-      if (this.form.pph23_id) {
-        const pph23Amount = this.itemsCheck.checkMain.reduce(
+      this.form.total_discount = this.form.discount_amount_product + this.form.discount_percentage_amount + this.form.discount_amount;
+      if (this.form.total_discount < 0) {
+        this.form.total_discount = 0
+      }
+
+      const afterDiscount = this.form.subtotal - this.form.total_discount;
+      this.form.total_after_disc = afterDiscount;
+
+
+      this.form.total_vat = 0;
+      if (!!this.form.vat_id) {
+        let totalAmIsVat = this.itemsCheck.checkMain.reduce(
           (acc: number, item: PoDtType) => {
-            if (item.is_pph23) {
-              return acc + (item.total_amount || 0);
+            if (!!item.is_vat) {
+              return acc + item.total_amount;
             }
             return acc;
-          }, 0
+          },
+          0
         );
-        this.form.total_pph23 = (pph23Amount * (this.form.pph23_percentage || 0)) / 100;
-      } else {
-        this.form.total_pph23 = 0;
+
+        let discPercAmVat = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: PoDtType) => {
+            if (!!item.is_vat) {
+              return acc + (item.total_amount * (this.form.discount_percentage / 100));
+            }
+            return acc;
+          },
+          0
+        );
+
+        this.form.total_vat = (totalAmIsVat - (discPercAmVat + this.form.discount_amount)) * ((this.form.vat_percentage ?? 0) / 100)
+
+        if (this.form.total_vat < 0) {
+          this.form.total_vat = 0;
+        }
       }
+
+      this.form.total_pph23 = 0;
+      if (!!this.form.pph23_id) {
+        let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
+          (acc: number, item: PoDtType) => {
+            if (!!item.is_pph23) {
+              return acc + item.subtotal;
+            }
+            return acc;
+          },
+          0
+        );
+        this.form.total_pph23 = subtotalIsPph23 * ((this.form.pph23_percentage ?? 0) / 100);
+      }
+      // if (this.form.vat_id) {
+      //   const vatableAmount = this.itemsCheck.checkMain.reduce(
+      //     (acc: number, item: PoDtType) => {
+      //       if (item.is_vat) {
+      //         return acc + (item.total_amount || 0);
+      //       }
+      //       return acc;
+      //     }, 0
+      //   );
+      //   this.form.total_vat = (vatableAmount * (this.form.vat_percentage || 0)) / 100;
+      // } else {
+      //   this.form.total_vat = 0;
+      // }
+
+      // if (this.form.pph23_id) {
+      //   const pph23Amount = this.itemsCheck.checkMain.reduce(
+      //     (acc: number, item: PoDtType) => {
+      //       if (item.is_pph23) {
+      //         return acc + (item.total_amount || 0);
+      //       }
+      //       return acc;
+      //     }, 0
+      //   );
+      //   this.form.total_pph23 = (pph23Amount * (this.form.pph23_percentage || 0)) / 100;
+      // } else {
+      //   this.form.total_pph23 = 0;
+      // }
 
       this.form.grand_total = afterDiscount + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
-        this.formLayout.summary.total_amount_products.value = this.form.total_amount_products;
+        this.formLayout.summary.subtotal.value = this.form.subtotal;
         this.formLayout.summary.total_discount.value = this.form.total_discount;
-        this.formLayout.summary.subtotal.value = afterDiscount;
+        this.formLayout.summary.total_after_disc.value = this.form.total_after_disc;
         this.formLayout.summary.total_vat.value = this.form.total_vat;
         this.formLayout.summary.total_pph23.value = this.form.total_pph23;
         this.formLayout.summary.grand_total.value = this.form.grand_total;
 
         if (this.currencySymbolLabel) {
-          this.formLayout.summary.total_amount_products.symbol = this.currencySymbolLabel;
           this.formLayout.summary.total_discount.symbol = this.currencySymbolLabel;
           this.formLayout.summary.subtotal.symbol = this.currencySymbolLabel;
+          this.formLayout.summary.total_after_disc.symbol = this.currencySymbolLabel;
           this.formLayout.summary.total_vat.symbol = this.currencySymbolLabel;
           this.formLayout.summary.total_pph23.symbol = this.currencySymbolLabel;
           this.formLayout.summary.grand_total.symbol = this.currencySymbolLabel;
@@ -1044,9 +1170,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       return {
         summary: {
-          total_amount_products: this.form.total_amount_products,
+          subtotal: this.form.subtotal,
           total_discount: this.form.total_discount,
-          subtotal: afterDiscount,
+          total_after_disc: this.form.total_after_disc,
           total_vat: this.form.total_vat,
           total_pph23: this.form.total_pph23,
           grand_total: this.form.grand_total,

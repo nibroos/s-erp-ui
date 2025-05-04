@@ -162,7 +162,6 @@ const filtersSupplier = ref<FilterSelectableType[]>([
 ]);
 
 const headersModalProducts = ref<FieldSelectableType[]>([
-  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "Group",
     key: "item_group_name",
@@ -192,7 +191,14 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Name",
+    title: "Product Name",
+    key: "product_bom_name",
+    value: "product_bom_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Item Name",
     key: "name",
     value: "name",
     align: "start",
@@ -361,6 +367,8 @@ const handleSubmit = async () => {
 const fetchInitialData = async () => {};
 
 const calculateTotalAmountLocal = () => {
+  console.log("calculateTotalAmountLocal");
+
   purchaseOrderStore.calculateTotalAmount();
 };
 
@@ -378,9 +386,9 @@ watch(
 
 onMounted(async () => {
   purchaseOrderStore.handleClickClear();
-  if (!form.value.po_no) {
-    form.value.po_no = purchaseOrderStore.generatePoNumber();
-  }
+  // if (!form.value.po_no) {
+  //   form.value.po_no = purchaseOrderStore.generatePoNumber();
+  // }
   form.value.status = "PROCESS";
   form.value.po_date = new Date().toISOString().split("T")[0];
   await fetchInitialData();
@@ -545,12 +553,55 @@ watchEffect(() => {
                   calculateTotalAmountLocal();
                 }
               "
-              @click:clear="purchaseOrderStore.removePph()"
             >
             </d-autocomplete>
           </div>
           <div class="lg:col-span-6 flex gap-2">
-            <d-switch-status v-model="form.is_vat" :label="`VAT`" />
+            <d-switch-status
+              v-model="form.is_vat"
+              :label="`VAT`"
+              @update:modelValue="
+                () => {
+                  calculateTotalAmountLocal();
+                }
+              "
+            />
+          </div>
+          <div class="sm:col-span-1 hidden">
+            <d-autocomplete
+              v-model="form.vat_id"
+              api="/v1/vats/index-vat"
+              single-api="/v1/vats/show-vat"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="VAT"
+              :errors="errors.vat_id"
+              :query="{
+                date_at: form.po_date,
+                order_column: 'date_at',
+                order_direction: 'desc',
+              }"
+              @after:fetch="
+                (data) => {
+                  if (form.is_vat) {
+                    form.vat_id = data[0].id;
+                  } else {
+                    form.vat_id = null;
+                  }
+
+                  purchaseOrderStore.referenceOptions.vats = data;
+                }
+              "
+              @click:selected="
+                (data) => {
+                  purchaseOrderStore.autocompleteVat(data);
+                  calculateTotalAmountLocal();
+                }
+              "
+            ></d-autocomplete>
           </div>
 
           <d-bt type="submit" class="!hidden"></d-bt>
@@ -612,11 +663,11 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 @update:modelValue="
-                  purchaseOrderStore.calculateHeaderDiscount();
-                  calculateTotalAmountLocal();
+                  // purchaseOrderStore.calculateHeaderDiscount();
+                  calculateTotalAmountLocal()
                 "
-                label="Disc (%)"
-                :disabled="!!form.discount_amount"
+                label="Disc Amount"
+                :disabled="!!form.discount_percentage"
                 class="pt-2 min-w-[7rem] w-full"
               />
             </template>
@@ -629,11 +680,11 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 @update:modelValue="
-                  purchaseOrderStore.calculateHeaderDiscount();
-                  calculateTotalAmountLocal();
+                  // purchaseOrderStore.calculateHeaderDiscount();
+                  calculateTotalAmountLocal()
                 "
-                label="Disc Amount"
-                :disabled="!!form.discount_percentage"
+                label="Disc (%)"
+                :disabled="!!form.discount_amount"
                 class="pt-2 min-w-[7rem] w-full"
               />
             </template>
@@ -694,8 +745,8 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 @update:modelValue="
-                  purchaseOrderStore.calculateDiscount(item);
-                  calculateTotalAmountLocal();
+                  // purchaseOrderStore.calculateDiscount(item);
+                  calculateTotalAmountLocal()
                 "
                 label=""
                 class="w-[9rem]"
@@ -711,8 +762,8 @@ watchEffect(() => {
                 }"
                 hide-currency-display
                 @update:modelValue="
-                  purchaseOrderStore.calculateDiscount(item);
-                  calculateTotalAmountLocal();
+                  // purchaseOrderStore.calculateDiscount(item);
+                  calculateTotalAmountLocal()
                 "
                 label=""
                 class="w-[9rem]"
@@ -794,6 +845,27 @@ watchEffect(() => {
             :placeholder="`Type ${filter.title} ...`"
           ></d-autocomplete>
 
+          <d-select-table
+            api="/v1/products/index-product"
+            detail-api="/v1/products/index-product"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Product"
+            v-model="queryModal.qIndexProducts.product_bom_ids"
+            class=""
+            :query="{
+              prod_type: 'product',
+            }"
+            multiple
+            :return-object="false"
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="useInitials.productFieldsFilterConfig.fields"
+            :filters="useInitials.productFieldsFilterConfig.filters"
+          />
+
           <d-text-input
             v-for="filter in filtersTextProducts"
             :key="filter.key"
@@ -827,7 +899,7 @@ watchEffect(() => {
         :row-props="{
           class: 'cursor-pointer',
         }"
-        item-value="ref_id"
+        item-value="uid"
         show-current-page
         return-object
         multiple
@@ -855,68 +927,6 @@ watchEffect(() => {
 
         <template #item.status="{ item }">
           <d-active-status :value="item.status" />
-        </template>
-
-        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-          <button
-            v-if="internalItem.raw.boms && internalItem.raw.boms.length > 0"
-            class="cursor-pointer"
-            @click="toggleExpand(internalItem)"
-            @submit.prevent
-          >
-            <v-icon
-              icon="mdi-chevron-down"
-              class="transition-transform"
-              :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
-            />
-          </button>
-        </template>
-
-        <template
-          #expanded-row="{
-          columns,
-          item,
-          internalItem,
-          index
-        }: {
-          columns: any
-          item: any
-          internalItem: any
-          index: number
-        }"
-        >
-          <tr v-if="item.boms && item.boms.length > 0">
-            <td :colspan="columns.length" class="!p-0">
-              <div class="">
-                <v-data-table-virtual
-                  :headers="headersBOMModal"
-                  :items="(item.boms as SoDtBomType[]) || []"
-                  item-value="uid"
-                  density="compact"
-                  return-object
-                  fixed-header
-                  class="table-hover"
-                  :height="item.boms.length > 2 ? '170' : '110'"
-                  :header-props="{
-                    class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-                  }"
-                  :row-props="{
-                    class: 'whitespace-nowrap',
-                  }"
-                >
-                  <template #item.price_buy="{ item }">
-                    <d-num-layout :value="item.price_buy" />
-                  </template>
-                  <template #item.qty="{ item }">
-                    <d-num-layout :value="item.qty" />
-                  </template>
-                  <template #item.subtotal="{ item }">
-                    <d-num-layout :value="item.price_buy * item.qty" />
-                  </template>
-                </v-data-table-virtual>
-              </div>
-            </td>
-          </tr>
         </template>
       </v-data-table-server>
 
