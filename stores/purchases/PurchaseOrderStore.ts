@@ -4,6 +4,7 @@ import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { RefBtnType } from '~/types/components/OptionRefBtnType'
 import type { FormLayoutType } from '~/types/FormLayoutType'
+import type { QIndexSalesOrdersType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
@@ -20,7 +21,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     queryModal: {
       qIndex: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         parent_ids: [],
         global: '',
         order_column: 'po_date',
@@ -29,7 +30,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       qIndexProducts: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         product_bom_ids: [],
@@ -43,13 +44,22 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } as QIndexProductsType,
       qIndexSo: {
         page: 1,
-        per_page: 10,
-        order_column: 'created_at',
+        per_page: 1000,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        date_type: 'order_at',
+        order_column: 'order_at',
         order_direction: 'desc'
-      } as QIndexType,
+      } as QIndexSalesOrdersType,
       qIndexRo: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         order_column: 'created_at',
         order_direction: 'desc'
       } as QIndexType
@@ -450,8 +460,8 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     },
 
     async indexSalesOrder() {
-      if (this.metaModal.index.loading) return
-      this.metaModal.index.loading = true
+      if (this.metaModal.indexSo.loading) return
+      this.metaModal.indexSo.loading = true
 
       let params = this.queryModal.qIndexSo
 
@@ -467,7 +477,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
           if (this.itemsCheck.checkSo.length > 0) {
             this.itemsCheck.checkSo.forEach((checkSo: FormPoDtProductListType, iCheckSo: number) => {
               (this.metaModal.indexSo.data as FormPoDtProductListType[]).forEach((resSo: FormPoDtProductListType, iResSo: number) => {
-                if (resSo.ref_id === checkSo.ref_id) {
+                if (
+                  (resSo.ref_so_dt_id && resSo.ref_so_dt_id === checkSo.ref_so_dt_id) ||
+                  (resSo.ref_so_dt_bom_id && resSo.ref_so_dt_bom_id === checkSo.ref_so_dt_bom_id)) {
                   const combined = {
                     ...resSo,
                     ...checkSo
@@ -485,7 +497,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response?.data);
       } finally {
-        this.metaModal.index.loading = false
+        this.metaModal.indexSo.loading = false
       }
     },
 
@@ -615,7 +627,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     handleClearQuery() {
       this.queryModal.qIndexProducts = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',

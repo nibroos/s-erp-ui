@@ -257,6 +257,7 @@ export type FormPoDtProductListType = ProductListType & PoDtsType & {
   head_discount_percentage?: number | null
   head_remark?: string | null
 
+  item_id?: number
   item_name?: string
   item_code?: string
   product_name?: string

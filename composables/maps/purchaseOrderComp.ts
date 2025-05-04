@@ -15,7 +15,7 @@ export function convertPoItemRefProduct(
   refType: PoDtRefType
 ): PoDtType {
   let productUuid = randomId()
-  let productId = item.product_id ?? item.ref_id
+  let productId = item.product_id ?? item.item_id ?? item.ref_id
 
   const productType = defineItemTypePurchaseOrder(item)
 

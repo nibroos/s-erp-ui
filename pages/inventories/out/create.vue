@@ -288,7 +288,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
 ]);
 
 const headersModalSalesOrders = ref<FieldSelectableType[]>([
-  { title: "", key: "expand", width: 20, sortable: false },
   {
     title: "PO Buyer No",
     key: "ref_num",
