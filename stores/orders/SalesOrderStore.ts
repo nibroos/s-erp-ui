@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 import useScheduleStore from './ScheduleStore'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
@@ -85,12 +85,18 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         data: [] as FormSoDtBomListType[],
         loading: false,
         meta: {} as Meta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
       } as PaginationMeta
     },
     loading: {
       formLoading: false,
       editPageLoading: false,
       imageDownloadLoading: false,
+      widgetLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -247,6 +253,30 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+
+      let params = this.queryModal.qIndex
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/widget-sales-order',
+          params
+        )
+
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+
+        // return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
       }
     },
 

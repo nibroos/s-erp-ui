@@ -8,6 +8,7 @@ import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { FormQuoDtBomListType, FormQuoDtProductListType, FormQuotationType, IndexQuotationType, QQuoIndexType, QuoDtBomType, QuoDtDiscType, QuoDtType } from '~/types/quotations/QuotationType'
+import type { WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
 const useQuotationStore = defineStore('QuotationStore', {
   state: () => ({
@@ -64,7 +65,12 @@ const useQuotationStore = defineStore('QuotationStore', {
         data: [] as FormQuoDtBomListType[],
         loading: false,
         meta: {} as Meta
-      } as PaginationMeta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
@@ -118,6 +124,30 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+
+      let params = this.queryModal.qIndex
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/quotations/widget-quotation',
+          params
+        )
+
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+
+        // return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
       }
     },
 

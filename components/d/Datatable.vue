@@ -133,6 +133,7 @@ const generateFiltersObj = () => {
 const emits = defineEmits([
   "openModal",
   "update:modelValue",
+  "click:find",
   "update:filters",
   "click:delete",
 ]);
@@ -224,6 +225,7 @@ const clearFilters = () => {
 };
 
 const filterData = async () => {
+  emits("click:find", filters.value);
   if (metaModal.value.loading) return;
   metaModal.value.loading = true;
   let queryString = qs.stringify(filters.value);
@@ -496,6 +498,8 @@ onMounted(async () => {
         {{ props.modalTitle }}
       </span>
     </div>
+
+    <slot name="topFilters"></slot>
 
     <form
       :class="classMerge('flex flex-col gap-2 p-3')"

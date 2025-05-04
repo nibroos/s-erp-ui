@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
 import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
-import type { QSoIndexType } from "~/types/sales-orders/SalesOrderType";
+import type {
+  QSoIndexType,
+  WidgetSingleType,
+} from "~/types/sales-orders/SalesOrderType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useSalesOrderStore();
+const { queryModal, metaModal } = useSalesOrderStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -96,6 +99,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Exc. Rate",
     key: "exchange_rate",
     value: "exchange_rate",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Total Qty",
+    key: "total_qty",
+    value: "total_qty",
     align: "end",
     sortable: true,
   },
@@ -258,9 +268,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
 //   layoutStore.defineTitlePath(config);
 // };
 
-// onMounted(() => {
-//   changeTitle();
-// });
+onMounted(() => {
+  useSalesOrderStore().indexWidget();
+});
 
 // watchEffect(() => {
 //   changeTitle();
@@ -298,14 +308,25 @@ const filtersConfig = ref<FilterSelectableType[]>([
           show: true,
           cta: '+ Create',
         }"
+        @click:find="useSalesOrderStore().indexWidget()"
         @update:filters="
           (filters: QSoIndexType) => {
             queryModal.qIndex = filters;
           }
         "
       >
+        <template #topFilters>
+          <d-widget-array
+            :data="(metaModal.indexWidgets.data as WidgetSingleType[])"
+            :class="''"
+            :isLoading="metaModal.indexWidgets.loading"
+          />
+        </template>
         <template #item.total_vat="{ item }">
           <d-num-layout :value="item.total_vat" />
+        </template>
+        <template #item.total_qty="{ item }">
+          <d-num-layout :value="item.total_qty" />
         </template>
         <template #item.total_discount="{ item }">
           <d-num-layout :value="item.total_discount" />
