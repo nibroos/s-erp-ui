@@ -1467,7 +1467,7 @@ watchEffect(() => {
         :row-props="{
           class: 'cursor-pointer',
         }"
-        item-value="quo_dt_id"
+        item-value="uid"
         show-current-page
         return-object
         multiple
@@ -1600,7 +1600,7 @@ watchEffect(() => {
         :row-props="{
           class: 'cursor-pointer',
         }"
-        item-value="quo_dt_id"
+        item-value="uid"
         show-current-page
         return-object
         multiple

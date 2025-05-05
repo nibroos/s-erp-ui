@@ -23,8 +23,9 @@ const initialTheme = () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   initialTheme();
+  await AuthStore().getCompanyProfile();
 });
 
 const layoutState = useLayouts();
