@@ -115,6 +115,7 @@ export type PoDtType = {
   ref_so_dt_id: number | string | null
   ref_so_dt_bom_id: number | string | null
   ref_product_id: number | string | null
+  ref_product_bom_id: number | string | null
   product_id: number
   bom_id: number | null
   product_type: PoDtProductType
@@ -149,6 +150,8 @@ export type PoDtType = {
   product_code?: string
   item_name?: string
   item_code?: string
+  ref_qty?: number
+  qty_po?: number
 }
 
 export type PoDtsType = {
@@ -162,6 +165,7 @@ export type PoDtsType = {
   ref_so_dt_id: number | string | null
   ref_so_dt_bom_id: number | string | null
   ref_product_id: number | string | null
+  ref_product_bom_id: number | string | null
   product_id: number
   bom_id: number | null
   product_type: PoDtProductType
@@ -172,6 +176,7 @@ export type PoDtsType = {
   remark?: string | null
   need_qty: number
   qty: number
+  balance?: number
   price: number
   subtotal: number
   discount_amount: number

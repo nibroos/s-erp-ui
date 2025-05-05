@@ -61,6 +61,8 @@ const headers = ref<FieldSelectableType[]>([
   { key: "product_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   { key: "price", title: "Price", sortable: true, align: "end" },
+  { key: "qty_po", title: "Qty PO", sortable: true, align: "end" },
+  { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
   {
     key: "discount_percentage",
@@ -237,13 +239,13 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "end",
     sortable: true,
   },
-  {
-    title: "Qty",
-    key: "qty",
-    value: "qty",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Qty",
+  //   key: "qty",
+  //   value: "qty",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Tpb Code",
     key: "tpb_code",
@@ -259,23 +261,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
 ]);
-
-const headersBOMModal = ref<FieldSelectableType[]>([
-  { key: "item_code", title: "Product Code", sortable: true },
-  { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
-  { key: "item_sku", title: "SKU", align: "end", sortable: true },
-  { key: "item_barcode", title: "Barcode", align: "end", sortable: true },
-  {
-    key: "item_specification",
-    title: "Specification",
-    sortable: true,
-  },
-  { key: "price_buy", title: "Price Buy", align: "end", sortable: true },
-  { key: "qty", title: "Qty", align: "end", sortable: true },
-  { key: "subtotal", title: "Total Amount", align: "end", sortable: true },
-  { key: "remark", title: "Remark", sortable: true },
-]) as Ref<FieldSelectableType[]>;
 
 const filtersOptionsProducts = ref([
   {
@@ -941,6 +926,12 @@ watchEffect(() => {
               />
             </template>
 
+            <template #item.ref_qty="{ item }">
+              <d-num-layout :value="item.ref_qty ?? 0" />
+            </template>
+            <template #item.qty_po="{ item }">
+              <d-num-layout :value="item.qty_po ?? 0" />
+            </template>
             <template #item.total_amount="{ item }">
               <d-num-layout :value="item.total_amount" />
             </template>

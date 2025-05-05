@@ -420,7 +420,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/products/index-product',
+          '/v1/products/index-product-bom',
           params
         )
 
@@ -437,7 +437,10 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
               (this.metaModal.indexProducts.data as FormPoDtProductListType[]).forEach((resProduct: FormPoDtProductListType, iResProduct: number) => {
                 console.log('resProduct.ref_product_id', resProduct.ref_product_id, "checkProduct.ref_product_id", checkProduct.ref_product_id);
 
-                if (resProduct.ref_product_id === checkProduct.ref_product_id && checkProduct.ref_type === 'products') {
+                if (checkProduct.ref_type === 'products' &&
+                  (!!resProduct.ref_product_id && !!checkProduct.ref_product_id && resProduct.ref_product_id === checkProduct.ref_product_id) ||
+                  (!!resProduct.ref_product_bom_id && !!checkProduct.ref_product_bom_id && resProduct.ref_product_bom_id === checkProduct.ref_product_bom_id)
+                ) {
                   const combined = {
                     ...resProduct,
                     ...checkProduct

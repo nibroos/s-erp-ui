@@ -28,7 +28,7 @@ export function convertPoItemRefProduct(
     vat_id: item.vat_id,
     ref_so_dt_id: item.ref_so_dt_id,
     ref_so_dt_bom_id: item.ref_so_dt_bom_id,
-    ref_product_id: item.ref_product_id ?? item.product_id,
+    // ref_product_id: item.ref_product_id ?? item.product_id,
     pph23_id: item.pph23_id,
     ref_id: item.ref_id as number,
     product_id: productId,
@@ -38,7 +38,7 @@ export function convertPoItemRefProduct(
     ref_type: refType,
     remark: item.remark,
     need_qty: item.need_qty || 0,
-    qty: item.qty || 1,
+    qty: item.qty || (item.balance as number) || 1,
     price: (item.price || item.price_buy || 0) as number,
     subtotal: item.subtotal || 0,
     discount_amount: item.discount_amount || 0,
@@ -123,8 +123,14 @@ export function updatePoRefsModalFromMain(
     selectedRefList.forEach((mainItem: PoDtType) => {
       checkProducts.forEach((prodItem: FormPoDtProductListType) => {
         if (
-          (mainItem.ref_type == 'products' && mainItem.ref_product_id == prodItem.ref_product_id) ||
-          (mainItem.ref_type == 'so' && (mainItem.ref_so_dt_id == prodItem.ref_so_dt_id || mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id))
+          (mainItem.ref_type == 'products' && (
+            !!mainItem.ref_product_id && !!prodItem.ref_product_id && mainItem.ref_product_id == prodItem.ref_product_id ||
+            !!mainItem.ref_product_bom_id && !!prodItem.ref_product_bom_id && mainItem.ref_product_bom_id == prodItem.ref_product_bom_id
+          )) ||
+          (mainItem.ref_type == 'so' && (
+            (!!mainItem.ref_so_dt_id && !!prodItem.ref_so_dt_id && mainItem.ref_so_dt_id == prodItem.ref_so_dt_id) ||
+            (!!mainItem.ref_so_dt_bom_id && !!prodItem.ref_so_dt_bom_id && mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)
+          ))
           // (mainItem.ref_type == 'ro' && mainItem.ref_id == prodItem.ref_id)
         ) {
           let combined: any = {

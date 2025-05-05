@@ -107,6 +107,7 @@ export type InvDtType = {
   ref_po_dt_bom_id: number | string | null
   ref_inv_dt_id: number | string | null
   ref_product_id: number | string | null
+  ref_product_bom_id: number | string | null
   item_id: number
   product_uuid: string
   ref_type: InvDtRefType

@@ -67,7 +67,7 @@ export function convertInvItemRefProduct(
     ref_po_dt_id: item.ref_po_dt_id,
     ref_po_dt_bom_id: item.ref_po_dt_bom_id,
     ref_inv_dt_id: item.ref_inv_dt_id,
-    ref_product_id: item.ref_product_id ?? (optional.ref_id as number),
+    // ref_product_id: item.ref_product_id ?? (optional.ref_id as number),
     item_id: (optional.item_id ?? optional.ref_id) as number,
     product_uuid: productUuid,
     ref_type: refType,
@@ -171,10 +171,21 @@ export function updateInvRefsModalFromMain(
       checkProducts.forEach((prodItem: FormInvDtProductListType) => {
 
         if (
-          (mainItem.ref_type == 'so' && (mainItem.ref_so_dt_id == prodItem.ref_so_dt_id || mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)) ||
-          (mainItem.ref_type == 'po' && (mainItem.ref_po_dt_id == prodItem.ref_po_dt_id || mainItem.ref_po_dt_bom_id == prodItem.ref_po_dt_bom_id)) ||
-          (mainItem.ref_type == 'inv_in' && mainItem.ref_inv_dt_id == prodItem.ref_inv_dt_id) ||
-          (mainItem.ref_type == 'products' && mainItem.ref_product_id == prodItem.ref_product_id)
+          (mainItem.ref_type == 'so' && (
+            (!!mainItem.ref_so_dt_id && !!prodItem.ref_so_dt_id && mainItem.ref_so_dt_id == prodItem.ref_so_dt_id) ||
+            (!!mainItem.ref_so_dt_bom_id && !!prodItem.ref_so_dt_bom_id && mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)
+          )) ||
+          (mainItem.ref_type == 'po' && (
+            (!!mainItem.ref_po_dt_id && !!prodItem.ref_po_dt_id && mainItem.ref_po_dt_id == prodItem.ref_po_dt_id) ||
+            (!!mainItem.ref_po_dt_bom_id && !!prodItem.ref_po_dt_bom_id && mainItem.ref_po_dt_bom_id == prodItem.ref_po_dt_bom_id)
+          )) ||
+          (mainItem.ref_type == 'inv_in' && (
+            (!!mainItem.ref_inv_dt_id && !!prodItem.ref_inv_dt_id && mainItem.ref_inv_dt_id == prodItem.ref_inv_dt_id)
+          )) ||
+          (mainItem.ref_type == 'products' && (
+            (!!mainItem.ref_product_id && !!prodItem.ref_product_id && mainItem.ref_product_id == prodItem.ref_product_id) ||
+            (!!mainItem.ref_product_bom_id && !!prodItem.ref_product_bom_id && mainItem.ref_product_bom_id == prodItem.ref_product_bom_id)
+          ))
         ) {
           let combined: any = {
             ...prodItem,

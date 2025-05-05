@@ -64,6 +64,8 @@ const headers = ref<FieldSelectableType[]>([
   { key: "product_name", title: "Product Name", sortable: true },
   { key: "unit_name", title: "Unit", sortable: true },
   { key: "price", title: "Price", sortable: true, align: "end" },
+  { key: "qty_po", title: "Qty PO", sortable: true, align: "end" },
+  { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
   {
     key: "discount_percentage",
@@ -240,13 +242,13 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "end",
     sortable: true,
   },
-  {
-    title: "Qty",
-    key: "qty",
-    value: "qty",
-    align: "end",
-    sortable: true,
-  },
+  // {
+  //   title: "Qty",
+  //   key: "qty",
+  //   value: "qty",
+  //   align: "end",
+  //   sortable: true,
+  // },
   {
     title: "Tpb Code",
     key: "tpb_code",
@@ -964,6 +966,12 @@ watchEffect(() => {
               />
             </template>
 
+            <template #item.ref_qty="{ item }">
+              <d-num-layout :value="item.ref_qty ?? 0" />
+            </template>
+            <template #item.qty_po="{ item }">
+              <d-num-layout :value="item.qty_po ?? 0" />
+            </template>
             <template #item.total_amount="{ item }">
               <d-num-layout :value="item.total_amount" />
             </template>
