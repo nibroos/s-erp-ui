@@ -324,6 +324,8 @@ export type SoDtsType = {
   disc_perc: number
   total_am: number
   so_dts_boms: SoDtBomType[]
+
+  delivery_date?: string | null
 }
 
 export type SoDtDiscType = 'p' | 'a' | 'all' | null
