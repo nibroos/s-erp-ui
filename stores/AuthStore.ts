@@ -3,6 +3,7 @@ import { useMyFetch } from '~/composables/useMyFetch'
 import DateFnsAdapter from '@date-io/date-fns'
 import type { AuthDataType, AuthUserType } from '~/types/AuthType'
 import useLayoutsStore from './configs/LayoutsStore'
+import type { Meta, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 
 const useAuthStore = defineStore('AuthStore', {
   state: () => ({
@@ -35,7 +36,7 @@ const useAuthStore = defineStore('AuthStore', {
     } as AuthUserType,
     roles: [] as string[],
     permission: [] as string[],
-    company: {} as any,
+    company: {} as Record<string, any>,
     expired: '',
     _token: '',
     theme: 'light',
@@ -164,7 +165,7 @@ const useAuthStore = defineStore('AuthStore', {
           }
         )
         if (response.status === 200) {
-          this.company = response.data
+          this.company = response.data.data[0]
         }
       } catch (error) {
         console.log(error)

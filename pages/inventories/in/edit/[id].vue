@@ -22,6 +22,7 @@ import type {
   InvDtDiscType,
   InvDtType,
   VatModeType,
+  ModalIndexRefFilterDateType,
 } from "~/types/inventories/InventoryType";
 import { updateInvRefsModalFromMain } from "~/composables/maps/inventoryComp";
 import type {
@@ -33,7 +34,9 @@ import { debounce } from "lodash-es";
 import useAuthStore from "~/stores/AuthStore";
 
 const layoutStore = useLayoutsStore();
+const authStore = useAuthStore();
 const { topTitle } = storeToRefs(layoutStore);
+const { company } = storeToRefs(authStore);
 
 const inventoryStore = useInventoryStore();
 const {
@@ -82,7 +85,7 @@ const headers = ref<FieldSelectableType[]>([
       class: "w-[15rem]",
     },
   },
-  { key: "price_sell", title: "Price Sell", sortable: true, align: "end" },
+  { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "qty_in", title: "Qty IN", sortable: true, align: "end" },
   { key: "ref_qty", title: "Ref Qty", sortable: true, align: "end" },
   {
@@ -94,7 +97,7 @@ const headers = ref<FieldSelectableType[]>([
       class: "w-[12rem]",
     },
   },
-  { key: "subtotal_sell", title: "Total Amount", sortable: true, align: "end" },
+  { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
   {
     key: "remark",
     title: "Remark",
@@ -296,7 +299,7 @@ const headersModalProducts = ref<FieldSelectableType[]>([
 const headersModalSalesOrders = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
-    title: "PO Buyer No",
+    title: "Purchase Order No",
     key: "ref_num",
     value: "ref_num",
     align: "start",
@@ -617,12 +620,185 @@ const filtersTextProducts = ref([
 
 const filtersTextSalesOrders = ref([
   {
-    title: "PO Buyer No",
-    key: "po_buyer_no",
+    title: "Purchase Order No",
+    key: "po_no",
   },
   {
     title: "Global",
     key: "global",
+  },
+]);
+
+const filtersOptionsPurchaseOrders = ref([
+  {
+    title: "Group",
+    key: "item_group_ids",
+    type: "autocomplete",
+    methodApi: "post",
+    api: "/v1/item-groups/index-item-group",
+    singleApi: "/v1/item-groups/index-item-group",
+    pageEndProp: "meta.next_page_url",
+    innerSearchKey: "global",
+    multiple: true,
+    returnObject: false,
+    itemColor: "brown-lighten-2",
+    itemValue: "id",
+    itemTitle: "name",
+  },
+  {
+    title: "Sub Group",
+    key: "item_sub_group_ids",
+    type: "autocomplete",
+    methodApi: "post",
+    api: "/v1/item-sub-groups/index-item-sub-group",
+    singleApi: "/v1/item-sub-groups/index-item-sub-group",
+    pageEndProp: "meta.next_page_url",
+    innerSearchKey: "global",
+    multiple: true,
+    returnObject: false,
+    itemColor: "brown-lighten-2",
+    itemValue: "id",
+    itemTitle: "name",
+  },
+]);
+
+const headersModalPurchaseOrders = ref<FieldSelectableType[]>([
+  { title: "", key: "expand", width: 20, sortable: false },
+  {
+    title: "Purchase Order No",
+    key: "ref_num",
+    value: "ref_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "PO Date",
+    key: "po_date",
+    value: "po_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Delivery Date",
+    key: "delivery_date",
+    value: "delivery_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Group",
+    key: "item_group_name",
+    value: "item_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Sub Group",
+    key: "item_sub_group_name",
+    value: "item_sub_group_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Item Code",
+    key: "item_code",
+    value: "item_code",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Item Name",
+    key: "item_name",
+    value: "item_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "SKU",
+    key: "item_sku",
+    value: "item_sku",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Unit",
+    key: "unit_name",
+    value: "unit_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "IN Qty",
+    key: "qty_in",
+    value: "qty_in",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Ref Qty",
+    key: "ref_qty",
+    value: "ref_qty",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Balance",
+    key: "balance",
+    value: "balance",
+    align: "end",
+    sortable: true,
+  },
+  // {
+  //   title: "Price",
+  //   key: "price_sell",
+  //   value: "price_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  // {
+  //   title: "Subtotal",
+  //   key: "subtotal_sell",
+  //   value: "subtotal_sell",
+  //   align: "end",
+  //   sortable: true,
+  // },
+  {
+    title: "Remark",
+    key: "remark",
+    value: "remark",
+    align: "start",
+    sortable: true,
+  },
+]);
+
+const filtersTextPurchaseOrders = ref([
+  {
+    title: "Purchase Order No",
+    key: "po_no",
+  },
+  {
+    title: "Global",
+    key: "global",
+  },
+]);
+
+const filtersDateInventories = ref([
+  {
+    title: "Start Date",
+    key: "start_date",
+    type: "date",
+  },
+  {
+    title: "End Date",
+    key: "end_date",
+    type: "date",
   },
 ]);
 
@@ -743,6 +919,26 @@ watch(
       if (!oldVal) {
         itemsCheck.value.checkProducts = [];
       }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => company.value.company_address,
+  (newVal) => {
+    if (!!newVal && !form.value.ship_dest) {
+      form.value.ship_dest = newVal;
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => form.value.ship_dest,
+  (newVal) => {
+    if (!newVal && !!company.value.company_address) {
+      form.value.ship_dest = company.value.company_address;
     }
   },
   { immediate: true, deep: true }
@@ -1088,10 +1284,10 @@ watchEffect(() => {
                 class="w-full"
               />
             </template>
-            <template #item.price_sell="{ item }">
+            <template #item.price_buy="{ item }">
               <!-- <div class="flex w-full gap-2 grow">
                 <d-num-v-format
-                  v-model="item.price_sell"
+                  v-model="item.price_buy"
                   :precision="{
                     min: 3,
                     max: 3,
@@ -1102,7 +1298,7 @@ watchEffect(() => {
                   class="w-[9rem]"
                 />
               </div> -->
-              <d-num-layout :value="item.price_sell" />
+              <d-num-layout :value="item.price_buy" />
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
@@ -1118,8 +1314,8 @@ watchEffect(() => {
               />
             </template>
 
-            <template #item.subtotal_sell="{ item }">
-              <d-num-layout :value="item.qty * item.price_sell" />
+            <template #item.subtotal_buy="{ item }">
+              <d-num-layout :value="item.qty * item.price_buy" />
             </template>
             <template #item.qty_in="{ item }">
               <d-num-layout :value="item.qty_in ?? 0" />
@@ -1605,6 +1801,161 @@ watchEffect(() => {
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Inventory IN ({{
               itemsCheck.checkInventoryIns.length
+            }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
+
+    <modals-final-modal
+      :is-open="isOpenModal.po"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Sales Orders"
+      parent-class="!z-[1500]"
+      @update:is-open="isOpenModal.po = $event"
+    >
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="inventoryStore.fetchModalFilter()"
+        >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexPurchaseOrders.date_type"
+            :items="useStatics.POIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-for="filter in filtersDateInventories"
+            :key="filter.key"
+            v-model="queryModal.qIndexPurchaseOrders[filter.key as ModalIndexRefFilterDateType]"
+            :label="filter.title"
+          />
+          <d-select-table
+            api="/v1/customers/index-customer"
+            detail-api="/v1/customers/index-customer"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Customer"
+            v-model="form.customer_id"
+            class=""
+            is-quick-select
+            @click:selected="
+              (data) => inventoryStore.autocompleteCustomer(data)
+            "
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="headersCustomer"
+            :filters="filtersCustomer"
+          />
+          <d-select-table
+            api="/v1/products/index-product"
+            detail-api="/v1/products/index-product"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Product"
+            v-model="queryModal.qIndexPurchaseOrders.product_id"
+            class=""
+            is-quick-select
+            modal-parent-class="!z-[2500]"
+            modal-custom-class="!w-4/5"
+            :fields="useInitials.productFieldsFilterConfig.fields"
+            :filters="useInitials.productFieldsFilterConfig.filters"
+          />
+          <d-autocomplete
+            v-for="filter in filtersOptionsPurchaseOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexPurchaseOrders[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
+            :api="filter.api"
+            :single-api="filter.singleApi"
+            :method-api="filter.methodApi"
+            inner-search-key="global"
+            :page-end-prop="filter.pageEndProp"
+            :label="filter.title"
+            :item-value="filter.itemValue"
+            :item-title="filter.itemTitle"
+            multiple
+            :placeholder="`Type ${filter.title} ...`"
+          ></d-autocomplete>
+
+          <d-text-input
+            v-for="filter in filtersTextPurchaseOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexPurchaseOrders[filter.key as ModalIndexSalesOrderFilterTextType]"
+            :label="filter.title"
+            :placeholder="filter.title"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="inventoryStore.fetchModalFilter()"
+            @click:clear="inventoryStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="itemsCheck.checkPurchaseOrders"
+        v-model:page="queryModal.qIndexPurchaseOrders.page"
+        :items="metaModal.indexPurchaseOrders.data ?? []"
+        :headers="headersModalPurchaseOrders"
+        :items-per-page="queryModal.qIndexPurchaseOrders.per_page"
+        :items-length="metaModal.indexPurchaseOrders.meta.total ?? 0"
+        :items-per-page-options="useInitials.perPageOptions"
+        :loading="metaModal.indexPurchaseOrders.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="uid"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => inventoryStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize"
+            >{{ item.item_type ?? defineItemTypeInventory(item as InvDtType) }}
+          </span>
+        </template>
+        <template #item.ref_qty="{ item }">
+          <d-num-layout :value="item.ref_qty" />
+        </template>
+        <template #item.qty_out="{ item }">
+          <d-num-layout :value="item.qty_out" />
+        </template>
+        <template #item.balance="{ item }">
+          <d-num-layout :value="item.balance" />
+        </template>
+        <template #item.status="{ item }">
+          <d-active-status :value="item.status" />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="inventoryStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Purchase Order ({{
+              itemsCheck.checkPurchaseOrders.length
             }})
           </button>
         </div>

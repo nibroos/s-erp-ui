@@ -434,6 +434,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
           if (this.itemsCheck.checkProducts.length > 0) {
             this.itemsCheck.checkProducts.forEach((checkProduct: FormPoDtProductListType, iCheckProduct: number) => {
+              checkProduct.uid = randomId() as string
               (this.metaModal.indexProducts.data as FormPoDtProductListType[]).forEach((resProduct: FormPoDtProductListType, iResProduct: number) => {
                 console.log('resProduct.ref_product_id', resProduct.ref_product_id, "checkProduct.ref_product_id", checkProduct.ref_product_id);
 
@@ -479,7 +480,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
           if (this.itemsCheck.checkSo.length > 0) {
             this.itemsCheck.checkSo.forEach((checkSo: FormPoDtProductListType, iCheckSo: number) => {
+              checkSo.uid = randomId() as string
               (this.metaModal.indexSo.data as FormPoDtProductListType[]).forEach((resSo: FormPoDtProductListType, iResSo: number) => {
+                resSo.uid = randomId() as string
                 if (
                   (resSo.ref_so_dt_id && resSo.ref_so_dt_id === checkSo.ref_so_dt_id) ||
                   (resSo.ref_so_dt_bom_id && resSo.ref_so_dt_bom_id === checkSo.ref_so_dt_bom_id)) {

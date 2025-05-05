@@ -226,6 +226,10 @@ const useInventoryStore = defineStore('InventoryStore', {
         disc_am: 0,
         disc_perc: 0,
         remark: '' as string | null | undefined,
+        is_vat: 0 as number | null | undefined,
+        delivery_date: null as string | null | undefined,
+        payment_term_id: null as number | null | undefined,
+        ship_dest: null as string | null | undefined,
       }
     },
     formLayout: {
@@ -501,7 +505,9 @@ const useInventoryStore = defineStore('InventoryStore', {
 
           if (this.itemsCheck.checkProducts.length > 0) {
             this.itemsCheck.checkProducts.forEach((checkProduct: FormInvDtProductListType, iCheckProduct: number) => {
+              checkProduct.uid = randomId() as string
               (this.metaModal.indexProducts.data as FormInvDtProductListType[]).forEach((resProduct: FormInvDtProductListType, iResProduct: number) => {
+                resProduct.uid = randomId() as string
                 // console.log('checkProduct', iCheckProduct, checkProduct);
 
                 if (checkProduct.ref_type === 'products' &&
@@ -554,7 +560,9 @@ const useInventoryStore = defineStore('InventoryStore', {
 
           if (this.itemsCheck.checkSalesOrders.length > 0) {
             this.itemsCheck.checkSalesOrders.forEach((checkSalesOrder: FormInvDtProductListType, iCheckSalesOrder: number) => {
+              checkSalesOrder.uid = randomId() as string
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
+                resSalesOrder.uid = randomId() as string
 
                 if (
                   checkSalesOrder.ref_type === 'so' &&
@@ -588,6 +596,57 @@ const useInventoryStore = defineStore('InventoryStore', {
       }
     },
 
+    async indexPurchaseOrder() {
+      if (this.metaModal.indexPurchaseOrders.loading) return
+      this.metaModal.indexPurchaseOrders.loading = true
+
+      let params = this.queryModal.qIndexPurchaseOrders
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-ref-po-dt',
+          params
+        )
+
+        if (this.isOpenModal.po) {
+          this.metaModal.indexPurchaseOrders = response.data
+
+          if (this.itemsCheck.checkPurchaseOrders.length > 0) {
+            this.itemsCheck.checkPurchaseOrders.forEach((checkPurchaseOrder: FormInvDtProductListType, iCheckPurchaseOrder: number) => {
+              checkPurchaseOrder.uid = randomId() as string
+              (this.metaModal.indexPurchaseOrders.data as FormInvDtProductListType[]).forEach((resPurchaseOrder: FormInvDtProductListType, iResPurchaseOrder: number) => {
+                resPurchaseOrder.uid = randomId() as string
+
+                if (
+                  checkPurchaseOrder.ref_type === 'po' &&
+                  (resPurchaseOrder.ref_po_dt_id && resPurchaseOrder.ref_po_dt_id === checkPurchaseOrder.ref_po_dt_id) ||
+                  (resPurchaseOrder.ref_po_dt_bom_id && resPurchaseOrder.ref_po_dt_bom_id === checkPurchaseOrder.ref_po_dt_bom_id)
+                ) {
+
+                  const combined = {
+                    ...resPurchaseOrder,
+                    ...checkPurchaseOrder
+                  }
+
+                  this.metaModal.indexPurchaseOrders.data[iResPurchaseOrder] = combined
+                  this.itemsCheck.checkPurchaseOrders[iCheckPurchaseOrder] = combined
+                }
+              })
+            })
+
+            this.autocompletePurchaseOrder(this.itemsCheck.checkPurchaseOrders[0]);
+          }
+        }
+
+        // return this.metaModal.indexPurchaseOrders
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexPurchaseOrders.loading = false
+      }
+    },
+
     async indexInventoryIn() {
       if (this.metaModal.indexInventoryIns.loading) return
       this.metaModal.indexInventoryIns.loading = true
@@ -605,7 +664,9 @@ const useInventoryStore = defineStore('InventoryStore', {
 
           if (this.itemsCheck.checkInventoryIns.length > 0) {
             this.itemsCheck.checkInventoryIns.forEach((checkInventory: FormInvDtProductListType, iCheckInventory: number) => {
+              checkInventory.uid = randomId() as string
               (this.metaModal.indexInventoryIns.data as FormInvDtProductListType[]).forEach((resInventory: FormInvDtProductListType, iResInventory: number) => {
+                resInventory.uid = randomId() as string
 
                 if (
                   checkInventory.ref_type === 'inv_in' &&
@@ -802,6 +863,15 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.countSelectedReferences();
       this.closeAllModal();
 
+      if (this.itemsCheck.checkSalesOrders.length > 0) {
+        this.autocompleteSalesOrder(this.itemsCheck.checkSalesOrders[0]);
+      }
+      if (this.itemsCheck.checkPurchaseOrders.length > 0) {
+        this.autocompletePurchaseOrder(this.itemsCheck.checkPurchaseOrders[0]);
+      }
+
+      console.log("ingoing_at", this.form.ingoing_at);
+
       this.form.io_type_id = this.form.io_type_id ?? this.headAutocomplete.so.io_type_id
       this.form.currency_id = this.form.currency_id ?? this.headAutocomplete.so.currency_id;
       this.form.exchange_rate = this.form.exchange_rate ?? this.headAutocomplete.so.exchange_rate;
@@ -810,6 +880,14 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.form.pph23_id = this.form.pph23_id ?? this.headAutocomplete.so.pph23_id;
       this.form.pph23_perc = this.form.pph23_perc ?? this.headAutocomplete.so.pph23_perc as number;
       this.form.remark = this.form.remark ?? this.headAutocomplete.so.remark
+      this.form.payment_term_id = this.form.payment_term_id ?? this.headAutocomplete.so.payment_term_id
+      this.form.ingoing_at = !this.form.ingoing_at ? (this.headAutocomplete.so.delivery_date as string) : this.form.ingoing_at
+      this.form.is_vat = this.form.is_vat ?? this.headAutocomplete.so.is_vat
+      this.form.exchange_rate = this.form.exchange_rate ?? this.headAutocomplete.so.exchange_rate
+
+      if (this.form.io_type === 'INVENTORY_OUT') {
+        this.form.ship_dest = (this.form.ship_dest ?? this.headAutocomplete.so.ship_dest as string)
+      }
     },
 
     onClickDeleteSelected(item: any, index: number) {
@@ -883,6 +961,15 @@ const useInventoryStore = defineStore('InventoryStore', {
         await this.indexSalesOrder();
       } else if (this.isOpenModal.inv_in) {
         await this.indexInventoryIn();
+      } else if (this.isOpenModal.po) {
+        if (!!this.form.customer_id) {
+          this.queryModal.qIndexPurchaseOrders.customer_id = this.form.customer_id;
+          this.queryModal.qIndexPurchaseOrders.customer_ids = [this.form.customer_id];
+        } else {
+          this.queryModal.qIndexPurchaseOrders.customer_id = null;
+          this.queryModal.qIndexPurchaseOrders.customer_ids = [];
+        }
+        await this.indexPurchaseOrder();
       }
       // } else if (showModal.value.listWip) {
       //   // queryModal.value.qListWip.customer_id = form.value.customer_id
@@ -973,6 +1060,26 @@ const useInventoryStore = defineStore('InventoryStore', {
       this.headAutocomplete.so.pph23_id = data.head_pph23_id;
       this.headAutocomplete.so.pph23_perc = data.head_pph23_perc as number;
       this.headAutocomplete.so.remark = data.head_remark
+      this.headAutocomplete.so.ship_dest = data.ship_dest
+    },
+
+    autocompletePurchaseOrder(data: FormInvDtProductListType) {
+      this.form.customer_id = data.customer_id;
+      this.headAutocomplete.so.currency_id = data.currency_id;
+      this.headAutocomplete.so.exchange_rate = data.exchange_rate;
+      this.headAutocomplete.so.vat_id = data.head_vat_id;
+      this.headAutocomplete.so.vat_perc = data.head_vat_perc as number;
+      this.headAutocomplete.so.pph23_id = data.head_pph23_id;
+      this.headAutocomplete.so.pph23_perc = data.head_pph23_perc as number;
+      this.headAutocomplete.so.remark = data.head_remark
+      this.headAutocomplete.so.delivery_date = data.delivery_date
+      this.headAutocomplete.so.vat_id = data.vat_id
+      this.headAutocomplete.so.pph23_id = data.pph23_id
+      this.headAutocomplete.so.is_vat = data.is_vat
+      this.headAutocomplete.so.currency_id = data.currency_id
+      this.headAutocomplete.so.payment_term_id = data.payment_term_id
+      this.headAutocomplete.so.exchange_rate = data.exchange_rate
+
     },
 
     onClickSwitchVAT(data: any) {

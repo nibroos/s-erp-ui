@@ -270,6 +270,7 @@ export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType 
   product_name?: string
   product_code?: string
   unit_name?: string
+  ship_dest?: string
 }
 
 export type FormInvDtBomListType = ProductListType
