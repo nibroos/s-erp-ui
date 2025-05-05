@@ -6,8 +6,9 @@ import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
+import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 
-const { queryModal } = useInvoiceMaintenanceStore();
+const { queryModal, metaModal } = useInvoiceMaintenanceStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -311,6 +312,10 @@ async function proceedApproval() {
   }
 }
 
+onMounted(() => {
+  useInvoiceMaintenanceStore().indexWidget();
+});
+
 </script>
 
 <template>
@@ -344,12 +349,20 @@ async function proceedApproval() {
           show: true,
           cta: '+ Create',
         }"
+        @click:find="useInvoiceMaintenanceStore().indexWidget()"
         @update:filters="
           (filters: QInvoiceMaintenanceIndexType) => {
             queryModal.qIndex = filters;
           }
         "
       >
+        <template #topFilters>
+          <d-widget-array
+            :data="(metaModal.indexWidgets.data as WidgetSingleType[])"
+            :class="''"
+            :isLoading="metaModal.indexWidgets.loading"
+          />
+        </template>
         <template #actions>
           <div class="flex items-center">
             <div class="w-[200px] actions-dropdown">

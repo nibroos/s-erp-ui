@@ -53,11 +53,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         data: [] as FormSalesInvoiceDtProductListType[],
         loading: false,
         meta: {} as Meta
-      } as PaginationMeta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
       editPageLoading: false,
+      widgetLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -143,6 +149,30 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         useAlert.alertError(error?.response?.data?.message || 'Failed to fetch sales invoices!')
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+    
+      let params = this.queryModal.qIndex
+    
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-invoices/widget-sales-invoice',
+          params
+        )
+    
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+    
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Widget Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
       }
     },
 

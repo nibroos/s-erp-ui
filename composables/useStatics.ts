@@ -571,7 +571,7 @@ const initialColorsStatus = [
   {
     name: "Unpaid",
     code: "bg-orange-100 text-orange-700 border !border-orange-700",
-    icon: "material-symbols:receipt-text-minus-outline",
+    icon: "mdi:receipt-text-minus-outline",
     color: "text-orange-700",
     border: "border-orange-700",
     // --

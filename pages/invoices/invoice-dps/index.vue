@@ -6,8 +6,9 @@ import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
+import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 
-const { queryModal } = useInvoiceDpStore();
+const { queryModal, metaModal } = useInvoiceDpStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -191,6 +192,10 @@ async function changeStatus(id: number, status: string) {
   await invoiceDpStore.changeStatus(id, status);
   await invoiceDpStore.indexInvoiceDp();
 }
+
+onMounted(() => {
+  useInvoiceDpStore().indexWidget();
+});
 </script>
 
 <template>
@@ -224,12 +229,20 @@ async function changeStatus(id: number, status: string) {
           show: true,
           cta: '+ Create',
         }"
+        @click:find="useInvoiceDpStore().indexWidget()"
         @update:filters="
           (filters: QInvoiceDpIndexType) => {
             queryModal.qIndex = filters;
           }
         "
       >
+        <template #topFilters>
+          <d-widget-array
+            :data="(metaModal.indexWidgets.data as WidgetSingleType[])"
+            :class="''"
+            :isLoading="metaModal.indexWidgets.loading"
+          />
+        </template>
         <template #item.exchange_rate="{ item }">
           <d-num-layout :value="item.exchange_rate" />
         </template>
