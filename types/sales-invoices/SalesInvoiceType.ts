@@ -186,6 +186,7 @@ export type SalesInvoiceDtType = {
   deleted_at?: string | null
   
   sales_invoice_dt_boms?: SalesInvoiceDtBomType[] | null
+  so_dts_boms?: SalesOrderDtBomType[] | null;
 }
 
 export type SalesInvoiceDiscType = 'amount' | 'percentage' | null
@@ -220,6 +221,7 @@ export type QIndexSalesOrdersType = {
   product_code?: string
   product_name?: string
   global?: string
+  specific_ids?: string
 }
 
 /* 

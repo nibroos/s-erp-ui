@@ -61,15 +61,15 @@ const itemSales = [
     permissions: ["r_sos"],
   },
   {
-    title: "Invoice Adjustment",
-    icon: "mdi-printer-pos-sync-outline",
-    link: "/invoices/invoice-adjustments",
-    permissions: ["r_sos"],
-  },
-  {
     title: "Invoice Maintenance",
     icon: "mdi-printer-pos-sync-outline",
     link: "/invoices/invoice-maintenances",
+    permissions: ["r_sos"],
+  },
+  {
+    title: "Invoice Adjustment",
+    icon: "mdi-printer-pos-sync-outline",
+    link: "/invoices/invoice-adjustments",
     permissions: ["r_sos"],
   },
 ];

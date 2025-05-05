@@ -1,7 +1,7 @@
 import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductListType } from "../masters/ProductType"
 
-export type IndexInvoiceDpType = {
+export type IndexInvoiceMaintenanceType = {
   id: number
   customer_id: number | null
   currency_id: number | null
@@ -9,22 +9,25 @@ export type IndexInvoiceDpType = {
   vat_id: number | null
   pph23_id: number | null
   branch_id: number | null
+  bank_id: number | null
   invoice_no: string
   invoice_date: string | null
   exchange_rate: number | null
   remark: string | null
+  rev_no: number | null
   status: string | null
+  approved_status: string | null
   pph23_percentage: number | null
   vat_percentage: number | null
   discount_amount: number | null
   discount_percentage: number | null
   discount_percentage_amount: number | null
   discount_final: number | null
-  discount_type: InvoiceDpDiscType | null
-  dp_percentage: number | null
+  discount_type: InvoiceMaintenanceDiscType | null
   subtotal: number | null
   total_amount_products: number | null
   total_dp_products: number | null
+  total_balance_products: number | null
   total_qty: number | null
   total_discount: number | null
   total_pph23: number | null
@@ -33,9 +36,11 @@ export type IndexInvoiceDpType = {
   created_by_id: number | null
   updated_by_id: number | null
   deleted_by_id: number | null
+  approved_by_id: number | null
   created_by_name: string | null
   updated_by_name: string | null
   deleted_by_name: string | null
+  approved_by_name: string | null
   created_at: string | null
   updated_at: string | null
   deleted_at: string | null
@@ -45,11 +50,12 @@ export type IndexInvoiceDpType = {
   payment_term_name: string | null
   vat_name: string | null
   pph23_name: string | null
+  bank_name: string | null
   
-  invoice_dp_dts?: InvoiceDpDtType[] | null
+  invoice_maintenance_dts?: InvoiceMaintenanceDtType[] | null
 }
 
-export type FormInvoiceDpType = {
+export type FormInvoiceMaintenanceType = {
   id?: number | null | undefined | string | string[]
   customer_id?: number | null
   currency_id?: number | null
@@ -62,24 +68,26 @@ export type FormInvoiceDpType = {
   invoice_date: string
   exchange_rate?: number | null
   remark?: string | null
+  rev_no?: number | null
   status?: string | null
+  approved_status?: string | null
   pph23_percentage: number
   vat_percentage: number
   discount_amount: number
   discount_percentage: number
   discount_percentage_amount: number
   discount_final: number
-  discount_type: InvoiceDpDiscType | null
-  dp_percentage: number
+  discount_type: InvoiceMaintenanceDiscType | null
   subtotal: number
   total_amount_products: number
   total_dp_products: number
+  total_balance_products: number
   total_qty: number
   total_discount: number
   total_pph23: number
   total_vat: number
   grand_total: number
-  invoice_dp_dts: InvoiceDpDtType[]
+  invoice_maintenance_dts: InvoiceMaintenanceDtType[]
 
   email?: string
   phone?: string
@@ -92,12 +100,12 @@ export type FormInvoiceDpType = {
   is_pph23?: number
 }
 
-export type InvoiceDpDtBomType = {
+export type InvoiceMaintenanceDtBomType = {
   uid?: string
   id?: number | null | undefined | string | string[]
   product_uuid: string
-  sales_order_id?: number | null
-  so_dt_id?: number | null
+  invoice_maintenance_id?: number | null
+  im_dt_id?: number | null
   product_id?: number
   item_id?: number
   item_unit_id?: number
@@ -133,13 +141,12 @@ export type InvoiceDpDtBomType = {
   deleted_at?: string | null
 }
 
-export type InvoiceDpDtType = {
+export type InvoiceMaintenanceDtType = {
   uid?: string
   id?: number | null | undefined | string | string[]
-  invoice_dp_dt_id?: number | null
+  invoice_maintenance_dt_id?: number | null
   product_uuid: string
-  customer_id?: number | null
-  invoice_dp_id?: number | null
+  invoice_maintenance_id?: number | null
   item_unit_id?: number | null
   vat_id?: number | null
   pph23_id?: number | null
@@ -151,11 +158,10 @@ export type InvoiceDpDtType = {
   item_sub_group_name?: string | null
   item_group_name?: string | null
   ref_json?: any
-  ref_type: InvoiceDpRefType
-  product_type: InvoiceDpProductType
+  ref_type: InvoiceMaintenanceRefType
+  product_type: InvoiceMaintenanceProductType
   product_json?: any
   remark?: string
-  dp_percentage: number
   is_vat?: number
   is_pph23?: number
   qty: number
@@ -164,6 +170,7 @@ export type InvoiceDpDtType = {
   discount: number
   total_amount: number
   total_dp: number
+  total_balance: number
   ref_num?: string | null
 
   product_name?: string
@@ -183,24 +190,37 @@ export type InvoiceDpDtType = {
   updated_at?: string | null
   deleted_at?: string | null
   
-  invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
+  invoice_maintenance_dt_boms?: InvoiceMaintenanceDtBomType[] | null
+  so_dts_boms?: SalesOrderDtBomType[] | null;
 }
 
-export type InvoiceDpDiscType = 'amount' | 'percentage' | null
+export type InvoiceMaintenanceDiscType = 'amount' | 'percentage' | null
 
-export type InvoiceDpRefType = 'so'
+export type InvoiceMaintenanceRefType = 'so'
 
-export type InvoiceDpProductType = 'item' | 'product'
+export type InvoiceMaintenanceProductType = 'item' | 'product'
 
-export type FormInvoiceDpDtRefType = FormInvoiceDpDtProductListType
+export type FormInvoiceMaintenanceDtRefType = FormInvoiceMaintenanceDtProductListType
 
-export type QInvoiceDpIndexType = {
+export type QInvoiceMaintenanceIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
   global: string
   order_column: string
   order_direction: string
+}
+
+export type QIndexReferencesType = {
+  page: number
+  per_page: number
+  reference_ids?: number[] | null
+  customer_ids?: number[] | null
+  customer_id?: number | null
+  order_column?: string
+  order_direction?: string
+  reference_no?: string
+  global?: string
 }
 
 export type QIndexSalesOrdersType = {
@@ -211,24 +231,23 @@ export type QIndexSalesOrdersType = {
   customer_id?: number | null
   order_column?: string
   order_direction?: string
+  reference_no?: string
+  global?: string
+  order_type_id?: number | null
+  item_type?: string | null
   so_no?: string
   po_buyer_no?: string
-  order_type_id?: number | null
-  item_type?: string
   product_code?: string
   product_name?: string
-  global?: string
   specific_ids?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null
 
-export type FormInvoiceDpDtProductListType = ProductListType & {
-  sales_order_id?: number | null,
+export type FormInvoiceMaintenanceDtProductListType = ProductListType & {
+  invoice_maintenance_id?: number | null,
   id?: number | null,
-  ref_type: InvoiceDpRefType
-  customer_id?: number | null
-  invoice_dp_id?: number | null
+  ref_type: InvoiceMaintenanceRefType
   vat_id?: number
   pph23_id?: number
   vat_percentage?: number
@@ -238,8 +257,7 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   ref_id?: number
   ref_dt_id?: number
   product_id?: number
-  product_type?: InvoiceDpProductType
-  dp_percentage?: number
+  product_type?: InvoiceMaintenanceProductType
   qty?: number
   price?: number
   price_sell?: number
@@ -249,18 +267,19 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   discount_percentage_num?: number
   discount_percentage_amount?: number
   discount_final?: number
-  discount_type?: InvoiceDpDiscType | null
+  discount_type?: InvoiceMaintenanceDiscType | null
   total_amount?: number
   total_dp?: number
+  total_balance?: number
 
   disc_am?: number
   disc_perc?: number
   disc_perc_am?: number
   
-  invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
+  invoice_maintenance_dt_boms?: InvoiceMaintenanceDtBomType[] | null
 
-  sales_order_id?: number | null
-  sales_order_no?: string
+  reference_id?: number | null
+  reference_no?: string
   currency_id?: number | null
   exchange_rate?: number | null
   head_vat_id?: number | null

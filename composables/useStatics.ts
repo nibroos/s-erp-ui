@@ -513,6 +513,35 @@ const formStatusSalesInvoice = [
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
+const MaintenanceInvoiceIndexStatus = [
+  {
+    value: 'UNPAID',
+    title: 'Unpaid',
+    color: 'orange',
+  },
+  {
+    value: 'PAID',
+    title: 'Paid',
+    color: 'green',
+  },
+  {
+    value: 'CANCELLED',
+    title: 'Cancelled',
+    color: 'grey',
+  },
+]
+
+const formTabInvoiceMaintenance = {
+  items: 0,
+  remarks: 1
+}
+
+const formStatusInvoiceMaintenance = [
+  { id: 'UNPAID', name: 'UNPAID' },
+  { id: 'PAID', name: 'PAID' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
+]
+
 const initialColorsStatus = [
   {
     name: "Total",
@@ -743,6 +772,10 @@ export const useStatics = {
   formStatusInvoiceDp,
   SalesInvoiceIndexStatus,
   formTabSalesInvoice,
+  formStatusSalesInvoice,
+  MaintenanceInvoiceIndexStatus,
+  formTabInvoiceMaintenance,
+  formStatusInvoiceMaintenance,
   formStatusSalesInvoice,
   invOutdexDateType,
   initialColorsStatus,

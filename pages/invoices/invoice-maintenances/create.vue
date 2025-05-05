@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useSalesInvoiceStore from "~/stores/invoices/SalesInvoiceStore";
+import useInvoiceMaintenanceStore from "~/stores/invoices/InvoiceMaintenanceStore";
 import type { FormLayoutType } from "~/types/FormLayoutType";
 import type {
   FieldSelectableType,
@@ -14,9 +14,9 @@ import { debounce } from "lodash-es";
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
-const salesInvoiceStore = useSalesInvoiceStore();
+const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
 const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
-  storeToRefs(salesInvoiceStore);
+  storeToRefs(invoiceMaintenanceStore);
 
 definePageMeta({
   layout: "auth",
@@ -24,7 +24,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Create Invoice Sales",
+  title: "Create Invoice Maintenance",
 });
 
 const headersCustomer = ref<FieldSelectableType[]>([
@@ -213,13 +213,13 @@ const formatDate = (dateString: string) => {
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/invoices/invoice-sales",
+  parentPath: "/invoices/invoice-maintenances",
   currentTab: tabFormIndex.value,
-  tabs: useStatics.formTabSalesInvoice
-    ? Object.keys(useStatics.formTabSalesInvoice).map(
+  tabs: useStatics.formTabInvoiceMaintenance
+    ? Object.keys(useStatics.formTabInvoiceMaintenance).map(
         (key) => key.charAt(0).toUpperCase() + key.slice(1)
       )
-    : ["Items", "Remark"],
+    : ["Items", "Remark", "Attachments"],
   button: {
     clear: {
       show: true,
@@ -239,7 +239,7 @@ const initialFormLayout = () => {
 };
 
 const handleSubmit = async () => {
-  await salesInvoiceStore.store();
+  await invoiceMaintenanceStore.store();
 };
 
 const onDiscountPercentageChange = (value: number) => {
@@ -257,7 +257,7 @@ const onDiscountAmountChange = (value: number) => {
 };
 
 const calculateTotalAmountLocal = () => {
-  const result = salesInvoiceStore.calculateTotalAmount();
+  const result = invoiceMaintenanceStore.calculateTotalAmount();
 
   customSummary.value.total_balance.value = form.value.total_balance_products;
   customSummary.value.total_discount.value = form.value.discount_final;
@@ -265,8 +265,8 @@ const calculateTotalAmountLocal = () => {
   customSummary.value.total_pph23.value = form.value.total_pph23;
   customSummary.value.grand_total.value = form.value.grand_total;
 
-  if (salesInvoiceStore.currencySymbolLabel) {
-    const symbol = salesInvoiceStore.currencySymbolLabel;
+  if (invoiceMaintenanceStore.currencySymbolLabel) {
+    const symbol = invoiceMaintenanceStore.currencySymbolLabel;
     customSummary.value.total_balance.symbol = symbol;
     customSummary.value.total_discount.symbol = symbol;
     customSummary.value.total_vat.symbol = symbol;
@@ -276,12 +276,12 @@ const calculateTotalAmountLocal = () => {
 };
 
 onMounted(async () => {
-  salesInvoiceStore.handleClickClear();
+  invoiceMaintenanceStore.handleClickClear();
   initialFormLayout();
-  await salesInvoiceStore.fetchVatOptions();
+  await invoiceMaintenanceStore.fetchVatOptions();
 
   if (form.value.is_vat) {
-    await salesInvoiceStore.onClickSwitchVAT(true);
+    await invoiceMaintenanceStore.onClickSwitchVAT(true);
   }
 
   if (!queryModal.value.qIndexSalesOrders.so_no) {
@@ -312,14 +312,15 @@ watchEffect(() => {
 
 watch(() => form.value.invoice_date, async (newDate) => {
   if (form.value.is_vat) {
-    await salesInvoiceStore.onClickSwitchVAT(true);
+    await invoiceMaintenanceStore.onClickSwitchVAT(true);
     calculateTotalAmountLocal();
   }
 });
 
 onBeforeMount(() => {
-  salesInvoiceStore.handleClearQuery();
+  invoiceMaintenanceStore.handleClearQuery();
 });
+
 </script>
 
 <template>
@@ -327,7 +328,7 @@ onBeforeMount(() => {
     <d-form-layout
       :config="formLayout"
       @click:save="handleSubmit()"
-      @click:clear="salesInvoiceStore.handleClickClear()"
+      @click:clear="invoiceMaintenanceStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
       <template #header>
@@ -353,7 +354,7 @@ onBeforeMount(() => {
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
-                (data) => salesInvoiceStore.autocompleteCustomer(data)
+                (data) => invoiceMaintenanceStore.autocompleteCustomer(data)
               "
               modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
@@ -391,7 +392,7 @@ onBeforeMount(() => {
         <div class="lg:col-span-6">
           <d-autocomplete-client
             v-model="form.status"
-            :items="useStatics.formStatusSalesInvoice"
+            :items="useStatics.formStatusInvoiceMaintenance"
             label="Status"
             item-value="id"
             item-title="name"
@@ -413,7 +414,7 @@ onBeforeMount(() => {
             :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
             is-display-multiple-key
             :errors="errors.bank_id"
-            @click:selected="(data: any) => salesInvoiceStore.autocompleteBankInfo(data)"
+            @click:selected="(data: any) => invoiceMaintenanceStore.autocompleteBankInfo(data)"
           ></d-autocomplete>
         </div>                    
 
@@ -431,7 +432,7 @@ onBeforeMount(() => {
             :errors="errors.currency_id"
             @click:selected="
               (data: FormCurrencyType) => {
-                salesInvoiceStore.autocompleteCurrency(data);
+                invoiceMaintenanceStore.autocompleteCurrency(data);
                 calculateTotalAmountLocal();
               }
             "
@@ -510,13 +511,13 @@ onBeforeMount(() => {
             :errors="errors.pph23_id"
             @click:selected="
               (data: FormPph23Type) => {
-                salesInvoiceStore.autocompletePph(data);
+                invoiceMaintenanceStore.autocompletePph(data);
                 calculateTotalAmountLocal();
               }
             "
             @click:clear="
               () => {
-                salesInvoiceStore.removePph();
+                invoiceMaintenanceStore.removePph();
                 calculateTotalAmountLocal();
               }
             "
@@ -529,7 +530,7 @@ onBeforeMount(() => {
             :label="`VAT`"
             @update:model-value="
               async (value) => {
-                await salesInvoiceStore.onClickSwitchVAT(value);
+                await invoiceMaintenanceStore.onClickSwitchVAT(value);
                 calculateTotalAmountLocal();
               }
             "
@@ -540,13 +541,13 @@ onBeforeMount(() => {
       </form>
     </template>
     <template #content>
-      <div v-if="tabFormIndex == useStatics.formTabSalesInvoice.items">
+      <div v-if="tabFormIndex == useStatics.formTabInvoiceMaintenance.items">
         <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
           <d-option-ref-btn
-            :refs="salesInvoiceStore.optionRefBtnRef"
+            :refs="invoiceMaintenanceStore.optionRefBtnRef"
             class="col-span-2"
             @click:ref="
-              (ref) => salesInvoiceStore.onClickOpenModalOptionRefBtn(ref)
+              (ref) => invoiceMaintenanceStore.onClickOpenModalOptionRefBtn(ref)
             "
           ></d-option-ref-btn>
 
@@ -563,7 +564,7 @@ onBeforeMount(() => {
             type="button"
             @click="
               () => {
-                salesInvoiceStore.clickClearRefs();
+                invoiceMaintenanceStore.clickClearRefs();
                 calculateTotalAmountLocal();
               }
             "
@@ -573,7 +574,7 @@ onBeforeMount(() => {
 
         <div class="mt-2">
           <v-data-table-virtual
-            :items="salesInvoiceStore.itemsCheck.checkMain ?? []"
+            :items="invoiceMaintenanceStore.itemsCheck.checkMain ?? []"
             :headers="headersSelectedItems"
             item-value="uid"
             density="compact"
@@ -589,9 +590,9 @@ onBeforeMount(() => {
           >
             <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
               <button
-                v-if="internalItem.raw.product_type === 'product' &&
-                      internalItem.raw.sales_invoice_dt_boms &&
-                      internalItem.raw.sales_invoice_dt_boms.length > 0"
+                v-if="internalItem.raw.product_type === 'product' && 
+                      internalItem.raw.invoice_maintenance_dt_boms && 
+                      internalItem.raw.invoice_maintenance_dt_boms.length > 0"
                 class="cursor-pointer"
                 @click="toggleExpand(internalItem)"
                 @submit.prevent
@@ -602,7 +603,7 @@ onBeforeMount(() => {
                   :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
                 />
               </button>
-            </template>          
+            </template>
 
             <template #item.ref_type="{ item }">
               <span class="uppercase">{{ item.ref_type }}</span>
@@ -625,7 +626,7 @@ onBeforeMount(() => {
                 }"
                 hide-currency-display
                 @update:modelValue="() => {
-                  salesInvoiceStore.calculateTotalAmount();
+                  invoiceMaintenanceStore.calculateTotalAmount();
                   calculateTotalAmountLocal();
                 }"
                 class="w-20"
@@ -651,26 +652,26 @@ onBeforeMount(() => {
             <template #item.actions="{ item, index }">
               <button
                 class="text-red-500 hover:text-red-700"
-                @click="salesInvoiceStore.onClickDeleteSelected(item, index); calculateTotalAmountLocal();"
+                @click="invoiceMaintenanceStore.onClickDeleteSelected(item, index); calculateTotalAmountLocal();"
               >
                 <v-icon icon="mdi-delete" />
               </button>
             </template>
             
             <template #expanded-row="{ columns, item }">
-              <tr v-if="(item.sales_invoice_dt_boms && item.sales_invoice_dt_boms.length > 0) || 
+              <tr v-if="(item.invoice_maintenance_dt_boms && item.invoice_maintenance_dt_boms.length > 0) || 
                         (item.so_dts_boms && item.so_dts_boms.length > 0)">
                 <td :colspan="columns.length" class="!p-0">
                   <div>
                     <v-data-table-virtual
                       :headers="headersBom"
-                      :items="item.sales_invoice_dt_boms || item.so_dts_boms || []"
+                      :items="item.invoice_maintenance_dt_boms || item.so_dts_boms || []"
                       item-value="uid"
                       density="compact"
                       return-object
                       fixed-header
                       class="table-hover"
-                      :height="(item.sales_invoice_dt_boms?.length || item.so_dts_boms?.length || 0) > 1 ? '170' : '100'"
+                      :height="(item.invoice_maintenance_dt_boms?.length || item.so_dts_boms?.length || 0) > 1 ? '170' : '100'"
                       :header-props="{
                         class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                       }"
@@ -690,7 +691,7 @@ onBeforeMount(() => {
         </div>
         
       </div>
-      <div v-else-if="tabFormIndex == useStatics.formTabSalesInvoice.remarks">
+      <div v-else-if="tabFormIndex == useStatics.formTabInvoiceMaintenance.remarks">
         <div class="lg:col-span-6 mt-1">
           <d-text-area-input
             v-model="form.remark"
@@ -715,7 +716,7 @@ onBeforeMount(() => {
     <template #top>
       <form
         class="grid grid-cols-5 w-full flex-row items-center gap-2"
-        @submit.prevent="salesInvoiceStore.fetchModalFilter()"
+        @submit.prevent="invoiceMaintenanceStore.fetchModalFilter()"
       >
         <d-autocomplete
           v-model="queryModal.qIndexSalesOrders.customer_id"
@@ -776,15 +777,15 @@ onBeforeMount(() => {
       />
 
       <d-submit-button
-        @click:submit="salesInvoiceStore.fetchModalFilter()"
-        @click:clear="salesInvoiceStore.handleClearQuery()"
+        @click:submit="invoiceMaintenanceStore.fetchModalFilter()"
+        @click:clear="invoiceMaintenanceStore.handleClearQuery()"
         class="grid-cols-1"
       />
     </form>
   </template>
 
   <v-data-table-server
-    v-model="salesInvoiceStore.itemsCheck.checkSalesOrders"
+    v-model="invoiceMaintenanceStore.itemsCheck.checkSalesOrders"
     v-model:page="queryModal.qIndexSalesOrders.page"
     :items="metaModal.indexSalesOrders.data ?? []"
     :headers="headersSalesOrder"
@@ -804,7 +805,7 @@ onBeforeMount(() => {
     return-object
     multiple
     show-select
-    @update:options="(data:any) => salesInvoiceStore.fetchDataServerFetch(data)"
+    @update:options="(data:any) => invoiceMaintenanceStore.fetchDataServerFetch(data)"
     fixed-header
     height="450"
     hover
@@ -898,43 +899,17 @@ onBeforeMount(() => {
     <div class="flex h-max w-full justify-end">
       <button
         class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-        @click="salesInvoiceStore.onClickUpdateProductsModal()"
+        @click="invoiceMaintenanceStore.onClickUpdateProductsModal()"
       >
         <Icon name="material-symbols:save-rounded" size="20" />
         Add Selected Sales Orders ({{
-          salesInvoiceStore.itemsCheck.checkSalesOrders.length
+          invoiceMaintenanceStore.itemsCheck.checkSalesOrders.length
         }})
       </button>
     </div>
   </template>
 </modals-final-modal>
-
-<!-- Inventory Out Reference Modal -->
-<!-- <modals-final-modal
-  :is-open="isOpenModal.inventoryOut"
-  size="xl"
-  custom-class="overflow-y-auto"
-  label="List of Inventory Out"
-  parent-class="!z-[1500]"
-  @update:is-open="isOpenModal.inventoryOut = $event"
->
-  <div class="flex flex-col items-center justify-center py-10">
-    <v-icon icon="mdi-information-outline" size="48" class="text-gray-400 mb-4"></v-icon>
-    <p class="text-lg text-gray-500">Inventory Out API is not available yet.</p>
-    <p class="text-sm text-gray-400 mt-2">This feature will be implemented in the future.</p>
-  </div>
-
-  <template #footer>
-    <div class="flex h-max w-full justify-end">
-      <button
-        class="flex items-center gap-2 rounded-md bg-gray-400 px-3 py-2 text-[15px] font-bold text-white shadow-md"
-        @click="isOpenModal.inventoryOut = false"
-      >
-        <Icon name="material-symbols:close" size="20" />
-        Close
-      </button>
-    </div>
-  </template>
-</modals-final-modal> -->
 </div>
 </template>
+
+

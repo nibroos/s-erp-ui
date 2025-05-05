@@ -900,6 +900,142 @@ const formSalesInvoiceCreateEdit = {
   }
 } as FormSalesInvoiceType
 
+const formInvoiceAdjustmentCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: 116,
+  bank_id: null,
+  invoice_no: '',
+  // payment_date: new Date().toISOString().split('T')[0],
+  payment_date: '',
+  payment_amount: 0,
+  exchange_rate: 1,
+  reference: null,
+  ref_start_date: '',
+  ref_end_date: '',
+  remark: '',
+  total_invoice: 0,
+  total_adjustment: 0,
+  total_balance: 0,
+  total_admin_bank: 0,
+  grand_total: 0,
+  adjustment_dts: [],
+  
+  email: '',
+  phone: '',
+  address: '',
+  customer_code: ''
+} as FormInvoiceAdjustmentType
+
+const formInvoiceMaintenanceCreateEdit = {
+  id: null,
+  customer_id: null,
+  currency_id: 116,
+  payment_term_id: null,
+  vat_id: null,
+  pph23_id: null,
+  branch_id: null,
+  bank_id: null,
+  invoice_no: '',
+  invoice_date: new Date().toISOString().split('T')[0],
+  exchange_rate: 1,
+  remark: "Price not include VAT",
+  rev_no: 0,
+  status: 'UNPAID',
+  approved_status: 'PENDING',
+  pph23_percentage: 0,
+  vat_percentage: 0,
+  discount_amount: 0,
+  discount_percentage: 0,
+  discount_percentage_amount: 0,
+  discount_final: 0,
+  discount_type: null,
+  subtotal: 0,
+  total_amount_products: 0,
+  total_dp_products: 0,
+  total_balance_products: 0,
+  total_qty: 0,
+  total_discount: 0,
+  total_pph23: 0,
+  total_vat: 0,
+  grand_total: 0,
+  invoice_maintenance_dts: [],
+
+  email: "",
+  phone: "",
+  address: "",
+
+  summary: {
+    total_amount: {
+      label: "Sub Amount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_discount: {
+      label: "Total Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_after_disc: {
+      label: "After Discount",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_vat: {
+      label: "Total VAT",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_pph23: {
+      label: "Total PPH23",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_dp: {
+      label: "Total DP",
+      symbol: '',
+      value: 0,
+      percentage: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_balance: {
+      label: "Total Balance",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+    grand_total: {
+      label: "Grand Total",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 2,
+      },
+    },
+  }
+} as FormInvoiceMaintenanceType
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -930,6 +1066,8 @@ type UseInitialsType = {
   formSalesInvoiceCreateEdit: typeof formSalesInvoiceCreateEdit;
   formInvoiceDpCreateEdit: typeof formInvoiceDpCreateEdit;
   formCustomerCreateEdit: typeof formCustomerCreateEdit;
+  formInvoiceAdjustmentCreateEdit: typeof formInvoiceAdjustmentCreateEdit;
+  formInvoiceMaintenanceCreateEdit: typeof formInvoiceMaintenanceCreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -958,5 +1096,7 @@ export const useInitials: UseInitialsType = {
   formInvoiceDpCreateEdit,
   formCompanyProfileCreateEdit,
   formSalesInvoiceCreateEdit,
-  formCustomerCreateEdit
+  formCustomerCreateEdit,
+  formInvoiceAdjustmentCreateEdit,
+  formInvoiceMaintenanceCreateEdit
 }
