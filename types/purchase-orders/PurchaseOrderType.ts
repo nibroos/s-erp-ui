@@ -16,6 +16,8 @@ export type IndexPurchaseOrderType = {
   delivery_date: string | null
   shipping_destination: string
   remark: string | null
+  is_vat?: number
+  is_pph23?: number
   exchange_rate: number | null
   discount_percentage: number | null
   discount_amount: number | null
@@ -66,6 +68,8 @@ export type FormPurchaseOrderType = {
   shipping_term_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  is_vat?: number
+  is_pph23?: number
   po_no?: string
   po_date: string
   delivery_date: string
@@ -85,6 +89,7 @@ export type FormPurchaseOrderType = {
   total_qty: number
   subtotal: number
   total_discount: number
+  total_after_disc: number
   total_pph23: number
   total_vat: number
   grand_total: number
@@ -93,6 +98,7 @@ export type FormPurchaseOrderType = {
   email?: string
   phone?: string
   address?: string
+  customer_code?: string
 
   summary?: Record<string, SummaryPartType>
 }
@@ -106,6 +112,10 @@ export type PoDtType = {
   vat_id?: number | null
   pph23_id?: number | null
   ref_id: number
+  ref_so_dt_id: number | string | null
+  ref_so_dt_bom_id: number | string | null
+  ref_product_id: number | string | null
+  ref_product_bom_id: number | string | null
   product_id: number
   bom_id: number | null
   product_type: PoDtProductType
@@ -127,6 +137,11 @@ export type PoDtType = {
   is_vat?: number
   is_pph23?: number
   total_amount: number
+  vat_perc?: number
+  vat_perc_am?: number
+  pph23_perc?: number
+  pph23_perc_am?: number
+  expired_at: string
 
   code?: string
   name?: string
@@ -135,6 +150,8 @@ export type PoDtType = {
   product_code?: string
   item_name?: string
   item_code?: string
+  ref_qty?: number
+  qty_po?: number
 }
 
 export type PoDtsType = {
@@ -145,6 +162,10 @@ export type PoDtsType = {
   vat_id: number
   pph23_id: number
   ref_id: number
+  ref_so_dt_id: number | string | null
+  ref_so_dt_bom_id: number | string | null
+  ref_product_id: number | string | null
+  ref_product_bom_id: number | string | null
   product_id: number
   bom_id: number | null
   product_type: PoDtProductType
@@ -155,6 +176,7 @@ export type PoDtsType = {
   remark?: string | null
   need_qty: number
   qty: number
+  balance?: number
   price: number
   subtotal: number
   discount_amount: number
@@ -193,10 +215,12 @@ export type QIndexProductsType = {
   per_page: number
   item_group_ids?: number[] | null
   item_sub_group_ids?: number[] | null
+  product_bom_ids?: number[] | null
   code?: string
   name?: string
   sku?: string
   factory_code?: string
+  prod_type?: 'product' | 'single'
   order_column?: string
   order_direction?: string
 }
@@ -204,6 +228,7 @@ export type QIndexProductsType = {
 export type VatModeType = 'header' | 'detail' | null
 
 export type FormPoDtProductListType = ProductListType & PoDtsType & {
+  uid?: string
   ref_type: 'products' | 'so' | 'ro'
   product_type?: PoDtProductType
   customer_id?: number | null
@@ -237,6 +262,7 @@ export type FormPoDtProductListType = ProductListType & PoDtsType & {
   head_discount_percentage?: number | null
   head_remark?: string | null
 
+  item_id?: number
   item_name?: string
   item_code?: string
   product_name?: string

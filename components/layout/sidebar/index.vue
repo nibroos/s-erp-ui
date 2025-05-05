@@ -527,6 +527,7 @@ onMounted(async () => {
                 variant="text"
                 rounded="lg"
                 density="compact"
+                class="!text-primary1"
                 color="#898F99"
               ></v-list-item>
             </template>

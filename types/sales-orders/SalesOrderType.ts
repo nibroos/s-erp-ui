@@ -433,3 +433,19 @@ export type OptionalSoRefType = {
   item_id?: number | null
   product_id?: number | null
 }
+
+export type WidgetSingleType = {
+  id: number;
+  name: string;
+  status: string;
+  symbol: string;
+  code: any;
+  transactions: number;
+  amount: number;
+  order_count: number;
+  total_qty: number;
+  grand_total: number;
+  icon: string;
+  color: string;
+  border: string;
+};

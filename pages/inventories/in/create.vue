@@ -222,7 +222,14 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Name",
+    title: "Product Name",
+    key: "product_bom_name",
+    value: "product_bom_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Item Name",
     key: "name",
     value: "name",
     align: "start",

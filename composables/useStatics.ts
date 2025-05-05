@@ -1,3 +1,5 @@
+import type { FieldSelectableType, FilterSelectableType } from "~/types/SelectTableType"
+
 export const topMenuMasterTab = [
   {
     title: "User",
@@ -297,8 +299,8 @@ const SoIndexDateType = [
 
 const formStatusSalesOrder = [
   { id: 'PROCESS', name: 'PROCESS' },
-  { id: 'DELIVERY', name: 'DELIVERY' },
-  { id: 'SCHEDULE', name: 'SCHEDULE' },
+  // { id: 'DELIVERY', name: 'DELIVERY' },
+  // { id: 'SCHEDULE', name: 'SCHEDULE' },
   { id: 'INVOICE', name: 'INVOICE' },
   { id: 'CANCELED', name: 'CANCELED' },
   { id: 'HOLDING', name: 'HOLDING' },
@@ -511,6 +513,210 @@ const formStatusSalesInvoice = [
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
+const initialColorsStatus = [
+  {
+    name: "Total",
+    icon: "material-symbols:receipt-rounded",
+    color: "text-[#00B8D9]",
+    border: "border-[#00B8D9]",
+  },
+  {
+    name: "Order",
+    code: "bg-yellow-100 text-yellow-700 border !border-yellow-700",
+    icon: "mdi:cart",
+    color: "text-yellow-700",
+    border: "border-yellow-700",
+  },
+  {
+    name: "Process",
+    icon: "material-symbols:nest-clock-farsight-analog",
+    color: "text-sky-700",
+    border: "border-sky-700",
+  },
+  {
+    name: "Procsess",
+    icon: "material-symbols:nest-clock-farsight-analog",
+    color: "text-sky-700",
+    border: "border-sky-700",
+  },
+  {
+    name: "Unpaid",
+    code: "bg-orange-100 text-orange-700 border !border-orange-700",
+    icon: "material-symbols:receipt-text-minus-outline",
+    color: "text-orange-700",
+    border: "border-orange-700",
+    // --
+  },
+  {
+    name: "Partial",
+    icon: "mdi:receipt-text-minus-outline",
+    color: "text-amber-700",
+    border: "border-amber-700",
+  },
+  {
+    name: "production",
+    code: "bg-indigo-100 text-indigo-700 border !border-indigo-700",
+    icon: "material-symbols:nest-clock-farsight-analog",
+    color: "text-indigo-700",
+    border: "border-indigo-700",
+  },
+  {
+    name: "Shipping",
+    icon: "gridicons:shipping",
+    color: "text-fuchsia-700",
+    border: "border-fuchsia-700",
+  },
+  {
+    name: "Invoice",
+    code: "bg-blue-100 text-blue-700 border !border-blue-700",
+    icon: "material-symbols:payments",
+    color: "text-blue-700",
+    border: "border-blue-700",
+  },
+  {
+    name: "Finish",
+    icon: "material-symbols:check-circle-rounded",
+    color: "text-[#36B37E]",
+    border: "border-[#36B37E]",
+  },
+  {
+    name: "Paid",
+    code: "bg-emerald-100 text-emerald-700 border !border-emerald-700",
+    icon: "material-symbols:check-circle-rounded",
+    color: "text-emerald-700",
+    border: "border-emerald-700",
+    // --
+  },
+  {
+    name: "Cancel",
+    code: "bg-rose-100 text-rose-700 border !border-rose-700",
+    icon: "material-symbols:cancel",
+    color: "text-rose-700",
+    border: "border-rose-700",
+  },
+  {
+    name: "Canceled",
+    code: "bg-rose-100 text-rose-700 border !border-rose-700",
+    icon: "material-symbols:cancel",
+    color: "text-rose-700",
+    border: "border-rose-700",
+  },
+  // holding
+  {
+    name: "Holding",
+    code: "bg-amber-100 text-amber-700 border !border-amber-700",
+    icon: "material-symbols:pause-circle-outline",
+    color: "text-amber-700",
+    border: "border-amber-700",
+  },
+  {
+    name: "Pending",
+    code: "bg-orange-100 text-orange-700 border !border-orange-700",
+    icon: "material-symbols:pending-actions",
+    color: "text-orange-700",
+    border: "border-orange-700",
+  },
+  // waiting, approved
+  {
+    name: "Waiting",
+    code: "bg-gray-100 text-gray-700 border !border-gray-700",
+    icon: "material-symbols:hourglass-empty",
+    color: "text-gray-700",
+    border: "border-gray-700",
+  },
+  {
+    name: "Approved",
+    code: "bg-green-100 text-green-700 border !border-green-700",
+    icon: "material-symbols:check-circle-rounded",
+    color: "text-green-700",
+    border: "border-green-700",
+  },
+]
+
+const headersCustomer: FieldSelectableType[] = [
+  {
+    title: "Name",
+    key: "name",
+    value: "name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Code",
+    key: "code",
+    value: "code",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Phone",
+    key: "phone",
+    value: "phone",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Email",
+    key: "email",
+    value: "email",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Address",
+    key: "address",
+    value: "address",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer Type",
+    key: "customer_type_name",
+    value: "customer_type_name",
+    align: "start",
+    sortable: true,
+  },
+];
+
+const filtersCustomer: FilterSelectableType[] = [
+  {
+    title: "Name",
+    key: "name",
+  },
+  {
+    title: "Code",
+    key: "code",
+  },
+  {
+    title: "Phone",
+    key: "phone",
+  },
+  {
+    title: "Email",
+    key: "email",
+  },
+  {
+    title: "Address",
+    key: "address",
+  },
+  {
+    title: "Customer Type",
+    key: "customer_type_ids",
+    type: "autocomplete",
+    display: "name",
+    others: {
+      methodApi: "post",
+      api: "/v1/customer-types/index-customer-type",
+      singleApi: "/v1/customer-types/index-customer-type",
+      pageEndProp: "meta.next_page_url",
+      itemTitle: "name",
+      itemValue: "id",
+      label: "Customer Type",
+      innerSearchKey: "global",
+    },
+  },
+];
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -538,5 +744,8 @@ export const useStatics = {
   SalesInvoiceIndexStatus,
   formTabSalesInvoice,
   formStatusSalesInvoice,
-  invOutdexDateType
+  invOutdexDateType,
+  initialColorsStatus,
+  headersCustomer,
+  filtersCustomer,
 }

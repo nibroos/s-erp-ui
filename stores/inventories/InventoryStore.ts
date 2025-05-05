@@ -52,6 +52,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
+        prod_type: 'single',
         order_column: 'name',
         order_direction: 'desc'
       } as QIndexProductsType,
@@ -486,11 +487,12 @@ const useInventoryStore = defineStore('InventoryStore', {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
+      this.queryModal.qIndexProducts.prod_type = 'single'
       let params = this.queryModal.qIndexProducts
 
       try {
         const response = await useMyFetch().post(
-          '/v1/products/index-product',
+          '/v1/products/index-product-bom',
           params
         )
 
@@ -502,7 +504,10 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexProducts.data as FormInvDtProductListType[]).forEach((resProduct: FormInvDtProductListType, iResProduct: number) => {
                 // console.log('checkProduct', iCheckProduct, checkProduct);
 
-                if (resProduct.ref_id === checkProduct.ref_id && checkProduct.ref_type === 'products') {
+                if (checkProduct.ref_type === 'products' &&
+                  (!!resProduct.ref_product_id && !!checkProduct.ref_product_id && resProduct.ref_product_id === checkProduct.ref_product_id) ||
+                  (!!resProduct.ref_product_bom_id && !!checkProduct.ref_product_bom_id && resProduct.ref_product_bom_id === checkProduct.ref_product_bom_id)
+                ) {
                   // console.log('resProduct', iResProduct, resProduct);
 
                   const combined = {
@@ -552,6 +557,7 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexSalesOrders.data as FormInvDtProductListType[]).forEach((resSalesOrder: FormInvDtProductListType, iResSalesOrder: number) => {
 
                 if (
+                  checkSalesOrder.ref_type === 'so' &&
                   (resSalesOrder.ref_so_dt_id && resSalesOrder.ref_so_dt_id === checkSalesOrder.ref_so_dt_id) ||
                   (resSalesOrder.ref_so_dt_bom_id && resSalesOrder.ref_so_dt_bom_id === checkSalesOrder.ref_so_dt_bom_id)
                 ) {
@@ -602,7 +608,8 @@ const useInventoryStore = defineStore('InventoryStore', {
               (this.metaModal.indexInventoryIns.data as FormInvDtProductListType[]).forEach((resInventory: FormInvDtProductListType, iResInventory: number) => {
 
                 if (
-                  (resInventory.ref_inv_dt_id && resInventory.ref_inv_dt_id === checkInventory.ref_inv_dt_id)
+                  checkInventory.ref_type === 'inv_in' &&
+                  (!!resInventory.ref_inv_dt_id && !!checkInventory.ref_inv_dt_id && resInventory.ref_inv_dt_id === checkInventory.ref_inv_dt_id)
                 ) {
 
                   console.log('abc', resInventory.ref_inv_dt_id, checkInventory.ref_inv_dt_id);

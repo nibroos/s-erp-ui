@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 import useScheduleStore from './ScheduleStore'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
@@ -85,12 +85,18 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         data: [] as FormSoDtBomListType[],
         loading: false,
         meta: {} as Meta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
       } as PaginationMeta
     },
     loading: {
       formLoading: false,
       editPageLoading: false,
       imageDownloadLoading: false,
+      widgetLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -250,6 +256,30 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+
+      let params = this.queryModal.qIndex
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/widget-sales-order',
+          params
+        )
+
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+
+        // return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
+      }
+    },
+
     async show(id?: number | string | string[] | undefined) {
       if (id) {
         this.form.id = id
@@ -291,18 +321,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.deleted_files = []
 
         this.itemsCheck.checkMain = initCheckedSoDt(this.form.so_dts)
-
-        // this.itemsCheck.checkProducts = updateSoRefsModalFromMain(
-        //   this.itemsCheck.checkMain,
-        //   "products",
-        //   this.itemsCheck.checkProducts
-        // );
-
-        // this.itemsCheck.checkQuotations = updateSoRefsModalFromMain(
-        //   this.itemsCheck.checkMain,
-        //   "quotations",
-        //   this.itemsCheck.checkQuotations
-        // );
 
         return response
       } catch (error: any) {
@@ -1053,6 +1071,14 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.calculateTotalAmount();
     },
 
+    autocompleteIsVat() {
+      if (!!this.form.is_vat) {
+        this.form.vat_id = this.referenceOptions.vats[0].id as number;
+      } else {
+        this.form.vat_id = null;
+      }
+    },
+
     autocompleteVatDt(data: FormVatType, soDtType: SoDtType) {
       soDtType.vat_perc = Number(data.num);
       this.calculateTotalAmount();
@@ -1442,6 +1468,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     calculateTotalAmount() {
+      this.autocompleteIsVat()
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
         // if (!!item.so_dts_boms) {
         //   item.so_dts_boms.forEach((bom: SoDtBomType) => {
@@ -1514,17 +1541,17 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       // header calculation
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.subtotal_sell,
+        (acc: number, item: SoDtType) => acc + (item.subtotal_sell || 0),
         0
       );
 
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + item.qty,
+        (acc: number, item: SoDtType) => acc + (item.qty || 0),
         0
       );
 
       this.form.disc_final = Number(this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SoDtType) => acc + (item.disc_perc_am + item.disc_am),
+        (acc: number, item: SoDtType) => acc + ((item.disc_perc_am + item.disc_am) || 0),
         0
       ));
 
@@ -1552,6 +1579,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.form.total_after_disc = this.form.subtotal - this.form.total_discount;
 
       this.form.disc_type = null;
+      this.form.total_vat = 0;
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SoDtType) => {
@@ -1581,6 +1609,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         }
       }
 
+      this.form.total_pph23 = 0;
       if (!!this.form.pph23_id) {
         let subtotalIsPph23 = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SoDtType) => {
@@ -1598,7 +1627,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         this.form.subtotal - this.form.total_discount + this.form.total_vat - this.form.total_pph23;
 
       if (this.formLayout.summary) {
-        console.log('calculateTotalAmount-summary-total_vat', this.form.total_vat);
         this.formLayout.summary.total_amount.value = this.form.subtotal;
         this.formLayout.summary.total_after_disc.value = this.form.total_after_disc;
         this.formLayout.summary.total_discount.value = this.form.total_discount;

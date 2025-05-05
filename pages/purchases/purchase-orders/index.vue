@@ -7,7 +7,9 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = usePurchaseOrderStore();
+import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
+
+const { queryModal, metaModal } = usePurchaseOrderStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -65,7 +67,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Amount",
+    title: "Subtotal",
     key: "subtotal",
     value: "subtotal",
     align: "end",
@@ -209,12 +211,13 @@ const filtersConfig = ref<FilterSelectableType[]>([
 ]);
 
 function getStatusColorFromStatics(status: string): string {
-  const statusItem = useStatics.POIndexStatus.find(
-    (s) => s.value === status
-  );
-  return statusItem ? statusItem.color : 'grey';
+  const statusItem = useStatics.POIndexStatus.find((s) => s.value === status);
+  return statusItem ? statusItem.color : "grey";
 }
 
+onMounted(() => {
+  usePurchaseOrderStore().indexWidget();
+});
 </script>
 
 <template>
@@ -248,12 +251,20 @@ function getStatusColorFromStatics(status: string): string {
           show: true,
           cta: '+ Create',
         }"
+        @click:find="usePurchaseOrderStore().indexWidget()"
         @update:filters="
           (filters: QIndexType) => {
             queryModal.qIndex = filters;
           }
         "
       >
+        <template #topFilters>
+          <d-widget-array
+            :data="(metaModal.indexWidgets.data as WidgetSingleType[])"
+            :class="''"
+            :isLoading="metaModal.indexWidgets.loading"
+          />
+        </template>
         <template #item.total_qty="{ item }">
           <d-num-layout :value="item.total_qty" :precision="0" />
         </template>
@@ -280,7 +291,7 @@ function getStatusColorFromStatics(status: string): string {
           >
             {{ item.status }}
           </v-chip>
-        </template>        
+        </template>
       </d-datatable>
     </d-index-layout>
   </div>

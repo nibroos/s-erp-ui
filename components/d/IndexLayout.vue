@@ -180,7 +180,7 @@ watchEffect(() => {});
         :id="randomContentElementId"
         ref="contentlayout"
         :class="[
-          'max-h-[80vh] [@media(max-height:752px)]:max-h-[70vh] sm:text-slate-50 !overflow-y-auto  rounded-b-lg !border !border-dark2',
+          'max-h-[90vh] [@media(max-height:752px)]:max-h-[70vh] sm:text-slate-50 !overflow-y-auto  rounded-b-lg !border !border-dark2',
           mergedConfig.contentClass,
         ]"
         @resize="updateHeight"

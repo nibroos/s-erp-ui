@@ -1,5 +1,5 @@
 import type { ProductBomListType } from "~/types/masters/ProductType"
-import type { FormSoDtProductListType, FormSoDtRefType, OptionalSoRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType } from "~/types/sales-orders/SalesOrderType"
+import type { FormSoDtProductListType, FormSoDtRefType, OptionalSoRefType, SoDtBomType, SoDtItemType, SoDtRefType, SoDtType, WidgetSingleType } from "~/types/sales-orders/SalesOrderType"
 
 export const generateSoBoms = (bom: SoDtBomType[] | ProductBomListType[], productUuid: string, type: 'product' | 'bom' = 'product', productId: number): any[] => {
   return bom.map((bomItem: SoDtBomType | ProductBomListType) => {
@@ -121,6 +121,24 @@ export function convertSoItemRefProduct(
   delete data.boms
 
   return data
+}
+
+export function mapWidgets(
+  data: WidgetSingleType[],
+): WidgetSingleType[] {
+  // compare with useStatics.initialColorsStatus array
+  let mappedData = data.map((item: WidgetSingleType) => {
+    const foundItem = useStatics.initialColorsStatus.find((colorItem) => colorItem.name.toLowerCase() === item.status.toLowerCase())
+    if (foundItem) {
+      return {
+        ...item,
+        ...foundItem
+      }
+    }
+    return item
+  })
+
+  return mappedData
 }
 
 export function generateSoDt(
