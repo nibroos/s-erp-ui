@@ -777,139 +777,333 @@ watch(() => form.value.invoice_date, async (newDate) => {
 
         <d-bt type="submit" class="!hidden"></d-bt>
       </form>
-    </template>
-    <template #content>
-      <div v-if="tabFormIndex == useStatics.formTabInvoiceMaintenance.items">
-        <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
-          <d-option-ref-btn
-            :refs="invoiceMaintenanceStore.optionRefBtnRef"
-            class="col-span-2"
-            @click:ref="
-              (ref) => invoiceMaintenanceStore.onClickOpenModalOptionRefBtn(ref)
-            "
-          ></d-option-ref-btn>
+      </template>
+      <template #content>
+        <div v-if="tabFormIndex == useStatics.formTabInvoiceMaintenance.items">
+          <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
+            <d-option-ref-btn
+              :refs="invoiceMaintenanceStore.optionRefBtnRef"
+              class="col-span-2"
+              @click:ref="
+                (ref) => invoiceMaintenanceStore.onClickOpenModalOptionRefBtn(ref)
+              "
+            ></d-option-ref-btn>
 
-          <d-bt
-            :cta="'Clear References'"
-            :class="
-              classMerge(
-                '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
-              )
-            "
-            :text-class="classMerge('text-scDarker dark:text-white mx-auto')"
-            :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
-            icon="mdi-refresh"
-            type="button"
-            @click="
-              () => {
-                invoiceMaintenanceStore.clickClearRefs();
+            <d-bt
+              :cta="'Clear References'"
+              :class="
+                classMerge(
+                  '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+                )
+              "
+              :text-class="classMerge('text-scDarker dark:text-white mx-auto')"
+              :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
+              icon="mdi-refresh"
+              type="button"
+              @click="
+                () => {
+                  invoiceMaintenanceStore.clickClearRefs();
+                  calculateTotalAmountLocal();
+                }
+              "
+            />
+          
+          </div>
+
+          <div class="mt-2">
+            <v-data-table-virtual
+              :items="invoiceMaintenanceStore.itemsCheck.checkMain ?? []"
+              :headers="headersSelectedItems"
+              item-value="uid"
+              density="compact"
+              height="500"
+              fixed-header
+              class="col-span-3 sm:col-span-1 table-hover"
+              :header-props="{
+                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
+              }"
+              :row-props="{
+                class: 'whitespace-nowrap',
+              }"
+            >
+              <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+                <button
+                  v-if="(internalItem.raw.product_type === 'product' || (internalItem.raw as any).item_type === 'product') && 
+                        ((internalItem.raw.invoice_maintenance_dt_boms && internalItem.raw.invoice_maintenance_dt_boms.length > 0) ||
+                        ((internalItem.raw as any).so_dts_boms && (internalItem.raw as any).so_dts_boms.length > 0))"
+                  class="cursor-pointer"
+                  @click="toggleExpand(internalItem)"
+                  @submit.prevent
+                >
+                <v-icon
+                icon="mdi-chevron-down"
+                class="transition-transform"
+                :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+              />
+            </button>
+          </template>
+
+          <template #item.ref_type="{ item }">
+            <span class="uppercase">{{ item.ref_type }}</span>
+          </template>
+          
+          <template #item.product_type="{ item }">
+            <span class="capitalize">{{ item.product_type }}</span>
+          </template>
+          
+          <template #item.price="{ item }">
+            <d-num-layout :value="item.price" />
+          </template>
+          
+          <template #item.qty="{ item }">
+            <d-num-v-format
+              v-model="item.qty"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              @update:modelValue="() => {
+                invoiceMaintenanceStore.calculateTotalAmount();
                 calculateTotalAmountLocal();
-              }
-            "
-          />
-        
-        </div>
+              }"
+              class="w-20"
+            />
+          </template>
+          
+          <template #item.discount="{ item }">
+            <d-num-layout :value="item.discount || 0" />
+          </template>
+          
+          <template #item.total_amount="{ item }">
+            <d-num-layout :value="item.total_amount" />
+          </template>
+          
+          <template #item.total_dp="{ item }">
+            <d-num-layout :value="item.total_dp" />
+          </template>
+          
+          <template #item.total_balance="{ item }">
+            <d-num-layout :value="item.total_balance" />
+          </template>
+          
+          <template #item.actions="{ item, index }">
+            <button
+              class="text-red-500 hover:text-red-700"
+              @click="invoiceMaintenanceStore.onClickDeleteSelected(item, index); calculateTotalAmountLocal();"
+            >
+              <v-icon icon="mdi-delete" />
+            </button>
+          </template>
+          
+          <template #expanded-row="{ columns, item: rowItem }">
+            <tr v-if="(rowItem.invoice_maintenance_dt_boms && rowItem.invoice_maintenance_dt_boms.length > 0) || 
+                      ((rowItem as any).so_dts_boms && (rowItem as any).so_dts_boms.length > 0)">
+              <td :colspan="columns.length" class="!p-0">
+                <div>
+                  <v-data-table-virtual
+                    :headers="headersBom"
+                    :items="rowItem.invoice_maintenance_dt_boms || (rowItem as any).so_dts_boms || []"
+                    item-value="uid"
+                    density="compact"
+                    return-object
+                    fixed-header
+                    class="table-hover"
+                    :height="(rowItem.invoice_maintenance_dt_boms?.length || ((rowItem as any).so_dts_boms?.length) || 0) > 1 ? '170' : '100'"
+                    :header-props="{
+                      class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
+                    }"
+                    :row-props="{
+                      class: 'whitespace-nowrap',
+                    }"
+                  >
+                    <template #item.qty="{ item: bomItem }">
+                      <d-num-layout :value="bomItem.qty" />
+                    </template>
+                  </v-data-table-virtual>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </v-data-table-virtual>
+      </div>
+    </div>
+      </template>
+    </d-form-layout>
 
-        <div class="mt-2">
-          <v-data-table-virtual
-            :items="invoiceMaintenanceStore.itemsCheck.checkMain ?? []"
-            :headers="headersSelectedItems"
-            item-value="uid"
-            density="compact"
-            height="500"
-            fixed-header
-            class="col-span-3 sm:col-span-1 table-hover"
-            :header-props="{
-              class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
-            }"
-            :row-props="{
-              class: 'whitespace-nowrap',
-            }"
+    <modals-final-modal
+      :is-open="isOpenModal.salesOrders"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Sales Orders"
+      parent-class="!z-[1500]"
+      @update:is-open="isOpenModal.salesOrders = $event"
+      >
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="invoiceMaintenanceStore.fetchModalFilter()"
+        >
+          <d-autocomplete
+            v-model="queryModal.qIndexSalesOrders.customer_id"
+            api="/v1/customers/index-customer"
+            method-api="post"
+            page-end-prop="meta.next_page_url"
+            item-title="name"
+            item-value="id"
+            inner-search-key="global"
+            label="Customer"
+            placeholder="Select customer"
+          />
+
+          <d-autocomplete-client
+            v-model="queryModal.qIndexSalesOrders.item_type"
+            :items="[
+              { id: 'product', name: 'Product' },
+              { id: 'item', name: 'Item' },
+            ]"
+            label="Item Type"
+            item-value="id"
+            item-title="name"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexSalesOrders.so_no"
+            label="Sales Order No"
+            placeholder="Search by SO No"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+          v-model="queryModal.qIndexSalesOrders.po_buyer_no"
+          label="Buyer PO No"
+          placeholder="Search by PO No"
+          append-inner-icon="mdi-magnify"
+        />
+
+        <d-text-input
+          v-model="queryModal.qIndexSalesOrders.product_code"
+          label="Product Code"
+          placeholder="Search by Product Code"
+          append-inner-icon="mdi-magnify"
+        />
+
+        <d-text-input
+          v-model="queryModal.qIndexSalesOrders.product_name"
+          label="Product Name"
+          placeholder="Search by Product Name"
+          append-inner-icon="mdi-magnify"
+        />
+
+        <d-text-input
+          v-model="queryModal.qIndexSalesOrders.global"
+          label="Global Search"
+          placeholder="Search global"
+          append-inner-icon="mdi-magnify"
+        />
+
+        <d-submit-button
+          @click:submit="invoiceMaintenanceStore.fetchModalFilter()"
+          @click:clear="invoiceMaintenanceStore.handleClearQuery()"
+          class="grid-cols-1"
+        />
+      </form>
+      </template>
+
+      <v-data-table-server
+        v-model="invoiceMaintenanceStore.itemsCheck.checkSalesOrders"
+        v-model:page="queryModal.qIndexSalesOrders.page"
+        :items="metaModal.indexSalesOrders.data ?? []"
+        :headers="headersSalesOrder"
+        :items-per-page="queryModal.qIndexSalesOrders.per_page"
+        :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
+        :items-per-page-options="[10, 25, 50, 100]"
+        :loading="metaModal.indexSalesOrders.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="ref_dt_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => invoiceMaintenanceStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+        >
+        <template #item.item_type="{ item }">
+          <span class="capitalize">{{ item.item_type }}</span>
+        </template>
+        <template #item.order_date="{ item }">
+          {{ formatDate(item.order_date) }}
+        </template>
+        <template #item.shipping_date="{ item }">
+          {{ formatDate(item.shipping_date) }}
+        </template>
+        <template #item.price_sell="{ item }">
+          <d-num-layout :value="item.price_sell" />
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
+        </template>
+        <template #item.discount="{ item }">
+          <d-num-layout
+            :value="item.disc_am > 0 ? item.disc_am : item.disc_perc_am"
+          />
+        </template>
+        <template #item.total_dp="{ item }">
+          <d-num-layout :value="item.total_dp || 0" />
+        </template>
+        <template #item.total_balance="{ item }">
+          <d-num-layout :value="item.total_balance || 0" />
+        </template>
+        <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+          <button
+            v-if="
+              !!internalItem.raw.so_dts_boms &&
+              internalItem.raw.so_dts_boms.length > 0
+            "
+            class="cursor-pointer"
+            @click="toggleExpand(internalItem)"
+            @submit.prevent
           >
-            <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-              <button
-                v-if="(internalItem.raw.product_type === 'product' || (internalItem.raw as any).item_type === 'product') && 
-                      ((internalItem.raw.invoice_maintenance_dt_boms && internalItem.raw.invoice_maintenance_dt_boms.length > 0) ||
-                      ((internalItem.raw as any).so_dts_boms && (internalItem.raw as any).so_dts_boms.length > 0))"
-                class="cursor-pointer"
-                @click="toggleExpand(internalItem)"
-                @submit.prevent
-              >
-              <v-icon
+            <v-icon
               icon="mdi-chevron-down"
               class="transition-transform"
               :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
             />
           </button>
         </template>
-
-        <template #item.ref_type="{ item }">
-          <span class="uppercase">{{ item.ref_type }}</span>
-        </template>
-        
-        <template #item.product_type="{ item }">
-          <span class="capitalize">{{ item.product_type }}</span>
-        </template>
-        
-        <template #item.price="{ item }">
-          <d-num-layout :value="item.price" />
-        </template>
-        
-        <template #item.qty="{ item }">
-          <d-num-v-format
-            v-model="item.qty"
-            :precision="{
-              min: 3,
-              max: 3,
-            }"
-            hide-currency-display
-            @update:modelValue="() => {
-              invoiceMaintenanceStore.calculateTotalAmount();
-              calculateTotalAmountLocal();
-            }"
-            class="w-20"
-          />
-        </template>
-        
-        <template #item.discount="{ item }">
-          <d-num-layout :value="item.discount || 0" />
-        </template>
-        
-        <template #item.total_amount="{ item }">
-          <d-num-layout :value="item.total_amount" />
-        </template>
-        
-        <template #item.total_dp="{ item }">
-          <d-num-layout :value="item.total_dp" />
-        </template>
-        
-        <template #item.total_balance="{ item }">
-          <d-num-layout :value="item.total_balance" />
-        </template>
-        
-        <template #item.actions="{ item, index }">
-          <button
-            class="text-red-500 hover:text-red-700"
-            @click="invoiceMaintenanceStore.onClickDeleteSelected(item, index); calculateTotalAmountLocal();"
-          >
-            <v-icon icon="mdi-delete" />
-          </button>
-        </template>
-        
-        <template #expanded-row="{ columns, item: rowItem }">
-          <tr v-if="(rowItem.invoice_maintenance_dt_boms && rowItem.invoice_maintenance_dt_boms.length > 0) || 
-                    ((rowItem as any).so_dts_boms && (rowItem as any).so_dts_boms.length > 0)">
+        <template
+          #expanded-row="{
+          columns,
+          item: rowItem,
+          internalItem,
+          index
+        }: {
+          columns: any
+          item: any
+          internalItem: any
+          index: number
+        }"
+        >
+          <tr v-if="rowItem.so_dts_boms && rowItem.so_dts_boms.length > 0">
             <td :colspan="columns.length" class="!p-0">
-              <div>
+              <div class="">
                 <v-data-table-virtual
                   :headers="headersBom"
-                  :items="rowItem.invoice_maintenance_dt_boms || (rowItem as any).so_dts_boms || []"
+                  :items="rowItem.so_dts_boms || []"
                   item-value="uid"
                   density="compact"
                   return-object
                   fixed-header
                   class="table-hover"
-                  :height="(rowItem.invoice_maintenance_dt_boms?.length || ((rowItem as any).so_dts_boms?.length) || 0) > 1 ? '170' : '100'"
+                  :height="rowItem.so_dts_boms.length > 1 ? '170' : '100'"
                   :header-props="{
                     class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                   }"
@@ -925,228 +1119,23 @@ watch(() => form.value.invoice_date, async (newDate) => {
             </td>
           </tr>
         </template>
-      </v-data-table-virtual>
-    </div>
-    
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="invoiceMaintenanceStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+              Add Selected Sales Orders ({{
+              invoiceMaintenanceStore.itemsCheck.checkSalesOrders.length
+            }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
   </div>
-  <div v-else-if="tabFormIndex == useStatics.formTabInvoiceMaintenance.remarks">
-    <div class="lg:col-span-6 mt-1">
-      <d-text-area-input
-        v-model="form.remark"
-        :label="`Remark`"
-        :placeholder="`Remark`"
-        :errors="errors.remark"
-      />
-    </div>
-  </div>
-</template>
-</d-form-layout>
-
-<modals-final-modal
-  :is-open="isOpenModal.salesOrders"
-  size="xl"
-  custom-class="overflow-y-auto"
-  label="List of Sales Orders"
-  parent-class="!z-[1500]"
-  @update:is-open="isOpenModal.salesOrders = $event"
-  >
-  <template #top>
-    <form
-      class="grid grid-cols-5 w-full flex-row items-center gap-2"
-      @submit.prevent="invoiceMaintenanceStore.fetchModalFilter()"
-    >
-      <d-autocomplete
-        v-model="queryModal.qIndexSalesOrders.customer_id"
-        api="/v1/customers/index-customer"
-        method-api="post"
-        page-end-prop="meta.next_page_url"
-        item-title="name"
-        item-value="id"
-        inner-search-key="global"
-        label="Customer"
-        placeholder="Select customer"
-      />
-
-      <d-autocomplete-client
-        v-model="queryModal.qIndexSalesOrders.item_type"
-        :items="[
-          { id: 'product', name: 'Product' },
-          { id: 'item', name: 'Item' },
-        ]"
-        label="Item Type"
-        item-value="id"
-        item-title="name"
-      />
-
-      <d-text-input
-        v-model="queryModal.qIndexSalesOrders.so_no"
-        label="Sales Order No"
-        placeholder="Search by SO No"
-        append-inner-icon="mdi-magnify"
-      />
-
-      <d-text-input
-      v-model="queryModal.qIndexSalesOrders.po_buyer_no"
-      label="Buyer PO No"
-      placeholder="Search by PO No"
-      append-inner-icon="mdi-magnify"
-    />
-
-    <d-text-input
-      v-model="queryModal.qIndexSalesOrders.product_code"
-      label="Product Code"
-      placeholder="Search by Product Code"
-      append-inner-icon="mdi-magnify"
-    />
-
-    <d-text-input
-      v-model="queryModal.qIndexSalesOrders.product_name"
-      label="Product Name"
-      placeholder="Search by Product Name"
-      append-inner-icon="mdi-magnify"
-    />
-
-    <d-text-input
-      v-model="queryModal.qIndexSalesOrders.global"
-      label="Global Search"
-      placeholder="Search global"
-      append-inner-icon="mdi-magnify"
-    />
-
-    <d-submit-button
-      @click:submit="invoiceMaintenanceStore.fetchModalFilter()"
-      @click:clear="invoiceMaintenanceStore.handleClearQuery()"
-      class="grid-cols-1"
-    />
-  </form>
-  </template>
-
-  <v-data-table-server
-    v-model="invoiceMaintenanceStore.itemsCheck.checkSalesOrders"
-    v-model:page="queryModal.qIndexSalesOrders.page"
-    :items="metaModal.indexSalesOrders.data ?? []"
-    :headers="headersSalesOrder"
-    :items-per-page="queryModal.qIndexSalesOrders.per_page"
-    :items-length="metaModal.indexSalesOrders.meta.total ?? 0"
-    :items-per-page-options="[10, 25, 50, 100]"
-    :loading="metaModal.indexSalesOrders.loading"
-    density="compact"
-    :header-props="{
-      class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
-    }"
-    :row-props="{
-      class: 'cursor-pointer',
-    }"
-    item-value="ref_dt_id"
-    show-current-page
-    return-object
-    multiple
-    show-select
-    @update:options="(data:any) => invoiceMaintenanceStore.fetchDataServerFetch(data)"
-    fixed-header
-    height="450"
-    hover
-    >
-    <template #item.item_type="{ item }">
-      <span class="capitalize">{{ item.item_type }}</span>
-    </template>
-    <template #item.order_date="{ item }">
-      {{ formatDate(item.order_date) }}
-    </template>
-    <template #item.shipping_date="{ item }">
-      {{ formatDate(item.shipping_date) }}
-    </template>
-    <template #item.price_sell="{ item }">
-      <d-num-layout :value="item.price_sell" />
-    </template>
-    <template #item.qty="{ item }">
-      <d-num-layout :value="item.qty" />
-    </template>
-    <template #item.discount="{ item }">
-      <d-num-layout
-        :value="item.disc_am > 0 ? item.disc_am : item.disc_perc_am"
-      />
-    </template>
-    <template #item.total_dp="{ item }">
-      <d-num-layout :value="item.total_dp || 0" />
-    </template>
-    <template #item.total_balance="{ item }">
-      <d-num-layout :value="item.total_balance || 0" />
-    </template>
-    <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
-      <button
-        v-if="
-          !!internalItem.raw.so_dts_boms &&
-          internalItem.raw.so_dts_boms.length > 0
-        "
-        class="cursor-pointer"
-        @click="toggleExpand(internalItem)"
-        @submit.prevent
-      >
-        <v-icon
-          icon="mdi-chevron-down"
-          class="transition-transform"
-          :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
-        />
-      </button>
-    </template>
-    <template
-      #expanded-row="{
-      columns,
-      item: rowItem,
-      internalItem,
-      index
-    }: {
-      columns: any
-      item: any
-      internalItem: any
-      index: number
-    }"
-    >
-      <tr v-if="rowItem.so_dts_boms && rowItem.so_dts_boms.length > 0">
-        <td :colspan="columns.length" class="!p-0">
-          <div class="">
-            <v-data-table-virtual
-              :headers="headersBom"
-              :items="rowItem.so_dts_boms || []"
-              item-value="uid"
-              density="compact"
-              return-object
-              fixed-header
-              class="table-hover"
-              :height="rowItem.so_dts_boms.length > 1 ? '170' : '100'"
-              :header-props="{
-                class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
-              }"
-              :row-props="{
-                class: 'whitespace-nowrap',
-              }"
-            >
-              <template #item.qty="{ item: bomItem }">
-                <d-num-layout :value="bomItem.qty" />
-              </template>
-            </v-data-table-virtual>
-          </div>
-        </td>
-      </tr>
-    </template>
-  </v-data-table-server>
-
-  <template #footer>
-    <div class="flex h-max w-full justify-end">
-      <button
-        class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-        @click="invoiceMaintenanceStore.onClickUpdateProductsModal()"
-      >
-        <Icon name="material-symbols:save-rounded" size="20" />
-          Add Selected Sales Orders ({{
-          invoiceMaintenanceStore.itemsCheck.checkSalesOrders.length
-        }})
-      </button>
-    </div>
-  </template>
-</modals-final-modal>
-</div>
 </template>
 
 
