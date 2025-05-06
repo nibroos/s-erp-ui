@@ -437,7 +437,6 @@ watchEffect(() => {
               v-model="form.item_sub_group_id"
               class="col-span-2 lg:col-span-1"
               is-quick-select
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :fields="headersSubGroup"
               :filters="filtersSubGroup"

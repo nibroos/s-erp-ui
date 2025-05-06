@@ -87,12 +87,12 @@ const headersSelectedItems = ref([
   { title: "Qty", key: "qty", align: "end", sortable: true },
   { title: "Discount", key: "discount", align: "end", sortable: true },
   { title: "Sub Amount", key: "total_amount", align: "end", sortable: true },
-  { 
-    title: "", 
-    key: "dp_percentage", 
-    align: "end", 
+  {
+    title: "",
+    key: "dp_percentage",
+    align: "end",
     sortable: false,
-    customHeader: true
+    customHeader: true,
   },
   { title: "Total Amount DP", key: "total_dp", align: "end", sortable: true },
   { title: "Remark", key: "remark", sortable: true },
@@ -382,16 +382,15 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
-
 const formatDate = (dateString: string) => {
-  if (!dateString) return '';
-  
+  if (!dateString) return "";
+
   const date = new Date(dateString);
-  
+
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
   return `${year}-${month}-${day}`;
 };
 
@@ -414,7 +413,7 @@ const formLayout = ref({
       show: true,
       loading: false,
       type: "submit",
-      text: "Update"
+      text: "Update",
     },
     clear: {
       show: true,
@@ -519,12 +518,15 @@ watchEffect(() => {
   topTitle.value = "Invoices";
 });
 
-watch(() => form.value.invoice_date, async (newDate) => {
-  if (form.value.is_vat) {
-    await invoiceDpStore.onClickSwitchVAT(true);
-    calculateTotalAmountLocal();
+watch(
+  () => form.value.invoice_date,
+  async (newDate) => {
+    if (form.value.is_vat) {
+      await invoiceDpStore.onClickSwitchVAT(true);
+      calculateTotalAmountLocal();
+    }
   }
-});
+);
 </script>
 
 <template>
@@ -554,7 +556,6 @@ watch(() => form.value.invoice_date, async (newDate) => {
               }
             }
           "
-          modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="fieldsConfig"
           :filters="filtersConfig"
@@ -595,10 +596,9 @@ watch(() => form.value.invoice_date, async (newDate) => {
               @click:selected="
                 (data) => invoiceDpStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
-              :fields="headersCustomer"
-              :filters="filtersCustomer"
+              :fields="useStatics.headersCustomer"
+              :filters="useStatics.filtersCustomer"
             />
           </div>
 
@@ -649,13 +649,17 @@ watch(() => form.value.invoice_date, async (newDate) => {
               method-api="post"
               inner-search-key="global"
               label="Bank"
-              :display-multiple-keys="['company_name', 'name', 'account_number']"
+              :display-multiple-keys="[
+                'company_name',
+                'name',
+                'account_number',
+              ]"
               :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
               is-display-multiple-key
               :errors="errors.bank_id"
               @click:selected="(data: any) => invoiceDpStore.autocompleteBankInfo(data)"
             ></d-autocomplete>
-          </div>   
+          </div>
 
           <div class="lg:col-span-6">
             <d-autocomplete
@@ -718,7 +722,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
               :disabled="!!form.discount_amount && form.discount_amount > 0"
             />
           </div>
-          
+
           <div class="lg:col-span-6">
             <d-num-v-format
               v-model="form.discount_amount"
@@ -729,7 +733,9 @@ watch(() => form.value.invoice_date, async (newDate) => {
               hide-currency-display
               @update:modelValue="onDiscountAmountChange"
               label="Discount Amount"
-              :disabled="!!form.discount_percentage && form.discount_percentage > 0"
+              :disabled="
+                !!form.discount_percentage && form.discount_percentage > 0
+              "
             />
           </div>
 
@@ -807,7 +813,6 @@ watch(() => form.value.invoice_date, async (newDate) => {
                 }
               "
             />
-          
           </div>
 
           <div class="mt-2">
@@ -820,17 +825,25 @@ watch(() => form.value.invoice_date, async (newDate) => {
               fixed-header
               class="col-span-3 sm:col-span-1 table-hover"
               :header-props="{
-                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
+                class:
+                  '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
               }"
               :row-props="{
                 class: 'whitespace-nowrap',
               }"
             >
-              <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
+              <template
+                #item.expand="{ toggleExpand, isExpanded, internalItem }"
+              >
                 <button
-                  v-if="(internalItem.raw.product_type === 'product' || internalItem.raw.item_type === 'product') && 
-                        ((internalItem.raw.invoice_dp_dt_boms && internalItem.raw.invoice_dp_dt_boms.length > 0) || 
-                        (internalItem.raw.so_dts_boms && internalItem.raw.so_dts_boms.length > 0))"
+                  v-if="
+                    (internalItem.raw.product_type === 'product' ||
+                      internalItem.raw.item_type === 'product') &&
+                    ((internalItem.raw.invoice_dp_dt_boms &&
+                      internalItem.raw.invoice_dp_dt_boms.length > 0) ||
+                      (internalItem.raw.so_dts_boms &&
+                        internalItem.raw.so_dts_boms.length > 0))
+                  "
                   class="cursor-pointer"
                   @click="toggleExpand(internalItem)"
                   @submit.prevent
@@ -838,7 +851,9 @@ watch(() => form.value.invoice_date, async (newDate) => {
                   <v-icon
                     icon="mdi-chevron-down"
                     class="transition-transform"
-                    :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
+                    :class="
+                      isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'
+                    "
                   />
                 </button>
               </template>
@@ -852,10 +867,12 @@ watch(() => form.value.invoice_date, async (newDate) => {
                       max: 3,
                     }"
                     hide-currency-display
-                    @update:modelValue="(value) => {
-                      invoiceDpStore.updateDpPercentage(value);
-                      calculateTotalAmountLocal();
-                    }"
+                    @update:modelValue="
+                      (value) => {
+                        invoiceDpStore.updateDpPercentage(value);
+                        calculateTotalAmountLocal();
+                      }
+                    "
                     class="h-9 text-xs w-[120px]"
                     placeholder="Global"
                     label="DP (%)"
@@ -866,15 +883,15 @@ watch(() => form.value.invoice_date, async (newDate) => {
               <template #item.ref_type="{ item }">
                 <span class="uppercase">{{ item.ref_type }}</span>
               </template>
-              
+
               <template #item.product_type="{ item }">
                 <span class="capitalize">{{ item.product_type }}</span>
               </template>
-              
+
               <template #item.price="{ item }">
                 <d-num-layout :value="item.price" />
               </template>
-              
+
               <template #item.qty="{ item }">
                 <d-num-v-format
                   v-model="item.qty"
@@ -883,22 +900,24 @@ watch(() => form.value.invoice_date, async (newDate) => {
                     max: 3,
                   }"
                   hide-currency-display
-                  @update:modelValue="() => {
-                    invoiceDpStore.calculateTotalAmount();
-                    calculateTotalAmountLocal();
-                  }"
+                  @update:modelValue="
+                    () => {
+                      invoiceDpStore.calculateTotalAmount();
+                      calculateTotalAmountLocal();
+                    }
+                  "
                   class="w-20"
                 />
               </template>
-              
+
               <template #item.discount="{ item }">
                 <d-num-layout :value="item.discount || 0" />
               </template>
-              
+
               <template #item.subtotal="{ item }">
                 <d-num-layout :value="item.subtotal" />
               </template>
-              
+
               <template #item.dp_percentage="{ item }">
                 <div class="flex flex-col items-end w-full">
                   <d-num-v-format
@@ -908,46 +927,64 @@ watch(() => form.value.invoice_date, async (newDate) => {
                       max: 3,
                     }"
                     hide-currency-display
-                    @update:modelValue="(value) => {
-                      invoiceDpStore.updateItemDpPercentage(item, value);
-                      calculateTotalAmountLocal();
-                    }"
+                    @update:modelValue="
+                      (value) => {
+                        invoiceDpStore.updateItemDpPercentage(item, value);
+                        calculateTotalAmountLocal();
+                      }
+                    "
                     class="w-[120px]"
                   />
                 </div>
               </template>
-              
+
               <template #item.total_amount="{ item }">
                 <d-num-layout :value="item.total_amount" />
               </template>
-              
+
               <template #item.total_dp="{ item }">
                 <d-num-layout :value="item.total_dp" />
               </template>
-              
+
               <template #item.actions="{ item, index }">
                 <button
                   class="text-red-500 hover:text-red-700"
-                  @click="invoiceDpStore.onClickDeleteSelected(item, index); calculateTotalAmountLocal();"
+                  @click="
+                    invoiceDpStore.onClickDeleteSelected(item, index);
+                    calculateTotalAmountLocal();
+                  "
                 >
                   <v-icon icon="mdi-delete" />
                 </button>
               </template>
-              
+
               <template #expanded-row="{ columns, item }">
-                <tr v-if="(item.invoice_dp_dt_boms && item.invoice_dp_dt_boms.length > 0) || 
-                          (item.so_dts_boms && item.so_dts_boms.length > 0)">
+                <tr
+                  v-if="
+                    (item.invoice_dp_dt_boms &&
+                      item.invoice_dp_dt_boms.length > 0) ||
+                    (item.so_dts_boms && item.so_dts_boms.length > 0)
+                  "
+                >
                   <td :colspan="columns.length" class="!p-0">
                     <div>
                       <v-data-table-virtual
                         :headers="headersBom"
-                        :items="item.invoice_dp_dt_boms || item.so_dts_boms || []"
+                        :items="
+                          item.invoice_dp_dt_boms || item.so_dts_boms || []
+                        "
                         item-value="uid"
                         density="compact"
                         return-object
                         fixed-header
                         class="table-hover"
-                        :height="(item.invoice_dp_dt_boms?.length || item.so_dts_boms?.length || 0) > 1 ? '170' : '100'"
+                        :height="
+                          (item.invoice_dp_dt_boms?.length ||
+                            item.so_dts_boms?.length ||
+                            0) > 1
+                            ? '170'
+                            : '100'
+                        "
                         :header-props="{
                           class: '!bg-grey1 dark:!bg-dark2 whitespace-nowrap',
                         }"
@@ -965,7 +1002,6 @@ watch(() => form.value.invoice_date, async (newDate) => {
               </template>
             </v-data-table-virtual>
           </div>
-          
         </div>
         <div v-else-if="tabFormIndex == useStatics.formTabInvoiceDp.remarks">
           <div class="lg:col-span-6 mt-1">

@@ -660,7 +660,6 @@ watchEffect(() => {
               @click:selected="
                 (data) => purchaseOrderStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
               :fields="headersSupplier"
               :filters="filtersSupplier"
@@ -1061,7 +1060,6 @@ watchEffect(() => {
             }"
             multiple
             :return-object="false"
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useInitials.productFieldsFilterConfig.fields"
             :filters="useInitials.productFieldsFilterConfig.filters"
@@ -1198,7 +1196,6 @@ watchEffect(() => {
             @click:selected="
               (data) => purchaseOrderStore.autocompleteCustomer(data)
             "
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useStatics.headersCustomer"
             :filters="useStatics.filtersCustomer"
@@ -1214,7 +1211,6 @@ watchEffect(() => {
             v-model="queryModal.qIndexSo.product_id"
             class=""
             is-quick-select
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useInitials.productFieldsFilterConfig.fields"
             :filters="useInitials.productFieldsFilterConfig.filters"

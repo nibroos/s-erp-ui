@@ -236,10 +236,9 @@ onMounted(() => {
                   v-model="form.agent_id"
                   class="col-span-2 lg:col-span-3 sm:col-span-6"
                   is-quick-select
-                  modal-parent-class="!z-[2500]"
                   modal-custom-class="!w-4/5"
-                  :fields="headersCustomer"
-                  :filters="filtersCustomer"
+                  :fields="useStatics.headersCustomer"
+                  :filters="useStatics.filtersCustomer"
                 />
               </div>
             </div>

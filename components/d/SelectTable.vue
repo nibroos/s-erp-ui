@@ -765,7 +765,7 @@ defineExpose({
         :name="randomId()"
         :header-text-class="classMerge('text-lg', props.modalHeaderTextClass)"
         :custom-class="props.modalCustomClass"
-        :parent-class="props.modalParentClass"
+        :parent-class="classMerge('!z-[1500]', props.modalParentClass)"
         @update:is-open="openModal($event)"
       >
         <template #label>
@@ -825,6 +825,8 @@ defineExpose({
                   :items-prop="filter.others?.itemsProp"
                   :page-end-prop="filter.others?.pageEndProp"
                   :method-api="filter.others?.methodApi"
+                  :return-object="filter.others?.returnObject"
+                  :multiple="filter.others?.multiple"
                 />
 
                 <d-autocomplete-client
@@ -921,7 +923,7 @@ defineExpose({
               class="grow"
             >
               <v-dialog
-                z-index="2510"
+                z-index="2500"
                 width="80rem"
                 v-model="genFormOptions.modal.show"
                 :retain-focus="false"

@@ -907,10 +907,9 @@ watchEffect(() => {
               @click:selected="
                 (data) => quotationStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
-              :fields="headersCustomer"
-              :filters="filtersCustomer"
+              :fields="useStatics.headersCustomer"
+              :filters="useStatics.filtersCustomer"
             />
           </div>
 
@@ -1103,7 +1102,6 @@ watchEffect(() => {
               }
             }
           "
-          modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="fieldsConfig"
           :filters="filtersConfig"

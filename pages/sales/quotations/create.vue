@@ -94,128 +94,6 @@ const headersBOM = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersVAT = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Percentage",
-    key: "num",
-    value: "num",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Multiplier",
-    key: "multiplier",
-    value: "multiplier",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Divider",
-    key: "divider",
-    value: "divider",
-    align: "start",
-    sortable: true,
-  },
-]);
-
-const headersCustomer = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Shortname",
-    key: "shortname",
-    value: "shortname",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
-    key: "code",
-    value: "code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Phone",
-    key: "phone",
-    value: "phone",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Email",
-    key: "email",
-    value: "email",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Address",
-    key: "address",
-    value: "address",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_name",
-    value: "customer_type_name",
-    align: "start",
-    sortable: true,
-  },
-]);
-
-const filtersCustomer = ref<FilterSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-  },
-  {
-    title: "Code",
-    key: "code",
-  },
-  {
-    title: "Phone",
-    key: "phone",
-  },
-  {
-    title: "Email",
-    key: "email",
-  },
-  {
-    title: "Address",
-    key: "address",
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_ids",
-    type: "autocomplete",
-    display: "name",
-    others: {
-      methodApi: "post",
-      api: "/v1/customer-types/index-customer-type",
-      singleApi: "/v1/customer-types/index-customer-type",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Customer Type",
-      innerSearchKey: "global",
-    },
-  },
-]);
-
 const headersBOMModal = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
@@ -875,7 +753,6 @@ watchEffect(() => {
               }
             }
           "
-          modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="fieldsConfig"
           :filters="filtersConfig"
@@ -914,10 +791,9 @@ watchEffect(() => {
               @click:selected="
                 (data) => quotationStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
-              :fields="headersCustomer"
-              :filters="filtersCustomer"
+              :fields="useStatics.headersCustomer"
+              :filters="useStatics.filtersCustomer"
             />
           </div>
 

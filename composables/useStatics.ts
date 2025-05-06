@@ -730,9 +730,8 @@ const filtersCustomer: FilterSelectableType[] = [
   },
   {
     title: "Customer Type",
-    key: "customer_type_ids",
+    key: "customer_type_id",
     type: "autocomplete",
-    display: "name",
     others: {
       methodApi: "post",
       api: "/v1/customer-types/index-customer-type",

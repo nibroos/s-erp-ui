@@ -1016,7 +1016,6 @@ watchEffect(() => {
               }
             }
           "
-          modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="fieldsConfig"
           :filters="filtersConfig"
@@ -1069,10 +1068,9 @@ watchEffect(() => {
               @click:selected="
                 (data) => salesOrderStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
-              :fields="headersCustomer"
-              :filters="filtersCustomer"
+              :fields="useStatics.headersCustomer"
+              :filters="useStatics.filtersCustomer"
             />
           </div>
 
@@ -2239,10 +2237,9 @@ watchEffect(() => {
             @click:selected="
               (data) => salesOrderStore.autocompleteCustomer(data)
             "
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
-            :fields="headersCustomer"
-            :filters="filtersCustomer"
+            :fields="useStatics.headersCustomer"
+            :filters="useStatics.filtersCustomer"
           />
           <d-select-table
             api="/v1/products/index-product"
@@ -2255,7 +2252,6 @@ watchEffect(() => {
             v-model="queryModal.qIndexQuotations.product_id"
             class=""
             is-quick-select
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useInitials.productFieldsFilterConfig.fields"
             :filters="useInitials.productFieldsFilterConfig.filters"

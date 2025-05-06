@@ -71,24 +71,44 @@ const headersCustomer = ref<FieldSelectableType[]>([
 ]);
 
 const headersInvoices = ref([
-  { title: '', key: 'select', sortable: false, align: 'center', width: '50px' },
+  { title: "", key: "select", sortable: false, align: "center", width: "50px" },
   { title: "Reference Type", key: "ref_type", sortable: false },
   { title: "Reference No", key: "invoice_no", sortable: false },
   { title: "Invoice Date", key: "invoice_date", sortable: false },
-  { title: "Invoice Amount", key: "invoice_amount", align: "end", sortable: false },
-  { title: "Total Adjustment", key: "total_adjustment", align: "end", sortable: false },
-  { title: "Balance Amount", key: "balance_amount", align: "end", sortable: false },
-  { title: "Adjustment Amount", key: "adjustment_amount", align: "end", sortable: false },
+  {
+    title: "Invoice Amount",
+    key: "invoice_amount",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Total Adjustment",
+    key: "total_adjustment",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Balance Amount",
+    key: "balance_amount",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Adjustment Amount",
+    key: "adjustment_amount",
+    align: "end",
+    sortable: false,
+  },
   { title: "Admin Bank", key: "admin_bank", align: "end", sortable: false },
   { title: "Total Amount", key: "total_amount", align: "end", sortable: true },
   { title: "Actions", key: "actions", sortable: false, align: "center" },
 ] as any);
 
 const refTypeOptions = ref([
-  { title: 'Sales Invoice', value: 'sales_invoice' },
-  { title: 'Invoice DP', value: 'invoice_dp' },
-  { title: 'Invoice Maintenance', value: 'invoice_maintenance' },
-  { title: 'All', value: 'all' }
+  { title: "Sales Invoice", value: "sales_invoice" },
+  { title: "Invoice DP", value: "invoice_dp" },
+  { title: "Invoice Maintenance", value: "invoice_maintenance" },
+  { title: "All", value: "all" },
 ]);
 
 const filtersCustomer = ref<FilterSelectableType[]>([
@@ -174,14 +194,14 @@ const customSummary = ref({
 });
 
 const formatDate = (dateString: string) => {
-  if (!dateString) return '';
-  
+  if (!dateString) return "";
+
   const date = new Date(dateString);
-  
+
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
   return `${year}-${month}-${day}`;
 };
 
@@ -193,31 +213,30 @@ const formLayout = ref({
   button: {
     clear: {
       show: true,
-      handler: () => invoiceAdjustmentStore.handleClickClear()
+      handler: () => invoiceAdjustmentStore.handleClickClear(),
     },
   },
   summary: customSummary.value,
 } as FormLayoutType);
-
 
 const initialFormLayout = () => {
   formLayout.value.currentTab = tabFormIndex.value;
   formLayout.value.mode = "create";
   formLayout.value.button = {
     clear: {
-      show: true
+      show: true,
     },
   };
 };
 
 const formatRefType = (refType: string) => {
   switch (refType) {
-    case 'sales_invoice':
-      return 'Sales Invoice';
-    case 'invoice_dp':
-      return 'Invoice DP';
-    case 'invoice_maintenance':
-      return 'Invoice Maintenance';  
+    case "sales_invoice":
+      return "Sales Invoice";
+    case "invoice_dp":
+      return "Invoice DP";
+    case "invoice_maintenance":
+      return "Invoice Maintenance";
     default:
       return refType;
   }
@@ -227,17 +246,21 @@ const handleSubmit = async () => {
   invoiceAdjustmentStore.transferSelectedInvoicesToCheckMain();
 
   invoiceAdjustmentStore.calculateTotalAmount();
-  
+
   await invoiceAdjustmentStore.store();
 };
 
-
 const calculateTotalAmountLocal = () => {
-  customSummary.value.total_invoice.value = invoiceAdjustmentStore.form.total_invoice;
-  customSummary.value.total_adjustment.value = invoiceAdjustmentStore.form.total_adjustment;
-  customSummary.value.total_balance.value = invoiceAdjustmentStore.form.total_balance;
-  customSummary.value.total_admin_bank.value = invoiceAdjustmentStore.form.total_admin_bank;
-  customSummary.value.grand_total.value = invoiceAdjustmentStore.form.grand_total;
+  customSummary.value.total_invoice.value =
+    invoiceAdjustmentStore.form.total_invoice;
+  customSummary.value.total_adjustment.value =
+    invoiceAdjustmentStore.form.total_adjustment;
+  customSummary.value.total_balance.value =
+    invoiceAdjustmentStore.form.total_balance;
+  customSummary.value.total_admin_bank.value =
+    invoiceAdjustmentStore.form.total_admin_bank;
+  customSummary.value.grand_total.value =
+    invoiceAdjustmentStore.form.grand_total;
 
   if (invoiceAdjustmentStore.currencySymbolLabel) {
     const symbol = invoiceAdjustmentStore.currencySymbolLabel;
@@ -262,13 +285,21 @@ onMounted(async () => {
   calculateTotalAmountLocal();
 });
 
-watch(() => form.value, (newForm) => {
-  calculateTotalAmountLocal();
-}, { deep: true });
+watch(
+  () => form.value,
+  (newForm) => {
+    calculateTotalAmountLocal();
+  },
+  { deep: true }
+);
 
-watch(() => invoiceAdjustmentStore.metaModal.indexInvoices.data, () => {
-  calculateTotalAmountLocal();
-}, { deep: true });
+watch(
+  () => invoiceAdjustmentStore.metaModal.indexInvoices.data,
+  () => {
+    calculateTotalAmountLocal();
+  },
+  { deep: true }
+);
 
 watchEffect(() => {
   topTitle.value = "Invoices";
@@ -309,16 +340,15 @@ watchEffect(() => {
                 @click:selected="
                   (data) => invoiceAdjustmentStore.autocompleteCustomer(data)
                 "
-                modal-parent-class="!z-[2500]"
                 modal-custom-class="!w-4/5"
-                :fields="headersCustomer"
-                :filters="filtersCustomer"
+                :fields="useStatics.headersCustomer"
+                :filters="useStatics.filtersCustomer"
               />
               <div v-if="errors.customer_id" class="text-rose-500 text-sm mt-1">
                 {{ errors.customer_id }}
               </div>
-            </div>            
-  
+            </div>
+
             <div class="lg:col-span-6">
               <d-text-input
                 v-model="form.email"
@@ -337,14 +367,14 @@ watchEffect(() => {
                 disabled
               />
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-date-picker-light
                 v-model="form.payment_date"
                 label="Payment Date"
               ></d-date-picker-light>
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-autocomplete
                 v-model="form.currency_id"
@@ -365,7 +395,7 @@ watchEffect(() => {
                 "
               ></d-autocomplete>
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-num-v-format
                 v-model="form.exchange_rate"
@@ -378,7 +408,7 @@ watchEffect(() => {
                 @update:modelValue="calculateTotalAmountLocal"
               />
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-autocomplete
                 v-model="form.bank_id"
@@ -389,14 +419,18 @@ watchEffect(() => {
                 method-api="post"
                 inner-search-key="global"
                 label="Bank"
-                :display-multiple-keys="['company_name', 'name', 'account_number']"
+                :display-multiple-keys="[
+                  'company_name',
+                  'name',
+                  'account_number',
+                ]"
                 :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
                 is-display-multiple-key
                 :errors="errors.bank_id"
                 @click:selected="(data: any) => invoiceAdjustmentStore.autocompleteBankInfo(data)"
               ></d-autocomplete>
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-num-v-format
                 v-model="form.payment_amount"
@@ -415,7 +449,7 @@ watchEffect(() => {
             <div class="lg:col-span-6 font-medium text-[#6C757D]">
               <p>Reference Data</p>
             </div>
-  
+
             <div class="lg:col-span-6 font-medium text-[#6C757D]">
               <p>Periode Date</p>
             </div>
@@ -434,23 +468,29 @@ watchEffect(() => {
                 {{ errors.reference }}
               </div>
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-date-picker-light
                 v-model="form.ref_start_date"
                 label="Start Date"
               ></d-date-picker-light>
-              <div v-if="errors.ref_start_date" class="text-rose-500 text-sm mt-1">
+              <div
+                v-if="errors.ref_start_date"
+                class="text-rose-500 text-sm mt-1"
+              >
                 {{ errors.ref_start_date }}
               </div>
             </div>
-  
+
             <div class="lg:col-span-6">
               <d-date-picker-light
                 v-model="form.ref_end_date"
                 label="End Date"
               ></d-date-picker-light>
-              <div v-if="errors.ref_end_date" class="text-rose-500 text-sm mt-1">
+              <div
+                v-if="errors.ref_end_date"
+                class="text-rose-500 text-sm mt-1"
+              >
                 {{ errors.ref_end_date }}
               </div>
             </div>
@@ -464,23 +504,22 @@ watchEffect(() => {
               >
                 <v-icon icon="mdi-magnify" size="18" />
               </v-btn>
-              
+
               <v-btn
                 color="#ffffff"
-                class="!bg-[#6C757D] hover:!bg-[#4e545a]  rounded-md !min-w-0 !h-10 !px-3 !py-2"
+                class="!bg-[#6C757D] hover:!bg-[#4e545a] rounded-md !min-w-0 !h-10 !px-3 !py-2"
                 variant="text"
                 @click="invoiceAdjustmentStore.handleClearReferenceQuery()"
               >
                 <v-icon icon="mdi-refresh" size="18" />
               </v-btn>
             </div>
-  
           </div>
 
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
       </template>
-      
+
       <template #content>
         <div v-if="tabFormIndex == 0">
           <div class="mt-2">
@@ -492,19 +531,23 @@ watchEffect(() => {
                   density="compact"
                   @click="invoiceAdjustmentStore.autoAdjustedAmountCalculate()"
                 >
-                  <span style="font-size: 12.5px;">Adjusted Amount Auto Calculate</span>
+                  <span style="font-size: 12.5px"
+                    >Adjusted Amount Auto Calculate</span
+                  >
                 </v-btn>
-                
+
                 <v-btn
                   color="#695149"
                   class="text-white rounded-md !h-10 !px-4"
                   density="compact"
                   @click="invoiceAdjustmentStore.autoCalculateSelection()"
                 >
-                  <span style="font-size: 12.5px;">Auto Calculate Selection</span>
+                  <span style="font-size: 12.5px"
+                    >Auto Calculate Selection</span
+                  >
                 </v-btn>
               </div>
-  
+
               <!-- <d-bt
                 :cta="'Clear References'"
                 :class="
@@ -519,7 +562,7 @@ watchEffect(() => {
                 @click="invoiceAdjustmentStore.clearReferences()"
               /> -->
             </div>
-            
+
             <v-data-table-virtual
               :items="invoiceAdjustmentStore.metaModal.indexInvoices.data"
               :headers="headersInvoices"
@@ -529,7 +572,8 @@ watchEffect(() => {
               fixed-header
               class="col-span-3 sm:col-span-1 table-hover"
               :header-props="{
-                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
+                class:
+                  '!bg-scLightest dark:!bg-scDarker whitespace-nowrap py-3',
               }"
               :row-props="{
                 class: 'whitespace-nowrap',
@@ -544,27 +588,27 @@ watchEffect(() => {
                   @change="handleItemSelectionChange(item)"
                 ></v-checkbox>
               </template>
-                
+
               <template #item.ref_type="{ item }">
                 <span>{{ formatRefType(item.ref_type) }}</span>
               </template>
-              
+
               <template #item.invoice_date="{ item }">
                 {{ formatDate(item.invoice_date) }}
               </template>
-              
+
               <template #item.invoice_amount="{ item }">
                 <d-num-layout :value="item.invoice_amount" />
               </template>
-              
+
               <template #item.total_adjustment="{ item }">
                 <d-num-layout :value="item.total_adjustment" />
               </template>
-              
+
               <template #item.balance_amount="{ item }">
                 <d-num-layout :value="item.balance_amount" />
               </template>
-              
+
               <template #item.adjustment_amount="{ item }">
                 <d-num-layout :value="item.adjustment_amount" />
               </template>
@@ -578,13 +622,22 @@ watchEffect(() => {
                   }"
                   hide-currency-display
                   class="w-full"
-                  @update:modelValue="invoiceAdjustmentStore.calculateTotalsFromSearchResults()"
+                  @update:modelValue="
+                    invoiceAdjustmentStore.calculateTotalsFromSearchResults()
+                  "
                 />
               </template>
 
               <template #item.total_amount="{ item }">
-                <d-num-layout :value="Math.max(0, (item.adjustment_amount || 0) - (item.admin_bank || 0))" />
-              </template>     
+                <d-num-layout
+                  :value="
+                    Math.max(
+                      0,
+                      (item.adjustment_amount || 0) - (item.admin_bank || 0)
+                    )
+                  "
+                />
+              </template>
             </v-data-table-virtual>
           </div>
         </div>
@@ -599,7 +652,6 @@ watchEffect(() => {
           </div>
         </div>
       </template>
-      
     </d-form-layout>
   </div>
 </template>

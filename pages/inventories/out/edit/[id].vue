@@ -862,10 +862,9 @@ watchEffect(() => {
               @click:selected="
                 (data) => inventoryStore.autocompleteCustomer(data)
               "
-              modal-parent-class="!z-[2500]"
               modal-custom-class="!w-4/5"
-              :fields="headersCustomer"
-              :filters="filtersCustomer"
+              :fields="useStatics.headersCustomer"
+              :filters="useStatics.filtersCustomer"
             />
           </div>
           <div class="sm:col-span-1 col-span-2">
@@ -1413,10 +1412,9 @@ watchEffect(() => {
             @click:selected="
               (data) => inventoryStore.autocompleteCustomer(data)
             "
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
-            :fields="headersCustomer"
-            :filters="filtersCustomer"
+            :fields="useStatics.headersCustomer"
+            :filters="useStatics.filtersCustomer"
           />
           <d-select-table
             api="/v1/products/index-product"
@@ -1429,7 +1427,6 @@ watchEffect(() => {
             v-model="queryModal.qIndexSalesOrders.product_id"
             class=""
             is-quick-select
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useInitials.productFieldsFilterConfig.fields"
             :filters="useInitials.productFieldsFilterConfig.filters"
@@ -1551,10 +1548,9 @@ watchEffect(() => {
             @click:selected="
               (data) => inventoryStore.autocompleteCustomer(data)
             "
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
-            :fields="headersCustomer"
-            :filters="filtersCustomer"
+            :fields="useStatics.headersCustomer"
+            :filters="useStatics.filtersCustomer"
           />
           <d-select-table
             api="/v1/products/index-product"
@@ -1567,7 +1563,6 @@ watchEffect(() => {
             v-model="queryModal.qIndexSalesOrders.product_id"
             class=""
             is-quick-select
-            modal-parent-class="!z-[2500]"
             modal-custom-class="!w-4/5"
             :fields="useInitials.productFieldsFilterConfig.fields"
             :filters="useInitials.productFieldsFilterConfig.filters"
