@@ -184,6 +184,7 @@ export type InvoiceDpDtType = {
   deleted_at?: string | null
   
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
+  so_dts_boms?: SalesOrderDtBomType[] | null;
 }
 
 export type InvoiceDpDiscType = 'amount' | 'percentage' | null

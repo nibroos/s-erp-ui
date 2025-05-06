@@ -385,16 +385,11 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.metaModal.indexSalesOrders.loading = true
     
       try {
-
         if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
           if (soItems.length > 0) {
             this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
-          } else {
-            this.queryModal.qIndexSalesOrders.specific_ids = '';
           }
-        } else {
-          this.queryModal.qIndexSalesOrders.specific_ids = '';
         }
 
         const response = await useMyFetch().post(
@@ -458,13 +453,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
 
     clickClearRefs() {
+      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkSalesOrders = []
+
+      this.queryModal.qIndexSalesOrders.specific_ids = currentSpecificIds;
 
       this.countSelectedReferences()
     },
 
     handleClearQuery() {
+      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
+      
       this.queryModal.qIndexSalesOrders = {
         page: 1,
         per_page: 10,
@@ -479,7 +479,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         product_name: '',
         global: '',
         order_type_id: null,
-        item_type: null
+        item_type: null,
+        specific_ids: currentSpecificIds
       }
     },
 
@@ -879,15 +880,22 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
 
+        // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+        //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
+        //   if (soItems.length > 0) {
+        //     this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
+        //   } else {
+        //     this.queryModal.qIndexSalesOrders.specific_ids = '';
+        //   }
+        // } else {
+        //   this.queryModal.qIndexSalesOrders.specific_ids = '';
+        // }
+
         if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
           if (soItems.length > 0) {
             this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
-          } else {
-            this.queryModal.qIndexSalesOrders.specific_ids = '';
           }
-        } else {
-          this.queryModal.qIndexSalesOrders.specific_ids = '';
         }
         
         await this.indexSalesOrder();

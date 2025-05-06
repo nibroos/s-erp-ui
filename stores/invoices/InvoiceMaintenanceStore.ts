@@ -452,13 +452,18 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
     },
 
     clickClearRefs() {
+      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkSalesOrders = []
+
+      this.queryModal.qIndexSalesOrders.specific_ids = currentSpecificIds;
 
       this.countSelectedReferences()
     },
 
     handleClearQuery() {
+      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
+      
       this.queryModal.qIndexSalesOrders = {
         page: 1,
         per_page: 10,
@@ -473,7 +478,8 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         product_name: '',
         global: '',
         order_type_id: null,
-        item_type: null
+        item_type: null,
+        specific_ids: currentSpecificIds
       }
     },
 
