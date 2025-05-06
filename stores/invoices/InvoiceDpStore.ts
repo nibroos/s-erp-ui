@@ -40,7 +40,9 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         customer_ids: [],
         customer_id: null,
         order_column: '',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        specific_ids: '',
+        invoice_id: null
       } as QIndexSalesOrdersType
     },
     metaModal: {
@@ -53,11 +55,17 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         data: [] as FormInvoiceDpDtProductListType[],
         loading: false,
         meta: {} as Meta
-      } as PaginationMeta
+      } as PaginationMeta,
+      indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
       editPageLoading: false,
+      widgetLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -135,6 +143,30 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice DPs!')
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexWidget() {
+      if (this.metaModal.indexWidgets.loading) return
+      this.metaModal.indexWidgets.loading = true
+    
+      let params = this.queryModal.qIndex
+    
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-dps/widget-invoice-dp',
+          params
+        )
+    
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexWidgets.data = widgets
+    
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Widget Data', error.response?.data);
+      } finally {
+        this.metaModal.indexWidgets.loading = false
       }
     },
 
@@ -347,6 +379,13 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.metaModal.indexSalesOrders.loading = true
     
       try {
+        if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+          const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
+          if (soItems.length > 0) {
+            this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
+          }
+        }
+
         const response = await useMyFetch().post(
           '/v1/invoice-dps/index-ref-so-dt',
           this.queryModal.qIndexSalesOrders
@@ -409,8 +448,11 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
     },
 
     clickClearRefs() {
+      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkSalesOrders = []
+
+      this.queryModal.qIndexSalesOrders.specific_ids = currentSpecificIds;
 
       this.countSelectedReferences()
     },
@@ -430,7 +472,8 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         product_name: '',
         global: '',
         order_type_id: null,
-        item_type: null
+        item_type: null,
+        // invoice_id: currentInvoiceId
       }
     },
 
@@ -744,16 +787,16 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
             hasVat = true;
           }
 
-          if (item.is_pph23 === 1 && item.pph23_id) {
+          if (item.is_pph23 === 1 && item.head_pph23_id) {
             hasPph23 = true;
 
-            const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
-            pph23Counts.set(item.pph23_id, currentCount);
+            const currentCount = (pph23Counts.get(item.head_pph23_id) || 0) + 1;
+            pph23Counts.set(item.head_pph23_id, currentCount);
 
             if (currentCount > maxPph23Count) {
               maxPph23Count = currentCount;
-              mostCommonPph23Id = item.pph23_id;
-              mostCommonPph23Percentage = item.pph23_percentage || 0;
+              mostCommonPph23Id = item.head_pph23_id;
+              mostCommonPph23Percentage = item.head_pph23_perc || 0;
             }
           }
         });
@@ -825,6 +868,8 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
           this.itemsCheck.checkSalesOrders
         );
 
+        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+
         this.countSelectedReferences();
         this.isOpenModal.salesOrders = true;
       }
@@ -839,6 +884,27 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         } else {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
+
+        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+
+        // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+        //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
+        //   if (soItems.length > 0) {
+        //     this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
+        //   } else {
+        //     this.queryModal.qIndexSalesOrders.specific_ids = '';
+        //   }
+        // } else {
+        //   this.queryModal.qIndexSalesOrders.specific_ids = '';
+        // }
+
+        if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+          const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
+          if (soItems.length > 0) {
+            this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
+          }
+        }
+    
         await this.indexSalesOrder();
       }
     },

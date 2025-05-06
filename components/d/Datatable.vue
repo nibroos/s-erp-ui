@@ -573,7 +573,7 @@ onMounted(async () => {
           parent-class=""
         />
       </div>
-      <div :class="classMerge('grid grid-cols-7 items-center gap-2 w-full')">
+      <div :class="classMerge('grid grid-cols-7 items-center gap-2 w-full relative')">
         <d-submit-button
           @click:submit="filterData"
           @click:clear="clearFilters"
@@ -581,7 +581,7 @@ onMounted(async () => {
         >
           <template #append>
             <div
-              class="flex gap-2 items-center w-full col-span-3 sm:col-span-6"
+              class="flex gap-2 items-center w-full col-span-3 sm:col-span-6 "
             >
               <nuxt-link
                 v-if="!!props.createOption.show"
@@ -629,6 +629,10 @@ onMounted(async () => {
                   cta="show/hide column"
                   icon-size="18"
                 ></d-button>
+              </div>
+
+              <div class="absolute right-0">
+                <slot name="actions"></slot>
               </div>
             </div>
           </template>

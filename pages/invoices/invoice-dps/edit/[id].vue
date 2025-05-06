@@ -97,7 +97,7 @@ const headersSelectedItems = ref([
   { title: "Total Amount DP", key: "total_dp", align: "end", sortable: true },
   { title: "Remark", key: "remark", sortable: true },
   { title: "Actions", key: "actions", sortable: false, align: "center" },
-]);
+] as any);
 
 const headersSalesOrder = ref([
   { title: "", key: "expand", width: 20, sortable: false },
@@ -114,7 +114,7 @@ const headersSalesOrder = ref([
   { title: "Qty", key: "qty", align: "end", sortable: true },
   { title: "Discount", key: "discount", align: "end", sortable: true },
   { title: "Remark", key: "remark", sortable: true },
-]);
+] as any);
 
 const headersBom = ref([
   { title: "Product Code", key: "item_code", sortable: true },
@@ -122,7 +122,7 @@ const headersBom = ref([
   { title: "Unit", key: "unit_name", sortable: true },
   { title: "Qty", key: "qty", sortable: true, align: "end" },
   { title: "Remark", key: "remark", sortable: true },
-]);
+] as any);
 
 const filtersCustomer = ref<FilterSelectableType[]>([
   {

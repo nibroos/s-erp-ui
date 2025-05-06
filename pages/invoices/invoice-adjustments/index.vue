@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useInvoiceDpStore from "~/stores/invoices/InvoiceDpStore";
-import type { QInvoiceDpIndexType } from "~/types/invoice-dps/InvoiceDpType";
+import useInvoiceAdjustmentStore from "~/stores/invoices/InvoiceAdjustmentStore";
+import type { QInvoiceAdjustmentIndexType } from "~/types/invoice-adjustments/InvoiceAdjustmentType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
-import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 
-const { queryModal, metaModal } = useInvoiceDpStore();
+const { queryModal } = useInvoiceAdjustmentStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -19,7 +18,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Invoice DP",
+  title: "Invoice Adjustments",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
@@ -31,16 +30,16 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Buyer",
+    title: "Customer",
     key: "customer_name",
     value: "customer_name",
     align: "start",
     sortable: true,
   },
   {
-    title: "Invoice Date",
-    key: "invoice_date",
-    value: "invoice_date",
+    title: "Payment Date",
+    key: "payment_date",
+    value: "payment_date",
     align: "start",
     sortable: true,
   },
@@ -59,45 +58,45 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "VAT",
-    key: "total_vat",
-    value: "total_vat",
+    title: "Payment Amount",
+    key: "payment_amount",
+    value: "payment_amount",
     align: "end",
     sortable: true,
   },
   {
-    title: "PPH",
-    key: "total_pph23",
-    value: "total_pph23",
+    title: "Total Invoice",
+    key: "total_invoice",
+    value: "total_invoice",
     align: "end",
     sortable: true,
   },
   {
-    title: "Qty",
-    key: "total_qty",
-    value: "total_qty",
+    title: "Total Adjustment",
+    key: "total_adjustment",
+    value: "total_adjustment",
     align: "end",
     sortable: true,
   },
   {
-    title: "Sub Amount",
-    key: "total_amount_products",
-    value: "total_amount_products",
+    title: "Total Balance",
+    key: "total_balance",
+    value: "total_balance",
     align: "end",
     sortable: true,
   },
   {
-    title: "Grand Total DP",
+    title: "Admin Bank",
+    key: "total_admin_bank",
+    value: "total_admin_bank",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Grand Total",
     key: "grand_total",
     value: "grand_total",
     align: "end",
-    sortable: true,
-  },
-  {
-    title: "Status",
-    key: "status",
-    value: "status",
-    align: "start",
     sortable: true,
   },
   {
@@ -111,7 +110,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
 
 const filtersConfig = ref<FilterSelectableType[]>([
   {
-    title: "Buyer",
+    title: "Customer",
     key: "customer_ids",
     type: "autocomplete",
     others: {
@@ -123,7 +122,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
       pageEndProp: "meta.next_page_url",
       itemTitle: "name",
       itemValue: "id",
-      label: "Buyer",
+      label: "Customer",
       innerSearchKey: "global",
       multiple: true,
       returnObject: false,
@@ -161,41 +160,10 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
-    title: "Status",
-    key: "status",
-    type: "autocomplete-client",
-    others: {
-      items: useStatics.InvoiceDpIndexStatus,
-    },
-  },
-  {
     title: "Invoice No",
     key: "invoice_no",
   },
 ]);
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'PAID':
-      return 'green';
-    case 'UNPAID':
-      return 'orange';
-    case 'CANCELLED':
-      return 'grey';
-    default:
-      return 'white';
-  }
-}
-
-async function changeStatus(id: number, status: string) {
-  const invoiceDpStore = useInvoiceDpStore();
-  await invoiceDpStore.changeStatus(id, status);
-  await invoiceDpStore.indexInvoiceDp();
-}
-
-onMounted(() => {
-  useInvoiceDpStore().indexWidget();
-});
 </script>
 
 <template>
@@ -209,86 +177,52 @@ onMounted(() => {
       }"
     >
       <d-datatable
-        api="/v1/invoice-dps/index-invoice-dp"
-        detail-link="/invoices/invoice-dps"
+        api="/v1/invoice-adjustments/index-invoice-adjustment"
+        detail-link="/invoices/invoice-adjustments"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to Invoice DP..."
+        search-placeholder="Search anything related to Invoice Adjustments..."
         is-quick-select
         no-title
-        edit-link="/invoices/invoice-dps/edit"
-        delete-api="/v1/invoice-dps/delete-invoice-dp"
+        edit-link="/invoices/invoice-adjustments/edit"
+        delete-api="/v1/invoice-adjustments/delete-invoice-adjustment"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/invoices/invoice-dps/create',
+          link: '/invoices/invoice-adjustments/create',
           show: true,
           cta: '+ Create',
         }"
-        @click:find="useInvoiceDpStore().indexWidget()"
         @update:filters="
-          (filters: QInvoiceDpIndexType) => {
+          (filters: QInvoiceAdjustmentIndexType) => {
             queryModal.qIndex = filters;
           }
         "
       >
-        <template #topFilters>
-          <d-widget-array
-            :data="(metaModal.indexWidgets.data as WidgetSingleType[])"
-            :class="''"
-            :isLoading="metaModal.indexWidgets.loading"
-          />
-        </template>
         <template #item.exchange_rate="{ item }">
           <d-num-layout :value="item.exchange_rate" />
         </template>
-        <template #item.total_vat="{ item }">
-          <d-num-layout :value="item.total_vat" />
+        <template #item.payment_amount="{ item }">
+          <d-num-layout :value="item.payment_amount" />
         </template>
-        <template #item.total_pph23="{ item }">
-          <d-num-layout :value="item.total_pph23" />
+        <template #item.total_invoice="{ item }">
+          <d-num-layout :value="item.total_invoice" />
         </template>
-        <template #item.total_qty="{ item }">
-          <d-num-layout :value="item.total_qty" :precision="0" />
+        <template #item.total_adjustment="{ item }">
+          <d-num-layout :value="item.total_adjustment" />
         </template>
-        <template #item.total_amount_products="{ item }">
-          <d-num-layout :value="item.total_amount_products" />
+        <template #item.total_balance="{ item }">
+          <d-num-layout :value="item.total_balance" />
+        </template>
+        <template #item.total_admin_bank="{ item }">
+          <d-num-layout :value="item.total_admin_bank" />
         </template>
         <template #item.grand_total="{ item }">
           <d-num-layout :value="item.grand_total" />
-        </template>
-        <template #item.status="{ item }">
-          <v-chip
-            :color="getStatusColor(item.status)"
-            size="small"
-            class="text-white"
-          >
-            {{ item.status }}
-          </v-chip>
-        </template>
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-2">
-            <v-btn
-              v-if="item.status === 'UNPAID'"
-              size="small"
-              variant="text"
-              @click="changeStatus(item.id, 'PAID')"
-            >
-              Mark as Paid
-            </v-btn>
-            <v-btn
-              v-if="item.status === 'PAID'"
-              size="small"
-              variant="text"
-              @click="changeStatus(item.id, 'UNPAID')"
-            >
-              Mark as Unpaid
-            </v-btn>
-          </div>
         </template>
       </d-datatable>
     </d-index-layout>

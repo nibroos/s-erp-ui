@@ -330,6 +330,10 @@ watch(() => form.value.invoice_date, async (newDate) => {
     calculateTotalAmountLocal();
   }
 });
+
+onBeforeMount(() => {
+  invoiceDpStore.handleClearQuery();
+});
 </script>
 
 <template>

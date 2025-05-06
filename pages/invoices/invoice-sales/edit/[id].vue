@@ -91,7 +91,7 @@ const headersSelectedItems = ref([
   { title: "Balance Amount", key: "total_balance", align: "end", sortable: true },
   { title: "Remark", key: "remark", sortable: true },
   { title: "Actions", key: "actions", sortable: false, align: "center" },
-]);
+] as any);
 
 const headersSalesOrder = ref([
   { title: "", key: "expand", width: 20, sortable: false },
@@ -110,7 +110,7 @@ const headersSalesOrder = ref([
   { title: "DP Amount", key: "total_dp", align: "end", sortable: true },
   { title: "Balance Amount", key: "total_balance", align: "end", sortable: true },
   { title: "Remark", key: "remark", sortable: true },
-]);
+] as any);
 
 const headersBom = ref([
   { title: "Product Code", key: "item_code", sortable: true },
@@ -118,7 +118,7 @@ const headersBom = ref([
   { title: "Unit", key: "unit_name", sortable: true },
   { title: "Qty", key: "qty", sortable: true, align: "end" },
   { title: "Remark", key: "remark", sortable: true },
-]);
+] as any);
 
 const filtersCustomer = ref<FilterSelectableType[]>([
   {
@@ -528,7 +528,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
           detail-method-api="post"
           mapping-detail="data[0]"
           total-prop="meta.total"
-          cta="Go To Sales Invoice"
+          cta="Go To Invoice Sales"
           v-model="nextSalesInvoice"
           class="col-span-2 lg:col-span-1"
           is-quick-select
@@ -813,9 +813,9 @@ watch(() => form.value.invoice_date, async (newDate) => {
             >
               <template #item.expand="{ toggleExpand, isExpanded, internalItem }">
                 <button
-                  v-if="(internalItem.raw.product_type === 'product' || internalItem.raw.item_type === 'product') && 
-                        ((internalItem.raw.sales_invoice_dt_boms && internalItem.raw.sales_invoice_dt_boms.length > 0) || 
-                        (internalItem.raw.so_dts_boms && internalItem.raw.so_dts_boms.length > 0))"
+                  v-if="internalItem.raw.product_type === 'product' &&
+                        internalItem.raw.sales_invoice_dt_boms &&
+                        internalItem.raw.sales_invoice_dt_boms.length > 0"
                   class="cursor-pointer"
                   @click="toggleExpand(internalItem)"
                   @submit.prevent
@@ -826,7 +826,7 @@ watch(() => form.value.invoice_date, async (newDate) => {
                     :class="isExpanded(internalItem) ? 'rotate-180' : 'rotate-0'"
                   />
                 </button>
-              </template>
+              </template>       
 
               <template #item.ref_type="{ item }">
                 <span class="uppercase">{{ item.ref_type }}</span>

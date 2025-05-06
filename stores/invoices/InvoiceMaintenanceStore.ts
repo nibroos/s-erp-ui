@@ -1,4 +1,4 @@
-import { convertSalesInvoiceItemRefProduct, generateSalesInvoiceDt, initCheckedSalesInvoiceDt, updateSalesInvoiceRefsModalFromMain } from '~/composables/maps/SalesInvoiceComp'
+import { convertInvoiceMaintenanceItemRefProduct, generateInvoiceMaintenanceDt, initCheckedInvoiceMaintenanceDt, updateInvoiceMaintenanceRefsModalFromMain } from '~/composables/maps/InvoiceMaintenanceComp'
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
@@ -8,21 +8,21 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { 
-  FormSalesInvoiceDtProductListType, 
-  FormSalesInvoiceDtRefType, 
-  FormSalesInvoiceType, 
-  IndexSalesInvoiceType, 
-  SalesInvoiceDtType, 
-  SalesInvoiceRefType, 
+  FormInvoiceMaintenanceDtProductListType, 
+  FormInvoiceMaintenanceDtRefType, 
+  FormInvoiceMaintenanceType, 
+  IndexInvoiceMaintenanceType, 
+  InvoiceMaintenanceDtType, 
+  InvoiceMaintenanceRefType, 
   QIndexSalesOrdersType, 
-  QSalesInvoiceIndexType 
-} from '~/types/sales-invoices/SalesInvoiceType'
+  QInvoiceMaintenanceIndexType 
+} from '~/types/invoice-maintenances/InvoiceMaintenanceType'
 
-const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
+const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
   state: () => ({
     form: {
       id: null,
-    } as FormSalesInvoiceType,
+    } as FormInvoiceMaintenanceType,
     queryModal: {
       qIndex: {
         page: 1,
@@ -31,7 +31,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         global: '',
         order_column: 'invoice_date',
         order_direction: 'desc'
-      } as QSalesInvoiceIndexType,
+      } as QInvoiceMaintenanceIndexType,
 
       qIndexSalesOrders: {
         page: 1,
@@ -41,17 +41,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         customer_id: null,
         order_column: '',
         order_direction: 'desc',
+        specific_ids: '',
         invoice_id: null
       } as QIndexSalesOrdersType
     },
     metaModal: {
       index: {
-        data: [] as IndexSalesInvoiceType[],
+        data: [] as IndexInvoiceMaintenanceType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
       indexSalesOrders: {
-        data: [] as FormSalesInvoiceDtProductListType[],
+        data: [] as FormInvoiceMaintenanceDtProductListType[],
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
@@ -69,25 +70,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
     itemsCheck: {
-      checkMain: [] as SalesInvoiceDtType[],
-      checkSalesOrders: [] as FormSalesInvoiceDtProductListType[],
+      checkMain: [] as InvoiceMaintenanceDtType[],
+      checkSalesOrders: [] as FormInvoiceMaintenanceDtProductListType[],
     },
     isOpenModal: {
       salesOrders: false,
-      inventoryOuts: false,
     },
     optionRefBtnRef: [
       {
         cta: "Sales Order",
         key: "salesOrders",
         icon: "mdi-cart-outline",
-        count: 0,
-        type: "button",
-      },
-      {
-        cta: "Inventory Out",
-        key: "inventoryOuts",
-        icon: "mdi-package-variant-closed",
         count: 0,
         type: "button",
       },
@@ -120,7 +113,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
     formLayout: {
       title: "Basic Information",
-      parentPath: "/invoices/invoice-sales",
+      parentPath: "/invoices/invoice-maintenances",
       currentTab: 0,
       tabs: ["Items", "Remark", "Attachments"],
       button: {
@@ -129,16 +122,22 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         },
       },
     } as FormLayoutType,
+    selectedBankDetails: {
+      company_name: '',
+      bank_name: '',
+      account_number: '',
+      account_name: ''
+    },
   }),
 
   actions: {
-    async indexSalesInvoice() {
+    async indexInvoiceMaintenance() {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/index-sales-invoice',
+          '/v1/invoice-maintenances/index-invoice-maintenance',
           this.queryModal.qIndex
         )
         
@@ -147,7 +146,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error?.response?.data)
-        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch sales invoices!')
+        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice maintenances!')
       } finally {
         this.metaModal.index.loading = false
       }
@@ -161,7 +160,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/widget-sales-invoice',
+          '/v1/invoice-maintenances/widget-invoice-maintenance',
           params
         )
     
@@ -182,7 +181,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.loading.editPageLoading = true
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/show-sales-invoice',
+          '/v1/invoice-maintenances/show-invoice-maintenance',
           {
             id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
           }
@@ -197,19 +196,19 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           await this.fetchCustomerDetails(this.form.customer_id);
         }
 
-        if (this.form.sales_invoice_dts && this.form.sales_invoice_dts.length > 0) {
-          this.form.sales_invoice_dts.forEach(item => {
+        if (this.form.invoice_maintenance_dts && this.form.invoice_maintenance_dts.length > 0) {
+          this.form.invoice_maintenance_dts.forEach(item => {
             item.product_code = item.item_code;
             item.product_name = item.item_name;
           });
         }
         
-        this.itemsCheck.checkMain = initCheckedSalesInvoiceDt(this.form.sales_invoice_dts || [])
+        this.itemsCheck.checkMain = initCheckedInvoiceMaintenanceDt(this.form.invoice_maintenance_dts || [])
     
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data)
-        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch sales invoice details!')
+        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice maintenance details!')
       } finally {
         this.loading.editPageLoading = false
         this.updateRefsModal()
@@ -252,18 +251,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.updateAllItemsVat();
         this.updateAllItemsPph23();
 
-        this.form.sales_invoice_dts = [...this.itemsCheck.checkMain]
+        this.form.invoice_maintenance_dts = [...this.itemsCheck.checkMain]
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/create-sales-invoice',
+          '/v1/invoice-maintenances/create-invoice-maintenance',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formSalesInvoiceCreateEdit)
+          JSON.stringify(useInitials.formInvoiceMaintenanceCreateEdit)
         )
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/invoices/invoice-sales`)
+        navigateTo(`/invoices/invoice-maintenances`)
 
         return response
       } catch (error: any) {
@@ -307,16 +306,16 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.updateAllItemsVat();
         this.updateAllItemsPph23();
         
-        this.form.sales_invoice_dts = [...this.itemsCheck.checkMain]
+        this.form.invoice_maintenance_dts = [...this.itemsCheck.checkMain]
 
         this.form.id = id;
 
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/update-sales-invoice',
+          '/v1/invoice-maintenances/update-invoice-maintenance',
           this.form
         )
         this.form = JSON.parse(
-          JSON.stringify(useInitials.formSalesInvoiceCreateEdit)
+          JSON.stringify(useInitials.formInvoiceMaintenanceCreateEdit)
         )
 
         this.form.id = id
@@ -325,7 +324,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
-        navigateTo(`/invoices/invoice-sales`)
+        navigateTo(`/invoices/invoice-maintenances`)
 
         return response
       } catch (error: any) {
@@ -353,7 +352,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/delete-sales-invoice',
+          '/v1/invoice-maintenances/delete-invoice-maintenance',
           this.form
         )
         this.form = response.data.data[0]
@@ -369,7 +368,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/restore-sales-invoice',
+          '/v1/invoice-maintenances/restore-invoice-maintenance',
           this.form
         )
         this.form = response.data.data[0]
@@ -386,7 +385,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.metaModal.indexSalesOrders.loading = true
     
       try {
-        if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+        if (!this.queryModal.qIndexSalesOrders.specific_ids && this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
           if (soItems.length > 0) {
             this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
@@ -394,7 +393,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         }
 
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/index-ref-so-dt',
+          '/v1/invoice-maintenances/index-ref-so-dt',
           this.queryModal.qIndexSalesOrders
         )
     
@@ -402,9 +401,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.metaModal.indexSalesOrders = response.data
     
           if (this.itemsCheck.checkMain.length > 0) {
-            const selectedItems: FormSalesInvoiceDtProductListType[] = [];
+            const selectedItems: FormInvoiceMaintenanceDtProductListType[] = [];
             
-            (this.metaModal.indexSalesOrders.data as FormSalesInvoiceDtProductListType[]).forEach((resSO: FormSalesInvoiceDtProductListType, iResSO: number) => {
+            (this.metaModal.indexSalesOrders.data as FormInvoiceMaintenanceDtProductListType[]).forEach((resSO: FormInvoiceMaintenanceDtProductListType, iResSO: number) => {
               const existingItem = this.itemsCheck.checkMain.find(item => 
                 item.ref_type === 'so' && 
                 ((item.ref_id === resSO.sales_order_id && item.ref_dt_id === resSO.id) ||
@@ -448,7 +447,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     selectItemRefModal() {
       if (this.isOpenModal.salesOrders) {
-        this.itemsCheck.checkMain = generateSalesInvoiceDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
+        this.itemsCheck.checkMain = generateInvoiceMaintenanceDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
         this.isOpenModal.salesOrders = false
       }
     },
@@ -501,7 +500,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       const currentId = this.form.id;
       const isEditMode = !!currentId;
 
-      this.form = cloneObject(useInitials.formSalesInvoiceCreateEdit)
+      this.form = cloneObject(useInitials.formInvoiceMaintenanceCreateEdit)
 
       if (isEditMode) {
         this.form.id = currentId;
@@ -530,7 +529,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
 
     updateRefsModal() {
-      this.itemsCheck.checkSalesOrders = updateSalesInvoiceRefsModalFromMain(
+      this.itemsCheck.checkSalesOrders = updateInvoiceMaintenanceRefsModalFromMain(
         this.itemsCheck.checkMain,
         "so",
         this.itemsCheck.checkSalesOrders
@@ -561,7 +560,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     autocompleteVat(data: FormVatType) {
       this.form.vat_percentage = Number(data.num);
     
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         if (!!item.is_vat) {
           item.vat_id = data.id as number;
           item.vat_percentage = Number(data.num);
@@ -571,8 +570,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.calculateTotalAmount();
     },
 
-    autocompleteVatDt(data: FormVatType, salesInvoiceDtType: SalesInvoiceDtType) {
-      salesInvoiceDtType.vat_percentage = Number(data.num);
+    autocompleteVatDt(data: FormVatType, invoiceMaintenanceDtType: InvoiceMaintenanceDtType) {
+      invoiceMaintenanceDtType.vat_percentage = Number(data.num);
       this.calculateTotalAmount();
     },
 
@@ -583,7 +582,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     updateAllItemsVat() {
       if (this.form.vat_id) {
-        this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+        this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
           if (item.is_vat) {
             item.vat_id = this.form.vat_id;
             item.vat_percentage = this.form.vat_percentage;
@@ -594,7 +593,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     
     updateAllItemsPph23() {
       if (this.form.pph23_id) {
-        this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+        this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
           if (item.is_pph23) {
             item.pph23_id = this.form.pph23_id;
             item.pph23_percentage = this.form.pph23_percentage;
@@ -608,7 +607,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.vat_percentage = 0;
       this.form.total_vat = 0;
 
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         item.vat_id = null;
         item.vat_percentage = 0;
         item.is_vat = 0;
@@ -617,17 +616,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.calculateTotalAmount();
     },
 
-    removeVatDt(salesInvoiceDtType: SalesInvoiceDtType) {
-      if (!salesInvoiceDtType.vat_id) {
-        salesInvoiceDtType.vat_percentage = 0;
+    removeVatDt(invoiceMaintenanceDtType: InvoiceMaintenanceDtType) {
+      if (!invoiceMaintenanceDtType.vat_id) {
+        invoiceMaintenanceDtType.vat_percentage = 0;
       }
 
       this.calculateTotalAmount();
     },
 
-    removePph23Dt(salesInvoiceDtType: SalesInvoiceDtType) {
-      if (!salesInvoiceDtType.pph23_id) {
-        salesInvoiceDtType.pph23_percentage = 0;
+    removePph23Dt(invoiceMaintenanceDtType: InvoiceMaintenanceDtType) {
+      if (!invoiceMaintenanceDtType.pph23_id) {
+        invoiceMaintenanceDtType.pph23_percentage = 0;
       }
 
       this.calculateTotalAmount();
@@ -637,7 +636,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.pph23_percentage = 0;
       this.form.total_pph23 = 0;
 
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         item.pph23_id = null;
         item.pph23_percentage = 0;
       });
@@ -649,7 +648,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.pph23_id = null;
       this.form.pph23_percentage = 0;
 
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         item.pph23_id = null;
         item.pph23_percentage = 0;
         item.is_pph23 = 0;
@@ -661,7 +660,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     autocompletePph(data: FormPph23Type) {
       this.form.pph23_percentage = Number(data.num);
 
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         if (!!item.is_pph23) {
           item.pph23_id = data.id as number;
           item.pph23_percentage = Number(data.num);
@@ -681,88 +680,6 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     closeAllModal() {
       this.isOpenModal.salesOrders = false;
     },
-
-    // onClickUpdateProductsModal() {
-    //   if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
-    //     const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
-
-    //     if (!this.form.customer_id && firstSelectedItem.customer_id) {
-    //       this.form.customer_id = firstSelectedItem.customer_id;
-
-    //       if (firstSelectedItem.customer_id) {
-    //         this.fetchCustomerDetails(firstSelectedItem.customer_id);
-    //       }
-    //     }
-
-    //     if (!this.form.currency_id && firstSelectedItem.currency_id) {
-    //       this.form.currency_id = firstSelectedItem.currency_id;
-    //       this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
-    //     }
-
-    //     let hasVat = false;
-    //     let hasPph23 = false;
-
-    //     const pph23Counts = new Map<number, number>();
-    //     let maxPph23Count = 0;
-    //     let mostCommonPph23Id: number | null = null;
-    //     let mostCommonPph23Percentage = 0;
-
-    //     this.itemsCheck.checkSalesOrders.forEach(item => {
-    //       if (item.is_vat === 1) {
-    //         hasVat = true;
-    //       }
-
-    //       if (item.is_pph23 === 1 && item.pph23_id) {
-    //         hasPph23 = true;
-
-    //         const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
-    //         pph23Counts.set(item.pph23_id, currentCount);
-
-    //         if (currentCount > maxPph23Count) {
-    //           maxPph23Count = currentCount;
-    //           mostCommonPph23Id = item.pph23_id;
-    //           mostCommonPph23Percentage = item.pph23_percentage || 0;
-    //         }
-    //       }
-    //     });
-
-    //     if (hasVat && !this.form.is_vat) {
-    //       this.form.is_vat = 1;
-    //       this.onClickSwitchVAT(true);
-    //     }
-
-    //     if (hasPph23 && !this.form.pph23_id && mostCommonPph23Id) {
-    //       this.form.pph23_id = mostCommonPph23Id;
-    //       this.form.pph23_percentage = mostCommonPph23Percentage;
-    //       this.form.is_pph23 = 1;
-    //     }
-
-    //     if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
-    //     (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
-
-    //       if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
-    //         this.form.discount_amount = firstSelectedItem.head_disc_am;
-    //         this.form.discount_percentage = 0;
-    //       } 
-    //       else if (firstSelectedItem.head_disc_perc && firstSelectedItem.head_disc_perc > 0) {
-    //         this.form.discount_percentage = firstSelectedItem.head_disc_perc;
-    //         this.form.discount_amount = 0;
-    //       }
-    //     }
-
-    //     if (!this.form.remark && firstSelectedItem.head_remark) {
-    //       this.form.remark = firstSelectedItem.head_remark;
-    //     }
-    //   }
-      
-    //   const existingItems = [...this.itemsCheck.checkMain];
-    
-    //   this.selectItemRefModal();
-      
-    //   this.countSelectedReferences();
-    //   this.closeAllModal();
-    //   this.calculateTotalAmount();
-    // }, 
     
     onClickUpdateProductsModal() {
       if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
@@ -805,7 +722,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
               if (currentCount > maxPph23Count) {
                 maxPph23Count = currentCount;
                 mostCommonPph23Id = item.head_pph23_id;
-                mostCommonPph23Percentage = item.head_pph23_perc || 0;
+                mostCommonPph23Percentage = item.head_pph23_percentage || 0;
               }
             }
           }
@@ -858,7 +775,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     async onClickOpenModalOptionRefBtn(ref: RefBtnType) {
       if (ref.key == "salesOrders") {
-        this.itemsCheck.checkSalesOrders = updateSalesInvoiceRefsModalFromMain(
+        this.itemsCheck.checkSalesOrders = updateInvoiceMaintenanceRefsModalFromMain(
           this.itemsCheck.checkMain,
           "so",
           this.itemsCheck.checkSalesOrders
@@ -883,24 +800,12 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
         this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
 
-        // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
-        //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
-        //   if (soItems.length > 0) {
-        //     this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
-        //   } else {
-        //     this.queryModal.qIndexSalesOrders.specific_ids = '';
-        //   }
-        // } else {
-        //   this.queryModal.qIndexSalesOrders.specific_ids = '';
-        // }
-
         if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
           if (soItems.length > 0) {
             this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
           }
         }
-        
         await this.indexSalesOrder();
       }
     },
@@ -932,7 +837,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       };
     },
 
-    autocompleteSalesOrder(data: FormSalesInvoiceDtProductListType) {
+    autocompleteSalesOrder(data: FormInvoiceMaintenanceDtProductListType) {
       this.form.customer_id = data.customer_id;
       this.headAutocomplete.so.currency_id = data.currency_id;
       this.headAutocomplete.so.exchange_rate = data.exchange_rate;
@@ -964,7 +869,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.form.vat_id = applicableVat.id as number;
           this.form.vat_percentage = Number(applicableVat.num);
           
-          this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+          this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
             if (item.is_vat) {
               item.vat_id = applicableVat.id as number;
               item.vat_percentage = Number(applicableVat.num);
@@ -977,7 +882,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
 
     calculateTotalAmount() {
-      this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
+      this.itemsCheck.checkMain.forEach((item: InvoiceMaintenanceDtType) => {
         const price = Number(item.price);
         const qty = Number(item.qty);
         item.subtotal = price * qty;
@@ -985,27 +890,27 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         const discount = Number(item.discount || 0);
         item.total_amount = item.subtotal - discount;
         
-        // For sales invoice, we need to calculate total_balance
+        // Calculate total_balance
         item.total_balance = item.total_amount - (item.total_dp || 0);
       });
     
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + item.subtotal,
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + item.subtotal,
         0
       );
     
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + item.qty,
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + item.qty,
         0
       );
     
       const totalItemDiscount = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + (item.discount || 0),
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + (item.discount || 0),
         0
       );
       
       this.form.total_amount_products = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + item.total_amount,
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + item.total_amount,
         0
       );
     
@@ -1024,18 +929,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.form.total_discount = totalItemDiscount + this.form.discount_final;
       
       this.form.total_dp_products = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + (item.total_dp || 0),
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + (item.total_dp || 0),
         0
       );
 
       this.form.total_balance_products = this.itemsCheck.checkMain.reduce(
-        (acc: number, item: SalesInvoiceDtType) => acc + (item.total_balance || 0),
+        (acc: number, item: InvoiceMaintenanceDtType) => acc + (item.total_balance || 0),
         0
       );
     
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SalesInvoiceDtType) => {
+          (acc: number, item: InvoiceMaintenanceDtType) => {
             if (!!item.is_vat) {
               return acc + item.total_balance;
             }
@@ -1053,7 +958,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     
       if (!!this.form.pph23_id) {
         let totalBalanceIsPph23 = this.itemsCheck.checkMain.reduce(
-          (acc: number, item: SalesInvoiceDtType) => {
+          (acc: number, item: InvoiceMaintenanceDtType) => {
             if (!!item.is_pph23) {
               return acc + item.total_balance;
             }
@@ -1096,7 +1001,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       };
     },
 
-    onClickSwitchVatDt(item: SalesInvoiceDtType, value: boolean) {
+    onClickSwitchVatDt(item: InvoiceMaintenanceDtType, value: boolean) {
       item.is_vat = value ? 1 : 0;
       
       if (!value) {
@@ -1110,7 +1015,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.calculateTotalAmount();
     },
 
-    onClickSwitchPph23Dt(item: SalesInvoiceDtType, value: boolean) {
+    onClickSwitchPph23Dt(item: InvoiceMaintenanceDtType, value: boolean) {
       item.is_pph23 = value ? 1 : 0;
       
       if (!value) {
@@ -1148,7 +1053,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     async changeStatus(id: number | string | string[] | undefined, status: string) {
       try {
         const response = await useMyFetch().post(
-          '/v1/sales-invoices/update-status-sales-invoice',
+          '/v1/invoice-maintenances/update-status-invoice-maintenance',
           {
             id: id,
             status: status
@@ -1160,6 +1065,44 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       } catch (error: any) {
         console.log('Failed To Change Status', error?.response?.data)
         useAlert.alertError(error?.response?.data?.message || 'Failed to change status!')
+      }
+    },
+
+    async approveInvoiceMaintenance(ids: number[] | number | string | string[] | undefined) {
+      try {
+        const idsArray = Array.isArray(ids) ? ids : [ids];
+        
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/approve-invoice-maintenance',
+          {
+            ids: idsArray
+          }
+        )
+        
+        useAlert.alertSuccess(response.data.message)
+        return response
+      } catch (error: any) {
+        console.log('Failed To Approve Invoice Maintenance', error?.response?.data)
+        useAlert.alertError(error?.response?.data?.message || 'Failed to approve invoice maintenance!')
+      }
+    },
+    
+    async cancelApprovalInvoiceMaintenance(ids: number[] | number | string | string[] | undefined) {
+      try {
+        const idsArray = Array.isArray(ids) ? ids : [ids];
+        
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/cancel-approve-invoice-maintenance',
+          {
+            ids: idsArray
+          }
+        )
+        
+        useAlert.alertSuccess(response.data.message)
+        return response
+      } catch (error: any) {
+        console.log('Failed To Cancel Approval Invoice Maintenance', error?.response?.data)
+        useAlert.alertError(error?.response?.data?.message || 'Failed to cancel approval for invoice maintenance!')
       }
     },
 
@@ -1201,13 +1144,13 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       }
     },
 
-    goToSalesInvoice(id: number) {
-      navigateTo(`/invoices/invoice-sales/edit/${id}`);
+    goToInvoiceMaintenance(id: number) {
+      navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
     }     
   },
   persist: [
     {
-      paths: ['queryModal', 'formTabSalesInvoice'],
+      paths: ['queryModal', 'formTabInvoiceMaintenance'],
       storage: localStorage
     }
   ]
@@ -1217,5 +1160,4 @@ function cloneObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));
 }
 
-export default useSalesInvoiceStore
-
+export default useInvoiceMaintenanceStore
