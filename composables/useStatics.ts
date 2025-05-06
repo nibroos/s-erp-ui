@@ -329,7 +329,7 @@ const POIndexStatus = [
   {
     value: 'PARTIAL',
     title: 'Partial',
-    color: 'Orange',
+    color: 'orange',
   },
   {
     value: 'CANCELED',

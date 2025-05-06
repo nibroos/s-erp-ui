@@ -81,7 +81,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         name: '',
         sku: '',
         factory_code: '',
-        order_column: 'order_at',
+        order_column: 'po_date',
         order_direction: 'desc'
       } as QIndexPurchaseOrdersType,
       qIndexInventoryIns: {
