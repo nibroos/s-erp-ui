@@ -776,7 +776,6 @@ export const useStatics = {
   MaintenanceInvoiceIndexStatus,
   formTabInvoiceMaintenance,
   formStatusInvoiceMaintenance,
-  formStatusSalesInvoice,
   invOutdexDateType,
   initialColorsStatus,
   headersCustomer,

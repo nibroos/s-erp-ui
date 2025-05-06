@@ -40,7 +40,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         customer_ids: [],
         customer_id: null,
         order_column: '',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        invoice_id: null
       } as QIndexSalesOrdersType
     },
     metaModal: {
@@ -463,8 +464,6 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     },
 
     handleClearQuery() {
-      const currentSpecificIds = this.queryModal.qIndexSalesOrders.specific_ids;
-      
       this.queryModal.qIndexSalesOrders = {
         page: 1,
         per_page: 10,
@@ -480,7 +479,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         global: '',
         order_type_id: null,
         item_type: null,
-        specific_ids: currentSpecificIds
+        // invoice_id: currentInvoiceId
       }
     },
 
@@ -865,6 +864,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.itemsCheck.checkSalesOrders
         );
 
+        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+
         this.countSelectedReferences();
         this.isOpenModal.salesOrders = true;
       }
@@ -879,6 +880,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         } else {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
+
+        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
 
         // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
         //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
