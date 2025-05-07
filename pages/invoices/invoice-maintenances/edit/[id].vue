@@ -556,7 +556,7 @@ watch(
       @click:clear="invoiceMaintenanceStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
-      <template #title-append>
+      <!-- <template #title-append>
         <d-select-table
           api="/v1/invoice-maintenances/index-invoice-maintenance"
           detail-api="/v1/invoice-maintenances/index-invoice-maintenance"
@@ -579,7 +579,7 @@ watch(
           :fields="fieldsConfig"
           :filters="filtersConfig"
         />
-      </template>
+      </template> -->
       <template #header>
         <form
           :class="

@@ -1144,9 +1144,9 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       }
     },
 
-    goToInvoiceMaintenance(id: number) {
-      navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
-    }     
+    // goToInvoiceMaintenance(id: number) {
+    //   navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
+    // }     
   },
   persist: [
     {
