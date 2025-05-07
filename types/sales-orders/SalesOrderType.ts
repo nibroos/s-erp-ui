@@ -406,6 +406,7 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   so_dts_boms?: ProductBomListType[]
   quo_dts_boms?: ProductBomListType[]
 
+  payment_id?: number | null
   quotation_id?: number | null
   order_type_id?: number | null
   currency_id?: number | null

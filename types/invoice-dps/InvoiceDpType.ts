@@ -45,7 +45,7 @@ export type IndexInvoiceDpType = {
   payment_term_name: string | null
   vat_name: string | null
   pph23_name: string | null
-  
+
   invoice_dp_dts?: InvoiceDpDtType[] | null
 }
 
@@ -122,7 +122,7 @@ export type InvoiceDpDtBomType = {
   item_specification?: string | null
   item_qty_stock?: number | null
   unit_name?: string
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -173,7 +173,7 @@ export type InvoiceDpDtType = {
   unit_name?: string
   vat_name?: string | null
   pph23_name?: string | null
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -182,7 +182,7 @@ export type InvoiceDpDtType = {
   created_at?: string | null
   updated_at?: string | null
   deleted_at?: string | null
-  
+
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
   so_dts_boms?: SalesOrderDtBomType[] | null;
 }
@@ -257,7 +257,7 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   disc_am?: number
   disc_perc?: number
   disc_perc_am?: number
-  
+
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
 
   sales_order_id?: number | null
@@ -289,6 +289,6 @@ export type FormVatType = {
   remark?: string | null;
   date_at?: string | null;
   status?: number;
-  multiplier?: string | null;
-  divider?: string | null;
+  multiplier?: number | null;
+  divider?: number | null;
 }

@@ -29,6 +29,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Start Date",
+    key: "date_at",
+    value: "date_at",
+    align: "end",
+    sortable: true,
+  },
+  {
     title: "Multiplier",
     key: "multiplier",
     value: "multiplier",
@@ -109,6 +116,8 @@ const getParentLink = (link: string) => {
         api="/v1/vats/index-vat"
         detail-link="/masters/vats"
         method-api="post"
+        edit-link="/masters/customizations/vats/edit"
+        delete-api="/v1/vats/delete-vat"
         detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"

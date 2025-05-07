@@ -184,6 +184,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -204,6 +207,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/order-types/index-order-type",
       singleApi: "/v1/order-types/index-order-type",
       mappingDetail: "data",
@@ -242,6 +248,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",
@@ -523,6 +532,16 @@ watch(
       <div class="flex flex-col gap-3 p-3">
         <div v-if="scheduleStore.form.id" class="flex flex-col gap-3">
           <d-schedule-single-no-ref @update:schedule="updateSchedule" />
+          <div class="">
+            <d-text-area-input
+              v-model="formSchedule.remark"
+              :label="`Remark`"
+              :placeholder="`Remark`"
+              class=""
+              :auto-grow="false"
+              :rows="3"
+            />
+          </div>
           <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
             <!-- attached files -->
             <div class="flex flex-col gap-2">
@@ -652,6 +671,16 @@ watch(
           class="flex flex-col gap-3"
         >
           <d-schedule-single @update:schedule="updateSchedule" />
+          <div class="" v-if="formSalesOrder.schedule">
+            <d-text-area-input
+              v-model="formSalesOrder.schedule.remark"
+              :label="`Remark`"
+              :placeholder="`Remark`"
+              class=""
+              :auto-grow="false"
+              :rows="3"
+            />
+          </div>
           <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
             <!-- attached files -->
             <div class="flex flex-col gap-2">
@@ -827,9 +856,22 @@ watch(
       @update:is-open="isOpen.createEvent = $event"
       :focus-trap="false"
     >
-      <div class="flex flex-col gap-3 p-3">
+      <div
+        class="flex flex-col gap-3 p-3"
+        v-if="formSalesOrder.schedule != null"
+      >
         <d-create-schedule-single @create:schedule="createScheduleNoRef" />
 
+        <div class="">
+          <d-text-area-input
+            v-model="formSalesOrder.schedule.remark"
+            :label="`Remark`"
+            :placeholder="`Remark`"
+            class=""
+            :auto-grow="false"
+            :rows="3"
+          />
+        </div>
         <div class="lg:col-span-6">
           <v-file-upload
             v-model="formSalesOrder.files"

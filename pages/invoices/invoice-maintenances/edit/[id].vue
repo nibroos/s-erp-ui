@@ -158,6 +158,9 @@ const filtersCustomer = ref<FilterSelectableType[]>([
     display: "name",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customer-types/index-customer-type",
       singleApi: "/v1/customer-types/index-customer-type",
       pageEndProp: "meta.next_page_url",
@@ -307,6 +310,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -348,6 +354,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",
@@ -600,6 +609,9 @@ watch(
               total-prop="meta.total"
               label="Customer"
               v-model="form.customer_id"
+              :query="{
+                is_active: 1,
+              }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
@@ -673,6 +685,9 @@ watch(
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.currency_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/currencies/index-currency"
               single-api="/v1/currencies/show-currency"
               page-end-prop="meta.next_page_url"
@@ -707,6 +722,9 @@ watch(
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.payment_term_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/payment-terms/index-payment-term"
               single-api="/v1/payment-terms/show-payment-term"
               page-end-prop="meta.next_page_url"
@@ -752,6 +770,9 @@ watch(
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.pph23_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/pph23s/index-pph23"
               single-api="/v1/pph23s/show-pph23"
               page-end-prop="meta.next_page_url"
@@ -974,6 +995,9 @@ watch(
         >
           <d-autocomplete
             v-model="queryModal.qIndexSalesOrders.customer_id"
+            :query="{
+              is_active: 1,
+            }"
             api="/v1/customers/index-customer"
             method-api="post"
             page-end-prop="meta.next_page_url"

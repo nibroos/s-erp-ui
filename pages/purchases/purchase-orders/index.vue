@@ -124,6 +124,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -144,6 +147,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/purchase-types/index-purchase-type",
       singleApi: "/v1/purchase-types/index-purchase-type",
       mappingDetail: "data",
@@ -182,6 +188,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",

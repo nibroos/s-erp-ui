@@ -116,6 +116,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -146,6 +149,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",
@@ -176,14 +182,14 @@ const filtersConfig = ref<FilterSelectableType[]>([
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'PAID':
-      return 'green';
-    case 'UNPAID':
-      return 'orange';
-    case 'CANCELLED':
-      return 'grey';
+    case "PAID":
+      return "green";
+    case "UNPAID":
+      return "orange";
+    case "CANCELLED":
+      return "grey";
     default:
-      return 'white';
+      return "white";
   }
 }
 

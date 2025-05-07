@@ -448,7 +448,7 @@ const clearSelected = () => {
   itemsCheck.value = [];
   selectedText.value = "";
   emits("update:modelValue", null);
-  emits("click:clear");
+  emits("click:clear", showMetaModal.value.single);
   showModal.value = false;
 };
 

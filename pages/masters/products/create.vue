@@ -34,6 +34,9 @@ const {
   queryModal,
   metaModal,
   loading,
+  conditions,
+  formTabProduct,
+  tabs,
 } = storeToRefs(productStore);
 
 definePageMeta({
@@ -263,7 +266,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/masters/products",
   currentTab: tabFormIndex.value,
-  tabs: ["BOM", "Conversions", "Remark"],
+  tabs: tabs.value,
   button: {
     clear: {
       show: true,
@@ -384,6 +387,16 @@ onMounted(async () => {
   // productStore.updateRefsModal();
 });
 
+watch(
+  () => tabs.value,
+  (newVal) => {
+    if (newVal) {
+      formLayout.value.tabs = newVal;
+    }
+  },
+  { immediate: true }
+);
+
 watchEffect(() => {
   // changeTitle();
   topTitle.value = "Products";
@@ -440,6 +453,8 @@ watchEffect(() => {
               modal-custom-class="!w-4/5"
               :fields="headersSubGroup"
               :filters="filtersSubGroup"
+              @click:selected="productStore.onSelectedSubGroup"
+              @click:clear="productStore.onSelectedSubGroup(null)"
             />
           </div>
 
@@ -467,29 +482,62 @@ watchEffect(() => {
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">
-            <div class="sm:col-span-1">
-              <d-autocomplete-client
-                v-model="form.item_unit_id"
-                :items="itemsCheck.checkMainUnits"
-                label="Unit"
-                item-value="unit_id"
-                item-title="name"
-                :clearable="false"
-              />
+            <!-- <d-autocomplete-client
+              v-model="form.item_unit_id"
+:query="{
+is_active: 1
+}"
+              :items="itemsCheck.checkMainUnits"
+              label="Unit"
+              item-value="unit_id"
+              item-title="name"
+              :clearable="false"
+            /> -->
 
-              <!-- <d-autocomplete
-                v-model="form.item_unit_id"
-                api="/v1/units/index-unit"
-                single-api="/v1/units/show-unit"
-                page-end-prop="meta.next_page_url"
-                item-title="name"
-                item-value="id"
-                method-api="post"
-                inner-search-key="global"
-                label="Unit"
-                :errors="errors.item_unit_id"
-              ></d-autocomplete> -->
-            </div>
+            <d-autocomplete
+              v-model="form.item_unit_id"
+              :query="{
+                is_active: 1,
+              }"
+              api="/v1/units/index-unit"
+              single-api="/v1/units/show-unit"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Unit"
+              :errors="errors.item_unit_id"
+              @click:selected="productStore.onSelectedUnit"
+            ></d-autocomplete>
+          </div>
+          <div class="sm:col-span-1">
+            <d-num-v-format
+              v-model="form.price_buy"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              @update:modelValue="productStore.calculateUnits"
+              label="Price Buy"
+              class=""
+              :disabled="!form.item_unit_id"
+            />
+          </div>
+          <div class="sm:col-span-1">
+            <d-num-v-format
+              v-model="form.price_sell"
+              :precision="{
+                min: 3,
+                max: 3,
+              }"
+              hide-currency-display
+              @update:modelValue="productStore.calculateUnits"
+              label="Price Sell"
+              class=""
+              :disabled="!form.item_unit_id"
+            />
           </div>
 
           <div
@@ -508,7 +556,7 @@ watchEffect(() => {
       </template>
       <template #content>
         <div
-          v-if="tabFormIndex == useStatics.formTabProduct.boms"
+          v-if="tabFormIndex == formTabProduct.boms && conditions.isProduct"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <div class="col-span-2">
@@ -619,7 +667,7 @@ watchEffect(() => {
           </v-data-table-virtual>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabProduct.units"
+          v-if="tabFormIndex == formTabProduct.conversions"
           class="grid grid-cols-3 sm:grid-cols-1 gap-2"
         >
           <div class="col-span-2">
@@ -674,6 +722,7 @@ watchEffect(() => {
                     max: 3,
                   }"
                   :initial-value="item.conversion ?? 1"
+                  @update:modelValue="productStore.calculateUnits"
                   hide-currency-display
                   label=""
                   class="w-[9rem]"
@@ -691,6 +740,7 @@ watchEffect(() => {
                   hide-currency-display
                   label=""
                   class="w-[9rem]"
+                  disabled
                 />
               </div>
             </template>
@@ -705,6 +755,7 @@ watchEffect(() => {
                   hide-currency-display
                   label=""
                   class="w-[9rem]"
+                  disabled
                 />
               </div>
             </template>
@@ -728,7 +779,7 @@ watchEffect(() => {
           </v-data-table-virtual>
         </div>
         <div
-          v-if="tabFormIndex == useStatics.formTabProduct.remarks"
+          v-if="tabFormIndex == formTabProduct.remarks"
           class="grid grid-cols-1 gap-2"
         >
           <d-text-area-input

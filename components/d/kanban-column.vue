@@ -610,6 +610,9 @@ const countCheckedTasks = computed(() => {
           createApi: '/v1/tasks/create-task',
           editApi: '/v1/tasks/update-task',
         }"
+        :query="{
+          is_active: 1,
+        }"
       >
         <template #btn="{ onOpenModal, onClearSelected }">
           <v-btn

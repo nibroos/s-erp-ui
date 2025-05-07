@@ -655,6 +655,9 @@ watchEffect(() => {
               total-prop="meta.total"
               label="Supplier"
               v-model="form.customer_id"
+              :query="{
+                is_active: 1,
+              }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
@@ -702,6 +705,9 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.currency_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/currencies/index-currency"
               single-api="/v1/currencies/show-currency"
               page-end-prop="meta.next_page_url"
@@ -730,6 +736,9 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.pph23_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/pph23s/index-pph23"
               single-api="/v1/pph23s/show-pph23"
               page-end-prop="meta.next_page_url"
@@ -777,6 +786,7 @@ watchEffect(() => {
                 date_at: form.po_date,
                 order_column: 'date_at',
                 order_direction: 'desc',
+                is_active: 1,
               }"
               @after:fetch="
                 (data) => {
@@ -1191,6 +1201,9 @@ watchEffect(() => {
             total-prop="meta.total"
             label="Customer"
             v-model="form.customer_id"
+            :query="{
+              is_active: 1,
+            }"
             class=""
             is-quick-select
             @click:selected="

@@ -274,6 +274,9 @@ onMounted(async () => {
             <div class="sm:col-span-1">
               <d-autocomplete
                 v-model="form.currency_id"
+                :query="{
+                  is_active: 1,
+                }"
                 api="/v1/currencies/index-currency"
                 single-api="/v1/currencies/show-currency"
                 page-end-prop="meta.next_page_url"

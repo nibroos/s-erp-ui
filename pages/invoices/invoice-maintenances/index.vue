@@ -29,7 +29,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     value: "checkbox",
     align: "center",
     sortable: false,
-    width: "50px"
+    width: "50px",
   },
   {
     title: "Invoice No",
@@ -142,7 +142,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     value: "approved_by_name",
     align: "start",
     sortable: true,
-  }
+  },
 ]);
 
 const filtersConfig = ref<FilterSelectableType[]>([
@@ -152,6 +152,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -182,6 +185,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",
@@ -212,42 +218,52 @@ const filtersConfig = ref<FilterSelectableType[]>([
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'PAID':
-      return 'green';
-    case 'UNPAID':
-      return 'orange';
-    case 'CANCELLED':
-      return 'grey';
-    case 'APPROVED':
-      return 'blue';
-    case 'PENDING':
-      return 'brown';
+    case "PAID":
+      return "green";
+    case "UNPAID":
+      return "orange";
+    case "CANCELLED":
+      return "grey";
+    case "APPROVED":
+      return "blue";
+    case "PENDING":
+      return "brown";
     default:
-      return 'white';
+      return "white";
   }
 }
 
 const approvalMode = ref(false);
 const selectedInvoices = ref<number[]>([]);
-const currentMode = ref('approve');
+const currentMode = ref("approve");
 const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
 
 const actionOptions = ref([
-  { title: 'Approve Invoice', value: 'approve', icon: 'mdi-check-circle', iconColor: 'text-green-500' },
-  { title: 'Cancel Approval', value: 'cancel', icon: 'mdi-cancel', iconColor: 'text-red-500' }
+  {
+    title: "Approve Invoice",
+    value: "approve",
+    icon: "mdi-check-circle",
+    iconColor: "text-green-500",
+  },
+  {
+    title: "Cancel Approval",
+    value: "cancel",
+    icon: "mdi-cancel",
+    iconColor: "text-red-500",
+  },
 ]);
 
 const selectedAction = ref(null);
 
 function handleActionSelected(action: any) {
-  if (action?.value === 'approve') {
-    enterApprovalMode('approve');
-  } else if (action?.value === 'cancel') {
-    enterApprovalMode('cancel');
+  if (action?.value === "approve") {
+    enterApprovalMode("approve");
+  } else if (action?.value === "cancel") {
+    enterApprovalMode("cancel");
   }
 }
 
-function enterApprovalMode(mode: string = 'approve') {
+function enterApprovalMode(mode: string = "approve") {
   approvalMode.value = true;
   selectedInvoices.value = [];
   currentMode.value = mode;
@@ -264,23 +280,26 @@ function resetSelection() {
 }
 
 function isInvoiceSelectable(item: any): boolean {
-  if (currentMode.value === 'approve') {
-    return item.approved_status === 'PENDING';
-  } else if (currentMode.value === 'cancel') {
-    return item.approved_status === 'APPROVED' && item.total_adjustment === null;
+  if (currentMode.value === "approve") {
+    return item.approved_status === "PENDING";
+  } else if (currentMode.value === "cancel") {
+    return (
+      item.approved_status === "APPROVED" && item.total_adjustment === null
+    );
   }
   return false;
 }
 
 async function proceedApproval() {
   if (selectedInvoices.value.length === 0) {
-    useAlert.alertError('Please select at least one invoice');
+    useAlert.alertError("Please select at least one invoice");
     return;
   }
 
-  const actionText = currentMode.value === 'approve' ? 'approve' : 'cancel approval for';
+  const actionText =
+    currentMode.value === "approve" ? "approve" : "cancel approval for";
   const isConfirmed = await useAlert.showPopupConfirmation(
-    'Invoice Maintenance Validation',
+    "Invoice Maintenance Validation",
     `Are you sure to ${actionText} selected invoice maintenance? Please ensure all information is correct before proceed.`
   );
 
@@ -288,34 +307,49 @@ async function proceedApproval() {
 
   try {
     let response;
-    
-    if (currentMode.value === 'approve') {
-      response = await invoiceMaintenanceStore.approveInvoiceMaintenance(selectedInvoices.value);
+
+    if (currentMode.value === "approve") {
+      response = await invoiceMaintenanceStore.approveInvoiceMaintenance(
+        selectedInvoices.value
+      );
     } else {
-      response = await invoiceMaintenanceStore.cancelApprovalInvoiceMaintenance(selectedInvoices.value);
+      response = await invoiceMaintenanceStore.cancelApprovalInvoiceMaintenance(
+        selectedInvoices.value
+      );
     }
-    
+
     cancelApprovalMode();
-    
-    const successMessage = currentMode.value === 'approve' 
-      ? 'Selected invoices have been approved successfully' 
-      : 'Approval has been cancelled for selected invoices';
-    
+
+    const successMessage =
+      currentMode.value === "approve"
+        ? "Selected invoices have been approved successfully"
+        : "Approval has been cancelled for selected invoices";
+
     useAlert.alertSuccess(successMessage);
 
     await invoiceMaintenanceStore.indexInvoiceMaintenance();
 
-    window.location.href = '/invoices/invoice-maintenances';
+    window.location.href = "/invoices/invoice-maintenances";
   } catch (error) {
-    console.error(`Error ${currentMode.value === 'approve' ? 'approving' : 'cancelling approval for'} invoices:`, error);
-    useAlert.alertError(`Failed to ${currentMode.value === 'approve' ? 'approve' : 'cancel approval for'} selected invoices`);
+    console.error(
+      `Error ${
+        currentMode.value === "approve"
+          ? "approving"
+          : "cancelling approval for"
+      } invoices:`,
+      error
+    );
+    useAlert.alertError(
+      `Failed to ${
+        currentMode.value === "approve" ? "approve" : "cancel approval for"
+      } selected invoices`
+    );
   }
 }
 
 onMounted(() => {
   useInvoiceMaintenanceStore().indexWidget();
 });
-
 </script>
 
 <template>
@@ -383,7 +417,7 @@ onMounted(() => {
                     <span>{{ item.title }}</span>
                   </div>
                 </template>
-                
+
                 <template #item="{ props, item }">
                   <v-list-item v-bind="props">
                     <template #prepend>
@@ -394,14 +428,16 @@ onMounted(() => {
                 </template>
               </d-autocomplete-client>
             </div>
-        
+
             <div v-if="approvalMode" class="flex ml-2">
               <button
                 @click="proceedApproval"
                 class="px-4 py-1.5 bg-brown-700 text-white rounded mr-2 flex items-center border !border-[#70544b]"
               >
-                <i class="mdi mdi-check mr-1"></i> 
-                {{ currentMode === 'approve' ? 'Proceed' : 'Proceed' }} ({{ selectedInvoices.length }})
+                <i class="mdi mdi-check mr-1"></i>
+                {{ currentMode === "approve" ? "Proceed" : "Proceed" }} ({{
+                  selectedInvoices.length
+                }})
               </button>
               <button
                 @click="resetSelection"
@@ -417,7 +453,7 @@ onMounted(() => {
               </button>
             </div>
           </div>
-        </template>      
+        </template>
 
         <template #item.checkbox="{ item }">
           <div v-if="approvalMode && isInvoiceSelectable(item)">
@@ -429,8 +465,8 @@ onMounted(() => {
               color="#000000"
             ></v-checkbox>
           </div>
-        </template>      
-        
+        </template>
+
         <template #item.exchange_rate="{ item }">
           <d-num-layout :value="item.exchange_rate" />
         </template>

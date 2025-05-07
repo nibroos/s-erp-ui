@@ -81,6 +81,9 @@ const filtersCustomer = ref<FilterSelectableType[]>([
     display: "name",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customer-types/index-customer-type",
       singleApi: "/v1/customer-types/index-customer-type",
       pageEndProp: "meta.next_page_url",
@@ -141,6 +144,9 @@ const resetBoard = async () => {
       <div class="lg:col-span-6">
         <d-autocomplete
           v-model="form.schedule.assignee_id"
+          :query="{
+            is_active: 1,
+          }"
           api="/v1/users/index-user"
           single-api="/v1/users/show-user"
           page-end-prop="meta.next_page_url"
