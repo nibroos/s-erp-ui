@@ -59,6 +59,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/warehouses/index-warehouse",
       singleApi: "/v1/warehouses/index-warehouse",
       mappingDetail: "data",
@@ -79,6 +82,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/products/index-product",
       singleApi: "/v1/products/index-product",
       mappingDetail: "data",

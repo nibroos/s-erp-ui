@@ -363,6 +363,9 @@ onBeforeMount(() => {
               total-prop="meta.total"
               label="Customer"
               v-model="form.customer_id"
+              :query="{
+                is_active: 1,
+              }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
@@ -436,6 +439,9 @@ onBeforeMount(() => {
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.currency_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/currencies/index-currency"
               single-api="/v1/currencies/show-currency"
               page-end-prop="meta.next_page_url"
@@ -470,6 +476,9 @@ onBeforeMount(() => {
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.payment_term_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/payment-terms/index-payment-term"
               single-api="/v1/payment-terms/show-payment-term"
               page-end-prop="meta.next_page_url"
@@ -515,6 +524,9 @@ onBeforeMount(() => {
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.pph23_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/pph23s/index-pph23"
               single-api="/v1/pph23s/show-pph23"
               page-end-prop="meta.next_page_url"
@@ -767,6 +779,9 @@ onBeforeMount(() => {
         >
           <d-autocomplete
             v-model="queryModal.qIndexSalesOrders.customer_id"
+            :query="{
+              is_active: 1,
+            }"
             api="/v1/customers/index-customer"
             method-api="post"
             page-end-prop="meta.next_page_url"

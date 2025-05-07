@@ -149,6 +149,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     headAutocomplete: {
       quo: {
+        payment_id: null as number | null | undefined,
         customer_id: null as number | null | undefined,
         order_type_id: null as number | null | undefined,
         currency_id: null as number | null | undefined,
@@ -1190,6 +1191,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       if (this.isOpenModal.quotations) {
         this.form.order_type_id = this.headAutocomplete.quo.order_type_id;
         this.form.currency_id = this.headAutocomplete.quo.currency_id;
+        this.form.payment_id = this.headAutocomplete.quo.payment_id;
         this.form.exchange_rate = this.headAutocomplete.quo.exchange_rate;
         this.form.is_vat = this.headAutocomplete.quo.is_vat as number;
         this.form.vat_id = this.headAutocomplete.quo.vat_id;
@@ -1359,6 +1361,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.headAutocomplete.quo.disc_perc = data.head_disc_perc as number;
       this.headAutocomplete.quo.remark = data.head_remark
       this.headAutocomplete.quo.is_vat = data.head_is_vat as number;
+      this.headAutocomplete.quo.payment_id = data.payment_id as number;
     },
 
     removeQuotation() {

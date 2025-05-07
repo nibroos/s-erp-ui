@@ -65,6 +65,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/item-groups/index-item-group",
       singleApi: "/v1/item-groups/index-item-group",
       mappingDetail: "data",

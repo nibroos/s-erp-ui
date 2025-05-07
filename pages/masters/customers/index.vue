@@ -43,6 +43,13 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Shortname",
+    key: "shortname",
+    value: "shortname",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "Email",
     key: "email",
     value: "email",

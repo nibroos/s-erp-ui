@@ -3,7 +3,9 @@ import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 import type { AutocompleteType } from '~/types/AutocompleteType'
 import type { FormInventoryType } from '~/types/inventories/InventoryType'
+import type { FormInvoiceAdjustmentType } from '~/types/invoice-adjustments/InvoiceAdjustmentType'
 import type { FormInvoiceDpType } from '~/types/invoice-dps/InvoiceDpType'
+import type { FormInvoiceMaintenanceType } from '~/types/invoice-maintenances/InvoiceMaintenanceType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormCustomerType } from '~/types/masters/CustomerType'
 import type { FormItemGroupType } from '~/types/masters/ItemGroupType'
@@ -43,6 +45,22 @@ const formItemSubGroupCreateEdit = {
 } as FormItemSubGroupType
 
 const formItemGroupCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  item_group_id: null,
+} as FormItemGroupType
+
+const formVatCreateEdit = {
+  name: '',
+  description: '',
+  remark: '',
+  status: 1,
+  item_group_id: null,
+} as FormItemGroupType
+
+const formPph23CreateEdit = {
   name: '',
   description: '',
   remark: '',
@@ -920,7 +938,7 @@ const formInvoiceAdjustmentCreateEdit = {
   total_admin_bank: 0,
   grand_total: 0,
   adjustment_dts: [],
-  
+
   email: '',
   phone: '',
   address: '',
@@ -1068,6 +1086,8 @@ type UseInitialsType = {
   formCustomerCreateEdit: typeof formCustomerCreateEdit;
   formInvoiceAdjustmentCreateEdit: typeof formInvoiceAdjustmentCreateEdit;
   formInvoiceMaintenanceCreateEdit: typeof formInvoiceMaintenanceCreateEdit;
+  formVatCreateEdit: typeof formVatCreateEdit;
+  formPph23CreateEdit: typeof formPph23CreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -1098,5 +1118,7 @@ export const useInitials: UseInitialsType = {
   formSalesInvoiceCreateEdit,
   formCustomerCreateEdit,
   formInvoiceAdjustmentCreateEdit,
-  formInvoiceMaintenanceCreateEdit
+  formInvoiceMaintenanceCreateEdit,
+  formVatCreateEdit,
+  formPph23CreateEdit,
 }

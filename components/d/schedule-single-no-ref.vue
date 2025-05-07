@@ -82,6 +82,9 @@ const filtersCustomer = ref<FilterSelectableType[]>([
     display: "name",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customer-types/index-customer-type",
       singleApi: "/v1/customer-types/index-customer-type",
       pageEndProp: "meta.next_page_url",
@@ -164,6 +167,9 @@ const resetBoard = async () => {
           total-prop="meta.total"
           label="Customer"
           v-model="form.customer_id"
+          :query="{
+            is_active: 1,
+          }"
           class=""
           is-quick-select
           @click:selected="(data) => salesOrderStore.autocompleteCustomer(data)"

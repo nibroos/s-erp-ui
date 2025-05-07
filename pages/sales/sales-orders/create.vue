@@ -208,6 +208,9 @@ const filtersCustomer = ref<FilterSelectableType[]>([
     display: "name",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customer-types/index-customer-type",
       singleApi: "/v1/customer-types/index-customer-type",
       pageEndProp: "meta.next_page_url",
@@ -443,6 +446,9 @@ const filtersOptionsProducts = ref([
     key: "item_group_ids",
     type: "autocomplete",
     methodApi: "post",
+    query: {
+      is_active: 1,
+    },
     api: "/v1/item-groups/index-item-group",
     singleApi: "/v1/item-groups/index-item-group",
     pageEndProp: "meta.next_page_url",
@@ -458,6 +464,9 @@ const filtersOptionsProducts = ref([
     key: "item_sub_group_ids",
     type: "autocomplete",
     methodApi: "post",
+    query: {
+      is_active: 1,
+    },
     api: "/v1/item-sub-groups/index-item-sub-group",
     singleApi: "/v1/item-sub-groups/index-item-sub-group",
     pageEndProp: "meta.next_page_url",
@@ -476,6 +485,9 @@ const filtersOptionsQuotations = ref([
     key: "item_group_ids",
     type: "autocomplete",
     methodApi: "post",
+    query: {
+      is_active: 1,
+    },
     api: "/v1/item-groups/index-item-group",
     singleApi: "/v1/item-groups/index-item-group",
     pageEndProp: "meta.next_page_url",
@@ -491,6 +503,9 @@ const filtersOptionsQuotations = ref([
     key: "item_sub_group_ids",
     type: "autocomplete",
     methodApi: "post",
+    query: {
+      is_active: 1,
+    },
     api: "/v1/item-sub-groups/index-item-sub-group",
     singleApi: "/v1/item-sub-groups/index-item-sub-group",
     pageEndProp: "meta.next_page_url",
@@ -798,6 +813,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/customers/index-customer",
       singleApi: "/v1/customers/index-customer",
       mappingDetail: "data",
@@ -818,6 +836,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/order-types/index-order-type",
       singleApi: "/v1/order-types/index-order-type",
       mappingDetail: "data",
@@ -856,6 +877,9 @@ const filtersConfig = ref<FilterSelectableType[]>([
     type: "autocomplete",
     others: {
       methodApi: "post",
+      query: {
+        is_active: 1,
+      },
       api: "/v1/currencies/index-currency",
       singleApi: "/v1/currencies/index-currency",
       mappingDetail: "data",
@@ -955,6 +979,9 @@ watchEffect(() => {
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.order_type_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/order-types/index-order-type"
               single-api="/v1/order-types/show-order-type"
               page-end-prop="meta.next_page_url"
@@ -976,6 +1003,9 @@ watchEffect(() => {
               total-prop="meta.total"
               label="Customer"
               v-model="form.customer_id"
+              :query="{
+                is_active: 1,
+              }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
               @click:selected="
@@ -1060,6 +1090,9 @@ watchEffect(() => {
           <div class="lg:col-span-6">
             <d-autocomplete
               v-model="form.currency_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/currencies/index-currency"
               single-api="/v1/currencies/show-currency"
               page-end-prop="meta.next_page_url"
@@ -1088,6 +1121,9 @@ watchEffect(() => {
           <div class="sm:col-span-1">
             <d-autocomplete
               v-model="form.pph23_id"
+              :query="{
+                is_active: 1,
+              }"
               api="/v1/pph23s/index-pph23"
               single-api="/v1/pph23s/show-pph23"
               page-end-prop="meta.next_page_url"
@@ -1107,6 +1143,27 @@ watchEffect(() => {
               "
             ></d-autocomplete>
           </div>
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.payment_id"
+              api="/v1/company-profiles/index-bank-information"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Bank"
+              :display-multiple-keys="[
+                'company_name',
+                'name',
+                'account_number',
+              ]"
+              :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
+              is-display-multiple-key
+              :errors="errors.payment_id"
+            ></d-autocomplete>
+          </div>
+
           <div class="lg:col-span-6 flex gap-2">
             <d-switch-status
               v-model="form.is_vat"
@@ -1144,6 +1201,7 @@ watchEffect(() => {
                 date_at: form.due_at,
                 order_column: 'date_at',
                 order_direction: 'desc',
+                is_active: 1,
               }"
               @after:fetch="
                 (data) => {
@@ -1520,6 +1578,9 @@ watchEffect(() => {
               <div class="lg:col-span-6">
                 <d-autocomplete
                   v-model="form.schedule.assignee_id"
+                  :query="{
+                    is_active: 1,
+                  }"
                   api="/v1/users/index-user"
                   single-api="/v1/users/show-user"
                   page-end-prop="meta.next_page_url"
@@ -1947,6 +2008,9 @@ watchEffect(() => {
             total-prop="meta.total"
             label="Customer"
             v-model="form.customer_id"
+            :query="{
+              is_active: 1,
+            }"
             class=""
             is-quick-select
             @click:selected="
@@ -1965,6 +2029,9 @@ watchEffect(() => {
             total-prop="meta.total"
             label="Product"
             v-model="queryModal.qIndexQuotations.product_id"
+            :query="{
+              is_active: 1,
+            }"
             class=""
             is-quick-select
             modal-custom-class="!w-4/5"

@@ -2,8 +2,9 @@ import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { RefBtnType } from '~/types/components/OptionRefBtnType'
+import type { FormItemSubGroupType } from '~/types/masters/ItemSubGroupType'
 import type { CreateBomsRequestType, CreateMsItemUnitsRequestType, FormProductType, ProductListType } from '~/types/masters/ProductType'
-import type { UnitType } from '~/types/masters/UnitType'
+import type { FormUnitType, UnitType } from '~/types/masters/UnitType'
 
 const useProductStore = defineStore('ProductStore', {
   state: () => ({
@@ -84,6 +85,18 @@ const useProductStore = defineStore('ProductStore', {
     isOpenModal: {
       units: false,
       boms: false,
+    },
+    conditions: {
+      isProduct: true,
+    },
+    tabs: ['BOM', 'Conversions', 'Remarks'],
+    formTabProduct: {
+      boms: 0,
+      conversions: 1,
+      remarks: 2,
+    },
+    selectedDetail: {
+      unit: {} as FormUnitType,
     },
   }),
 
@@ -192,17 +205,21 @@ const useProductStore = defineStore('ProductStore', {
           '/v1/products/update-product',
           this.form
         )
+
         this.form = JSON.parse(
           JSON.stringify(useInitials.formProductCreateEdit)
         )
 
         // navigateTo(`/masters/customizations/products/edit/${response.data.data[0].id}`)
 
+        console.log("id", id);
+
         this.form.id = id
-        this.show()
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
+
+        await this.show()
 
         return response
       } catch (error: any) {
@@ -405,6 +422,82 @@ const useProductStore = defineStore('ProductStore', {
         await this.indexUnit()
       }
     },
+    onSelectedUnit(selected: FormUnitType | null) {
+      console.log('onSelectedUnit', selected);
+
+      this.selectedDetail.unit = {} as FormUnitType
+      if (selected !== null) {
+        this.selectedDetail.unit = selected
+      }
+
+      this.calculateUnits()
+    },
+    onSelectedSubGroup(selected: FormItemSubGroupType | null) {
+      if (selected !== null && selected.group_name.toLowerCase() == 'product') {
+        this.conditions.isProduct = true
+        this.tabs = ['BOM', 'Conversions', 'Remarks']
+        this.formTabProduct.boms = 0
+        this.formTabProduct.conversions = 1
+        this.formTabProduct.remarks = 2
+      } else {
+        this.tabFormIndex = 0
+        this.conditions.isProduct = false
+        this.itemsCheck.checkBoms = []
+        this.itemsCheck.checkMainBoms = []
+
+        this.tabs = ['Conversions', 'Remarks']
+        this.formTabProduct.conversions = 0
+        this.formTabProduct.remarks = 1
+      }
+    },
+    calculateUnits() {
+      console.log('calculateUnits-checkMainUnits.length', this.itemsCheck.checkMainUnits.length, this.loading.formLoading, this.form.id);
+
+      console.log('show-loading2', this.loading.formLoading);
+      // let checkUnitIndex = this.itemsCheck.checkMainUnits.findIndex((checkUnit: CreateMsItemUnitsRequestType) => {
+      //   return checkUnit.unit_id == this.form.item_unit_id
+      // })
+
+      // this.itemsCheck.checkMainUnits[checkUnitIndex]
+
+      console.log('calculateUnits1', this.itemsCheck.checkMainUnits);
+
+      if (!this.form.item_unit_id || this.form.item_unit_id == 0) {
+        this.itemsCheck.checkMainUnits = []
+        return;
+      }
+      // if item_unit_id is not found, then add new unit
+      const isFound = this.itemsCheck.checkMainUnits.find((checkUnit: CreateMsItemUnitsRequestType) => {
+        return checkUnit.unit_id == this.form.item_unit_id
+      })
+      if (!isFound) {
+        console.log('calculateUnits2-notfound', this.itemsCheck.checkMainUnits);
+        console.log('calculateUnits2-notfound2', this.form);
+
+        this.itemsCheck.checkMainUnits.push({
+          unit_id: this.form.item_unit_id as number,
+          conversion: 1,
+          price_sell: this.form.price_sell || 0,
+          price_buy: this.form.price_buy || 0,
+          name: this.selectedDetail.unit.name,
+        })
+      }
+
+      this.itemsCheck.checkMainUnits = this.itemsCheck.checkMainUnits.map((checkUnit: CreateMsItemUnitsRequestType) => {
+        if (checkUnit.unit_id == this.form.item_unit_id) {
+          checkUnit.conversion = 1
+          checkUnit.price_sell = this.form.price_sell || 0
+          checkUnit.price_buy = this.form.price_buy || 0
+        } else {
+          checkUnit.price_sell = checkUnit.conversion * (this.form.price_sell || 0)
+          checkUnit.price_buy = checkUnit.conversion * (this.form.price_buy || 0)
+        }
+        return checkUnit
+      })
+
+      console.log('calculateUnits', this.itemsCheck.checkMainUnits);
+
+    }
 
   },
   persist: [
