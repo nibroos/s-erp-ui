@@ -80,7 +80,7 @@ const headersSelectedItems = ref([
   { title: "Ref Type", key: "ref_type", sortable: true },
   { title: "Ref Number", key: "ref_num", sortable: true },
   { title: "Item Type", key: "product_type", sortable: true },
-  { title: "Product Code", key: "product_code", sortable: true },
+  // { title: "Product Code", key: "product_code", sortable: true },
   { title: "Product Name", key: "product_name", sortable: true },
   { title: "Unit", key: "unit_name", sortable: true },
   { title: "Price", key: "price", align: "end", sortable: true },
