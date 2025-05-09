@@ -75,6 +75,18 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   itemsProp: "data",
   mappingDetail: "data",
   totalProp: "meta.total",
+  tabs: () => [],
+  tabIndex: 0,
+  isDefaultTabSlotExists: true,
+  defaultTabName: "",
+  isRowNum: true,
+  defaultClearFilter: {
+    page: 1,
+    per_page: 100,
+    global: "",
+    order_column: "id",
+    order_direction: "asc",
+  },
 
   // Table
   height: "450",
@@ -97,6 +109,31 @@ const props = withDefaults(defineProps<SelectTableType>(), {
       sortable: true,
     },
   ],
+});
+
+const emits = defineEmits([
+  "openModal",
+  "update:modelValue",
+  "click:find",
+  "update:filters",
+  "click:delete",
+  "update:currentTab",
+]);
+
+const tabs = ref(props.tabs);
+const tabIndex = ref(props.tabIndex);
+const onClickTab = (index: number) => {
+  tabIndex.value = index;
+  emits("update:currentTab", index);
+};
+const defaultTabName = computed(() => {
+  if (!tabs.value) return "";
+
+  if (props.defaultTabName) {
+    return props.defaultTabName;
+  }
+
+  return tabs.value[0];
 });
 
 const generatedFiltersObj = ref<FilterSelectableType[]>([]);
@@ -130,14 +167,6 @@ const generateFiltersObj = () => {
   });
 };
 
-const emits = defineEmits([
-  "openModal",
-  "update:modelValue",
-  "click:find",
-  "update:filters",
-  "click:delete",
-]);
-
 let headersModal = ref(props.fields);
 
 const generateHeadersObj = () => {
@@ -168,6 +197,18 @@ const generateHeadersObj = () => {
       class: "action-table sticky-right",
     },
   };
+
+  if (props.isRowNum) {
+    headersModal.value.unshift({
+      ...defaultHeaderProps,
+      title: "#",
+      key: "row_num",
+      value: "row_num",
+      align: "center",
+      sortable: false,
+      show: true,
+    });
+  }
 
   props.fields.forEach((field) => {
     headersModal.value.push({
@@ -215,17 +256,28 @@ const showMetaModal = ref<Record<string, any>>({
 const itemsCheck = ref<Record<string, any>[]>([]);
 
 const clearFilters = () => {
-  filters.value = {
-    page: 1,
-    per_page: 100,
-    global: "",
-    order_column: "id",
-    order_direction: "asc",
-  };
+  filters.value = cloneObject(props.defaultClearFilter);
 };
 
 const filterData = async () => {
   emits("click:find", filters.value);
+
+  // if tabs is not empty, fetch only the current tab
+  if (
+    !!tabs.value &&
+    tabs.value.length > 0 &&
+    tabIndex.value !== getDefaultTabSlotNameIndex()
+  ) {
+    console.log(
+      "tabIndex",
+      tabIndex.value,
+      tabs.value,
+      getDefaultTabSlotNameIndex()
+    );
+
+    return;
+  }
+
   if (metaModal.value.loading) return;
   metaModal.value.loading = true;
   let queryString = qs.stringify(filters.value);
@@ -443,6 +495,14 @@ const onDoubleClick = async (event: any, row: any) => {
   navigateTo(`${props.editLink}/${row.item.id}`);
 };
 
+const getDefaultTabSlotNameIndex = (): number => {
+  if (!props.isDefaultTabSlotExists || !tabs.value) {
+    return -1;
+  }
+
+  return tabs.value.findIndex((tab) => tab === defaultTabName.value);
+};
+
 watch(
   () => itemsCheck.value,
   (newValue: any, oldValue: any) => {
@@ -526,6 +586,8 @@ onMounted(async () => {
             v-else-if="filter.type === 'date'"
             v-model="filters[filter.key]"
             :label="filter.title"
+            :fallback-date="filter.others?.fallbackDate"
+            :clearable="filter.others?.clearable"
           />
           <d-autocomplete
             v-else-if="filter.type === 'autocomplete'"
@@ -573,7 +635,11 @@ onMounted(async () => {
           parent-class=""
         />
       </div>
-      <div :class="classMerge('grid grid-cols-7 items-center gap-2 w-full relative')">
+      <div
+        :class="
+          classMerge('grid grid-cols-7 items-center gap-2 w-full relative')
+        "
+      >
         <d-submit-button
           @click:submit="filterData"
           @click:clear="clearFilters"
@@ -581,7 +647,7 @@ onMounted(async () => {
         >
           <template #append>
             <div
-              class="flex gap-2 items-center w-full col-span-3 sm:col-span-6 "
+              class="flex gap-2 items-center w-full col-span-3 sm:col-span-6"
             >
               <nuxt-link
                 v-if="!!props.createOption.show"
@@ -641,7 +707,130 @@ onMounted(async () => {
     </form>
 
     <div class="flex h-max w-full flex-col">
+      <!-- loop for tabs with slot by default -->
+
+      <div v-if="!!tabs && tabs?.length > 0" class="flex flex-col">
+        <slot name="tabs">
+          <d-tabs
+            :tabs="tabs"
+            :current="tabIndex"
+            :class="'border-x border-t border-dark2'"
+            @update:current="onClickTab"
+          />
+        </slot>
+
+        <slot
+          v-for="(tab, index) in tabs"
+          :name="`tab.${tab}`"
+          :key="index"
+          :meta="metaModal"
+          :filters="filters"
+          :props="props"
+        >
+          <div
+            v-if="tabIndex == index"
+            :class="classMerge('border-x border-t border-dark2')"
+          >
+            <template
+              v-if="
+                index === getDefaultTabSlotNameIndex() &&
+                props.isDefaultTabSlotExists
+              "
+            >
+              <v-data-table-server
+                v-model="itemsCheck"
+                v-model:page="filters.page"
+                :items="metaModal.data ?? []"
+                :headers="headersModal"
+                :items-per-page="filters.per_page"
+                :items-length="metaModal.total ?? 0"
+                :items-per-page-options="useInitials.perPageOptions"
+                :loading="metaModal.loading"
+                density="compact"
+                :header-props="{
+                  class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+                }"
+                :row-props="{
+                  class: 'cursor-pointer whitespace-nowrap',
+                }"
+                :item-value="props.itemValue"
+                show-current-page
+                :return-object="props.returnObject"
+                :multiple="props.multiple"
+                @update:options="fetchDataServerFetch"
+                fixed-header
+                :height="props.height"
+                hover
+                @click:row="onSelectOption"
+                @dblclick:row="onDoubleClick"
+              >
+                <template #no-data> No data available </template>
+
+                <template
+                  v-for="(field, index) in headersModal"
+                  :key="index"
+                  v-slot:[`item.${field.value}`]="{ item, index }"
+                >
+                  <slot
+                    v-if="field.key == 'action'"
+                    :name="`item.${field.key}`"
+                    :item="item"
+                    :index="index"
+                    class="abcd"
+                  >
+                    <div class="flex items-center justify-center gap-2 abc">
+                      <slot name="actions.delete" :item="item" :index="index">
+                        <d-button
+                          v-if="!props.noDelete"
+                          @click="onClickDelete($event, { item, index })"
+                          icon="mdi-delete"
+                          is-no-text
+                          class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                          icon-class="text-cancel dark:text-primary1"
+                          rounded="xl"
+                          size=""
+                          cta="select"
+                          icon-size="16"
+                        ></d-button>
+                      </slot>
+                    </div>
+                  </slot>
+                  <slot v-else-if="field.key == 'row_num'">
+                    <span v-if="metaModal.data[index] && field.value">{{
+                      useNumber.determineRowNumber(
+                        filters.per_page,
+                        filters.page,
+                        index
+                      )
+                    }}</span>
+                  </slot>
+                  <slot
+                    v-else
+                    :name="`item.${field.key}`"
+                    :item="item"
+                    :index="index"
+                  >
+                    <span v-if="metaModal.data[index] && field.value">{{
+                      metaModal.data[index][field.value]
+                    }}</span>
+                  </slot>
+                </template>
+
+                <template #footer.prepend>
+                  <div class="flex grow items-center"></div>
+                </template>
+              </v-data-table-server>
+            </template>
+            <slot v-else :name="`tab.content.${stringWithSpaceToDash(tab)}`">
+              {{ stringWithSpaceToDash(tab) }}
+              <!-- Fallback content for tabs without custom slots -->
+              No content available for {{ tab }} tab
+            </slot>
+          </div>
+        </slot>
+      </div>
       <v-data-table-server
+        v-else
         v-model="itemsCheck"
         v-model:page="filters.page"
         :items="metaModal.data ?? []"
@@ -698,6 +887,15 @@ onMounted(async () => {
                 ></d-button>
               </slot>
             </div>
+          </slot>
+          <slot v-else-if="field.key == 'row_num'">
+            <span v-if="metaModal.data[index] && field.value">{{
+              useNumber.determineRowNumber(
+                filters.per_page,
+                filters.page,
+                index
+              )
+            }}</span>
           </slot>
           <slot v-else :name="`item.${field.key}`" :item="item" :index="index">
             <span v-if="metaModal.data[index] && field.value">{{

@@ -81,3 +81,7 @@ export const shortenBytes = (n: number) => {
   // return GB if less than a TB
   else return (n / gigaBytes).toFixed(decimal) + " GB";
 }
+
+export const stringWithSpaceToDash = (str: string) => {
+  return str.replace(/\s+/g, '-').toLowerCase()
+}

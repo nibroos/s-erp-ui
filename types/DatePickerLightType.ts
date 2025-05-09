@@ -20,4 +20,5 @@ export type DatePickerLightType = {
   clearableInput?: boolean
   disabled?: boolean
   initialValue?: string | null
+  fallbackDate?: string | null
 }

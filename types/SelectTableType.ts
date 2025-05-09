@@ -35,7 +35,7 @@ export type FieldSelectableType = {
   minWidth?: string
   maxWidth?: string
   sortable?: boolean
-  value?: string
+  value?: string | ((item: any) => string)
   placeholder?: string
   class?: string
   cellClass?: string[]
@@ -96,6 +96,12 @@ export type SelectTableType = {
   editLink?: string
   createOption?: CreateOptionSelectableType
   formOptions?: FormOptionSelectableType
+  tabs?: string[] | null;
+  tabIndex?: number;
+  isDefaultTabSlotExists?: boolean
+  defaultTabName?: string
+  isRiyaowNum?: boolean
+  defaultClearFilter?: Record<string, any>
 
   // Modal
   showModal?: boolean

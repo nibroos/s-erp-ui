@@ -39,7 +39,23 @@ const useInventoryStore = defineStore('InventoryStore', {
         per_page: 100,
         parent_ids: [],
         global: '',
+        warehouse_id: null,
+        item_id: null,
+        branch_id: null,
         order_column: 'id',
+        order_direction: 'desc'
+      } as QInvStockIndexType,
+      qIndexStockClosings: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        start_at: '',
+        end_at: '',
+        warehouse_id: null,
+        item_id: null,
+        branch_id: null,
+        global: '',
+        order_column: 'closing_at',
         order_direction: 'desc'
       } as QInvStockIndexType,
 
@@ -118,6 +134,11 @@ const useInventoryStore = defineStore('InventoryStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexStockClosings: {
+        data: [] as IndexInventoryType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexProducts: {
         data: [] as FormInvDtProductListType[],
         loading: false,
@@ -142,9 +163,13 @@ const useInventoryStore = defineStore('InventoryStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
-
+      createClosing: false,
+      createOrUpdateAdjustment: false,
     },
     tabFormIndex: 0,
+    tabIndex: {
+      indexStock: 0,
+    },
     errors: {} as Record<string, any>,
     itemsCheck: {
       checkMain: [] as InvDtType[],
@@ -289,23 +314,133 @@ const useInventoryStore = defineStore('InventoryStore', {
     } as FormLayoutType,
     referenceOptions: {
       vats: [] as FormVatType[],
+    },
+    formOpnameSingle: {
+      isOpen: false,
+      id: '',
+      item_id: '',
+      warehouse_id: '',
+      item_name: '',
+      warehouse_name: '',
+      date_adjustment: '',
+      qty: 0,
+      qty_adjustment: 0,
+      prev_adjustment_date: ''
+    },
+    formClosing: {
+      isOpen: false,
+      end_closing_at: new Date().toISOString().split('T')[0],
+      password: ''
+    },
+    loadingCsv: {
+      closing: false,
+      basic: false
     }
   }),
 
   actions: {
-    async indexInventory() {
-      if (this.metaModal.index.loading) return
-      this.metaModal.index.loading = true
+
+    async indexStockClosings() {
+      if (this.metaModal.indexStockClosings.loading) return
+      this.metaModal.indexStockClosings.loading = true
+
+      let params = this.queryModal.qIndexStockClosings
 
       try {
-        useAlert.alertSuccess('Login successfully.')
+        const response = await useMyFetch().post(
+          '/v1/inventories/stocks/index-stock-closings',
+          params
+        )
+
+        this.metaModal.indexStockClosings = response.data
 
         // return response
       } catch (error: any) {
-        useAlert.alertError(error?.response?.data?.message || 'Login Failed!')
-
+        console.log('Failed To Fetch Data', error.response?.data);
       } finally {
-        this.metaModal.index.loading = false
+        this.metaModal.indexStockClosings.loading = false
+      }
+    },
+    async createClosing() {
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        "Are you sure proceed this action?",
+        "This action cannot be undone."
+      );
+      if (!isConfirmed) {
+        this.loading.createClosing = false
+        return
+      }
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/stocks/create-stock-closing',
+          this.formClosing
+        )
+        this.formClosing.end_closing_at = ''
+        useAlert.hideAlert();
+        useAlert.alertSuccess(response.data.message);
+        this.indexStockClosings();
+        this.formClosing.isOpen = false;
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      }
+    },
+
+    async createOrUpdateAdjustment() {
+      if (this.loading.createOrUpdateAdjustment) return
+      this.loading.createOrUpdateAdjustment = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        "Are you sure proceed this action?",
+        "This action cannot be undone."
+      );
+      if (!isConfirmed) {
+      }
+      try {
+        const response = await useMyFetch().post(
+          '/api/inventories/stocks/create-update-adjustment',
+          this.formOpnameSingle
+        )
+        this.formOpnameSingle = JSON.parse(
+          JSON.stringify(useInitials.formCreateEditOpnameSingle)
+        )
+
+        useAlert.hideAlert();
+        useAlert.alertSuccess(response.data.message);
+        this.indexStockClosings();
+        this.formOpnameSingle.isOpen = false;
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
       }
     },
 
@@ -1164,7 +1299,7 @@ const useInventoryStore = defineStore('InventoryStore', {
   },
   persist: [
     {
-      paths: ['queryModal', 'formTabInventory'],
+      paths: ['queryModal', 'formTabInventory', 'tabIndex'],
       storage: localStorage
     }
   ]
