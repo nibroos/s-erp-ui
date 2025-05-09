@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<DatePickerLightType>(), {
   clearableInput: true,
   disabled: false,
   initialValue: null,
+  fallbackDate: "",
 });
 
 const { formatByString } = useDate() as DateFnsUtils;
@@ -168,6 +169,16 @@ const openCloseDP = () => {
     datepicker.value?.openMenu();
   }
 };
+
+watch(
+  () => innerValue.value,
+  (newValue) => {
+    if (!newValue && !!props.fallbackDate) {
+      innerValue.value = props.fallbackDate;
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   innerValue.value = !!props.startDate

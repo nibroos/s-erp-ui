@@ -120,6 +120,10 @@ function sumArrayKey(array: Record<string, any>[], key: string): number {
   return sum
 }
 
+function determineRowNumber(perPage: number, page: number, index: number) {
+  return (page - 1) * perPage + index + 1
+}
+
 export const useNumber = {
   formatIdr,
   formatUSD,
@@ -127,5 +131,6 @@ export const useNumber = {
   formatNumberSeparator,
   formatWithoutCurrencySymbol,
   numberInputFormat,
-  sumArrayKey
+  sumArrayKey,
+  determineRowNumber,
 }

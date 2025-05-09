@@ -172,6 +172,11 @@ export type QInvStockIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
+  warehouse_id?: number | null
+  item_id?: number | null
+  branch_id?: number | null
+  start_at?: string
+  end_at?: string
   global: string
   order_column: string
   order_direction: string

@@ -52,7 +52,10 @@ watch(
       density="compact"
       :class="
         classMerge(
-          '!bg-grey1 dark:!bg-dark1 dark:!text-primary1 transition-all ease-in-out'
+          '!bg-grey1 dark:!bg-dark1 dark:!text-primary1 transition-all ease-in-out',
+          currentTab === index
+            ? 'bg-white dark:bg-dark1'
+            : '!bg-grey1 dark:!bg-dark3'
         )
       "
     >
