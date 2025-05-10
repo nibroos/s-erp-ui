@@ -34,6 +34,17 @@ const useInventoryStore = defineStore('InventoryStore', {
         order_column: 'ingoing_at',
         order_direction: 'desc'
       } as QInvIndexType,
+      qIndexInventoryStatus: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        global: '',
+        warehouse_id: null,
+        item_id: null,
+        branch_id: null,
+        order_column: 'ingoing_at',
+        order_direction: 'desc'
+      } as QInvStockIndexType,
       qIndexStock: {
         page: 1,
         per_page: 100,
@@ -112,7 +123,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         sku: '',
         factory_code: '',
         io_type: 'INVENTORY_IN',
-        order_column: 'order_at',
+        order_column: 'ingoing_at',
         order_direction: 'desc'
       } as QIndexInventoryInsType,
       qIndexBoms: {
@@ -536,6 +547,116 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
 
     async update() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        let id = this.form.id
+
+        const response = await useMyFetch().post(
+          '/v1/inventories/update-inventory',
+          this.form
+        )
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formInventoryCreateEdit)
+        )
+
+        // navigateTo(`/masters/customizations/inventories/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async storeModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/create-inventory',
+          this.form
+        )
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        let routeAfter = `/inventories/in`
+        if (this.form.io_type == 'INVENTORY_OUT') {
+          routeAfter = '/inventories/out'
+        }
+        navigateTo(routeAfter)
+
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formInventoryCreateEdit)
+        )
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async updateModal() {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
 

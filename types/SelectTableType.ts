@@ -42,6 +42,7 @@ export type FieldSelectableType = {
   show?: boolean
   headerProps?: Record<string, any>
   cellProps?: Record<string, any>
+  children?: FieldSelectableType[]
 } & MethodAttributeSelectableType
 
 export type GeneratedFieldSelectableType = {

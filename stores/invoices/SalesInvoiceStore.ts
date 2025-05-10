@@ -7,15 +7,15 @@ import type { FormLayoutType } from '~/types/FormLayoutType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { 
-  FormSalesInvoiceDtProductListType, 
-  FormSalesInvoiceDtRefType, 
-  FormSalesInvoiceType, 
-  IndexSalesInvoiceType, 
-  SalesInvoiceDtType, 
-  SalesInvoiceRefType, 
-  QIndexSalesOrdersType, 
-  QSalesInvoiceIndexType 
+import type {
+  FormSalesInvoiceDtProductListType,
+  FormSalesInvoiceDtRefType,
+  FormSalesInvoiceType,
+  IndexSalesInvoiceType,
+  SalesInvoiceDtType,
+  SalesInvoiceRefType,
+  QIndexSalesOrdersType,
+  QSalesInvoiceIndexType
 } from '~/types/sales-invoices/SalesInvoiceType'
 
 const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
@@ -141,9 +141,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           '/v1/sales-invoices/index-sales-invoice',
           this.queryModal.qIndex
         )
-        
+
         this.metaModal.index = response.data
-        
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error?.response?.data)
@@ -156,19 +156,19 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     async indexWidget() {
       if (this.metaModal.indexWidgets.loading) return
       this.metaModal.indexWidgets.loading = true
-    
+
       let params = this.queryModal.qIndex
-    
+
       try {
         const response = await useMyFetch().post(
           '/v1/sales-invoices/widget-sales-invoice',
           params
         )
-    
+
         this.metaModal.indexWidgets = response.data
         let widgets = mapWidgets(response.data.data)
         this.metaModal.indexWidgets.data = widgets
-    
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Widget Data', error.response?.data);
@@ -187,9 +187,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
           }
         )
-    
+
         this.form = response.data.data[0]
-        
+
         this.form.is_vat = this.form.vat_id ? 1 : 0
         this.form.is_pph23 = this.form.pph23_id ? 1 : 0
 
@@ -203,9 +203,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             item.product_name = item.item_name;
           });
         }
-        
+
         this.itemsCheck.checkMain = initCheckedSalesInvoiceDt(this.form.sales_invoice_dts || [])
-    
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data)
@@ -224,7 +224,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             id: customerId
           }
         )
-        
+
         if (response.data && response.data.data && response.data.data.length > 0) {
           const customerData = response.data.data[0];
           this.autocompleteCustomer(customerData);
@@ -306,7 +306,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
         this.updateAllItemsVat();
         this.updateAllItemsPph23();
-        
+
         this.form.sales_invoice_dts = [...this.itemsCheck.checkMain]
 
         this.form.id = id;
@@ -384,7 +384,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     async indexSalesOrder() {
       if (this.metaModal.indexSalesOrders.loading) return
       this.metaModal.indexSalesOrders.loading = true
-    
+
       try {
         if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
@@ -397,20 +397,20 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           '/v1/sales-invoices/index-ref-so-dt',
           this.queryModal.qIndexSalesOrders
         )
-    
+
         if (this.isOpenModal.salesOrders) {
           this.metaModal.indexSalesOrders = response.data
-    
+
           if (this.itemsCheck.checkMain.length > 0) {
             const selectedItems: FormSalesInvoiceDtProductListType[] = [];
-            
+
             (this.metaModal.indexSalesOrders.data as FormSalesInvoiceDtProductListType[]).forEach((resSO: FormSalesInvoiceDtProductListType, iResSO: number) => {
-              const existingItem = this.itemsCheck.checkMain.find(item => 
-                item.ref_type === 'so' && 
+              const existingItem = this.itemsCheck.checkMain.find(item =>
+                item.ref_type === 'so' &&
                 ((item.ref_id === resSO.sales_order_id && item.ref_dt_id === resSO.id) ||
-                (item.ref_id === resSO.ref_id && item.ref_dt_id === resSO.ref_dt_id))
+                  (item.ref_id === resSO.ref_id && item.ref_dt_id === resSO.ref_dt_id))
               );
-              
+
               if (existingItem) {
                 const combined = {
                   ...resSO,
@@ -423,21 +423,21 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
                   vat_id: existingItem.vat_id,
                   pph23_id: existingItem.pph23_id
                 };
-                
+
                 selectedItems.push(combined);
-                
+
                 this.metaModal.indexSalesOrders.data[iResSO] = combined;
               }
             });
-            
+
             this.itemsCheck.checkSalesOrders = selectedItems;
           }
-    
+
           if (this.itemsCheck.checkSalesOrders.length > 0) {
             this.autocompleteSalesOrder(this.itemsCheck.checkSalesOrders[0])
           }
         }
-    
+
         return response.data
       } catch (error: any) {
         console.log('Failed To Fetch Sales Order Data', error.response?.data)
@@ -466,7 +466,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     handleClearQuery() {
       this.queryModal.qIndexSalesOrders = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         sales_order_ids: [],
         customer_ids: [],
         customer_id: null,
@@ -495,7 +495,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.formLayout.summary.grand_total.value = 0
       }
     },
-    
+
     handleClickClear() {
       const currentInvoiceNo = this.form.invoice_no;
       const currentId = this.form.id;
@@ -507,7 +507,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.form.id = currentId;
         this.form.invoice_no = currentInvoiceNo;
       }
-      
+
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkSalesOrders = []
       this.errors = {}
@@ -560,14 +560,14 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     autocompleteVat(data: FormVatType) {
       this.form.vat_percentage = Number(data.num);
-    
+
       this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
         if (!!item.is_vat) {
           item.vat_id = data.id as number;
           item.vat_percentage = Number(data.num);
         }
       });
-    
+
       this.calculateTotalAmount();
     },
 
@@ -591,7 +591,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         });
       }
     },
-    
+
     updateAllItemsPph23() {
       if (this.form.pph23_id) {
         this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
@@ -754,54 +754,54 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     //       this.form.remark = firstSelectedItem.head_remark;
     //     }
     //   }
-      
+
     //   const existingItems = [...this.itemsCheck.checkMain];
-    
+
     //   this.selectItemRefModal();
-      
+
     //   this.countSelectedReferences();
     //   this.closeAllModal();
     //   this.calculateTotalAmount();
     // }, 
-    
+
     onClickUpdateProductsModal() {
       if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
         const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
-    
+
         if (!this.form.customer_id && firstSelectedItem.customer_id) {
           this.form.customer_id = firstSelectedItem.customer_id;
-    
+
           if (firstSelectedItem.customer_id) {
             this.fetchCustomerDetails(firstSelectedItem.customer_id);
           }
         }
-    
+
         if (!this.form.currency_id && firstSelectedItem.currency_id) {
           this.form.currency_id = firstSelectedItem.currency_id;
           this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
         }
-    
+
         let hasVat = false;
         let hasPph23 = false;
-    
+
         const pph23Counts = new Map<number, number>();
         let maxPph23Count = 0;
         let mostCommonPph23Id: number | null = null;
         let mostCommonPph23Percentage = 0;
-    
+
         this.itemsCheck.checkSalesOrders.forEach(item => {
           if (item.is_vat === 1) {
             hasVat = true;
           }
-    
+
           if (item.is_pph23 === 1) {
             hasPph23 = true;
-            
+
             // Check if head_pph23_id exists and add it to the count
             if (item.head_pph23_id) {
               const currentCount = (pph23Counts.get(item.head_pph23_id) || 0) + 1;
               pph23Counts.set(item.head_pph23_id, currentCount);
-    
+
               if (currentCount > maxPph23Count) {
                 maxPph23Count = currentCount;
                 mostCommonPph23Id = item.head_pph23_id;
@@ -810,45 +810,45 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             }
           }
         });
-    
+
         if (hasVat && !this.form.is_vat) {
           this.form.is_vat = 1;
           this.onClickSwitchVAT(true);
         }
-    
+
         // Fix: Set PPH23 ID and percentage even if form.pph23_id is already set
         if (hasPph23 && mostCommonPph23Id) {
           this.form.pph23_id = mostCommonPph23Id;
           this.form.pph23_percentage = mostCommonPph23Percentage;
           this.form.is_pph23 = 1;
         }
-    
-        if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
-        (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
-    
+
+        if ((!this.form.discount_amount || this.form.discount_amount === 0) &&
+          (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
+
           if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
             this.form.discount_amount = firstSelectedItem.head_disc_am;
             this.form.discount_percentage = 0;
-          } 
+          }
           else if (firstSelectedItem.head_disc_perc && firstSelectedItem.head_disc_perc > 0) {
             this.form.discount_percentage = firstSelectedItem.head_disc_perc;
             this.form.discount_amount = 0;
           }
         }
-    
+
         if (!this.form.remark && firstSelectedItem.head_remark) {
           this.form.remark = firstSelectedItem.head_remark;
         }
       }
-      
+
       const existingItems = [...this.itemsCheck.checkMain];
-    
+
       this.selectItemRefModal();
-      
+
       this.countSelectedReferences();
       this.closeAllModal();
       this.calculateTotalAmount();
-    },    
+    },
 
     onClickDeleteSelected(item: any, index: number) {
       this.itemsCheck.checkMain.splice(index, 1);
@@ -900,7 +900,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             this.queryModal.qIndexSalesOrders.specific_ids = soItems.map(item => item.ref_dt_id).join(',');
           }
         }
-        
+
         await this.indexSalesOrder();
       }
     },
@@ -909,7 +909,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       if (this.isOpenModal.salesOrders) {
         this.queryModal.qIndexSalesOrders.page = options.page;
         this.queryModal.qIndexSalesOrders.per_page = options.itemsPerPage;
-    
+
         if (options.sortBy && options.sortBy.length > 0) {
           this.queryModal.qIndexSalesOrders.order_column = options.sortBy[0].key;
           this.queryModal.qIndexSalesOrders.order_direction = options.sortBy[0].order;
@@ -918,7 +918,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.queryModal.qIndexSalesOrders.order_direction = "desc";
         }
       }
-    
+
       await this.fetchModalFilter();
     },
 
@@ -959,18 +959,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.form.total_vat = 0;
       } else if (!this.form.vat_id) {
         const applicableVat = await this.getApplicableVat(this.form.invoice_date);
-        
+
         if (applicableVat) {
           this.form.vat_id = applicableVat.id as number;
           this.form.vat_percentage = Number(applicableVat.num);
-          
+
           this.itemsCheck.checkMain.forEach((item: SalesInvoiceDtType) => {
             if (item.is_vat) {
               item.vat_id = applicableVat.id as number;
               item.vat_percentage = Number(applicableVat.num);
             }
           });
-          
+
           this.calculateTotalAmount();
         }
       }
@@ -984,34 +984,34 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
         const discount = Number(item.discount || 0);
         item.total_amount = item.subtotal - discount;
-        
+
         // For sales invoice, we need to calculate total_balance
         item.total_balance = item.total_amount - (item.total_dp || 0);
       });
-    
+
       this.form.subtotal = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SalesInvoiceDtType) => acc + item.subtotal,
         0
       );
-    
+
       this.form.total_qty = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SalesInvoiceDtType) => acc + item.qty,
         0
       );
-    
+
       const totalItemDiscount = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SalesInvoiceDtType) => acc + (item.discount || 0),
         0
       );
-      
+
       this.form.total_amount_products = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SalesInvoiceDtType) => acc + item.total_amount,
         0
       );
-    
+
       this.form.discount_percentage_amount = 0;
       this.form.discount_final = 0;
-      
+
       if (this.form.discount_percentage > 0) {
         this.form.discount_percentage_amount = this.form.total_amount_products * (this.form.discount_percentage / 100);
         this.form.discount_final = this.form.discount_percentage_amount;
@@ -1020,9 +1020,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.form.discount_final = this.form.discount_amount;
         this.form.discount_type = 'amount';
       }
-      
+
       this.form.total_discount = totalItemDiscount + this.form.discount_final;
-      
+
       this.form.total_dp_products = this.itemsCheck.checkMain.reduce(
         (acc: number, item: SalesInvoiceDtType) => acc + (item.total_dp || 0),
         0
@@ -1032,7 +1032,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         (acc: number, item: SalesInvoiceDtType) => acc + (item.total_balance || 0),
         0
       );
-    
+
       if (!!this.form.vat_id) {
         let totalAmIsVat = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SalesInvoiceDtType) => {
@@ -1043,14 +1043,14 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           },
           0
         );
-        
+
         totalAmIsVat = totalAmIsVat - (totalAmIsVat * (this.form.discount_percentage / 100));
-        
+
         this.form.total_vat = totalAmIsVat * ((this.form.vat_percentage ?? 0) / 100);
       } else {
         this.form.total_vat = 0;
-      }    
-    
+      }
+
       if (!!this.form.pph23_id) {
         let totalBalanceIsPph23 = this.itemsCheck.checkMain.reduce(
           (acc: number, item: SalesInvoiceDtType) => {
@@ -1061,18 +1061,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           },
           0
         );
-        
+
         this.form.total_pph23 = totalBalanceIsPph23 * ((this.form.pph23_percentage ?? 0) / 100);
       } else {
         this.form.total_pph23 = 0;
       }
-    
+
       this.form.grand_total = this.form.total_balance_products - this.form.discount_final + this.form.total_vat - this.form.total_pph23;
 
       if (this.form.grand_total < 0) {
         this.form.grand_total = 0;
       }
-    
+
       if (this.formLayout.summary) {
         this.formLayout.summary.total_amount.value = this.form.total_amount_products;
         this.formLayout.summary.total_discount.value = this.form.discount_final;
@@ -1082,7 +1082,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         this.formLayout.summary.total_balance.value = this.form.total_balance_products;
         this.formLayout.summary.grand_total.value = this.form.grand_total;
       }
-    
+
       return {
         summary: {
           total_amount: this.form.total_amount_products,
@@ -1098,7 +1098,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     onClickSwitchVatDt(item: SalesInvoiceDtType, value: boolean) {
       item.is_vat = value ? 1 : 0;
-      
+
       if (!value) {
         item.vat_id = null;
         item.vat_percentage = 0;
@@ -1106,13 +1106,13 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         item.vat_id = this.form.vat_id;
         item.vat_percentage = this.form.vat_percentage;
       }
-      
+
       this.calculateTotalAmount();
     },
 
     onClickSwitchPph23Dt(item: SalesInvoiceDtType, value: boolean) {
       item.is_pph23 = value ? 1 : 0;
-      
+
       if (!value) {
         item.pph23_id = null;
         item.pph23_percentage = 0;
@@ -1120,7 +1120,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         item.pph23_id = this.form.pph23_id;
         item.pph23_percentage = this.form.pph23_percentage;
       }
-      
+
       this.calculateTotalAmount();
     },
 
@@ -1136,9 +1136,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             order_direction: 'desc'
           }
         )
-        
+
         this.referenceOptions.vats = response.data.data
-        
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch VAT Options', error?.response?.data)
@@ -1154,7 +1154,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             status: status
           }
         )
-        
+
         useAlert.alertSuccess(response.data.message)
         return response
       } catch (error: any) {
@@ -1168,19 +1168,19 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         if (!this.referenceOptions.vats || this.referenceOptions.vats.length === 0) {
           await this.fetchVatOptions();
         }
-        
+
         if (!this.referenceOptions.vats || this.referenceOptions.vats.length === 0) {
           return null;
         }
-        
+
         const invoiceDateObj = new Date(invoiceDate);
-        
+
         const sortedVats = [...this.referenceOptions.vats].sort((a, b) => {
           const dateA = new Date(a.date_at || '1970-01-01');
           const dateB = new Date(b.date_at || '1970-01-01');
           return dateB.getTime() - dateA.getTime();
         });
-        
+
         let applicableVat = null;
         for (const vat of sortedVats) {
           const vatDateAt = new Date(vat.date_at || '1970-01-01');
@@ -1189,11 +1189,11 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
             break;
           }
         }
-        
+
         if (!applicableVat && sortedVats.length > 0) {
           applicableVat = sortedVats[sortedVats.length - 1];
         }
-        
+
         return applicableVat;
       } catch (error) {
         console.error('Error getting applicable VAT:', error);
@@ -1203,7 +1203,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     goToSalesInvoice(id: number) {
       navigateTo(`/invoices/invoice-sales/edit/${id}`);
-    }     
+    }
   },
   persist: [
     {

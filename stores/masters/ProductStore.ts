@@ -243,6 +243,114 @@ const useProductStore = defineStore('ProductStore', {
       }
     },
 
+    async storeModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/products/create-product',
+          this.form
+        )
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formProductCreateEdit)
+        )
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+        // navigateTo(`/masters/products`)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async updateModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        let id = this.form.id
+
+        const response = await useMyFetch().post(
+          '/v1/products/update-product',
+          this.form
+        )
+
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formProductCreateEdit)
+        )
+
+        // navigateTo(`/masters/customizations/products/edit/${response.data.data[0].id}`)
+
+        console.log("id", id);
+
+        this.form.id = id
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        // await this.show()
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
     async delete(id: number | string | string[] | undefined) {
       this.form.id = id
       try {

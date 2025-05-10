@@ -114,12 +114,12 @@ const itemInventory = [
     link: "/inventories/out",
     permissions: ["r_invs"],
   },
-  // {
-  //   title: "Inventory Status",
-  //   icon: "mdi-credit-card-outline",
-  //   link: "/inventories/status",
-  //   permissions: ["r_invs"],
-  // },
+  {
+    title: "Inventory Status",
+    icon: "mdi-credit-card-outline",
+    link: "/inventories/status",
+    permissions: ["r_invs"],
+  },
   {
     title: "Card Stock",
     icon: "",

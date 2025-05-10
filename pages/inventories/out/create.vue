@@ -1268,6 +1268,9 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.products = $event"
     >
+      <template #header-end>
+        <d-form-product @submit:form="inventoryStore.fetchModalFilter()" />
+      </template>
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
@@ -1378,7 +1381,7 @@ watchEffect(() => {
       </v-data-table-server>
 
       <template #footer>
-        <div class="flex h-max w-full justify-end">
+        <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
             @click="inventoryStore.onClickUpdateProductsModal()"
@@ -1398,6 +1401,9 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.so = $event"
     >
+      <template #header-end>
+        <d-form-sales-order @submit:form="inventoryStore.fetchModalFilter()" />
+      </template>
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
@@ -1532,7 +1538,7 @@ watchEffect(() => {
       </v-data-table-server>
 
       <template #footer>
-        <div class="flex h-max w-full justify-end">
+        <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
             @click="inventoryStore.onClickUpdateProductsModal()"
@@ -1551,6 +1557,9 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.inv_in = $event"
     >
+      <template #header-end>
+        <d-form-inventory-in @submit:form="inventoryStore.fetchModalFilter()" />
+      </template>
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
@@ -1664,7 +1673,7 @@ watchEffect(() => {
       </v-data-table-server>
 
       <template #footer>
-        <div class="flex h-max w-full justify-end">
+        <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
             @click="inventoryStore.onClickUpdateProductsModal()"

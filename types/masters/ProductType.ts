@@ -163,3 +163,8 @@ export type QIndexProductsType = {
   order_column?: string
   order_direction?: string
 }
+
+export type FormProductCompType = {
+  id?: number | null | undefined | string | string[]
+  isOpen?: boolean
+}
