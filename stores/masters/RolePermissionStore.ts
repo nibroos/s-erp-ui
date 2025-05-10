@@ -8,7 +8,7 @@ const useRolePermissionStore = defineStore('RolePermissionStore', {
     queryModal: {
       qListIndex: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         global: '',
         order_column: 'name',
         order_direction: 'desc'

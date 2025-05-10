@@ -954,7 +954,7 @@ onBeforeMount(() => {
       </v-data-table-server>
 
       <template #footer>
-        <div class="flex h-max w-full justify-end">
+        <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
             @click="salesInvoiceStore.onClickUpdateProductsModal()"

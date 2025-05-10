@@ -519,6 +519,193 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
+    async storeModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        const formData = new FormData()
+
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
+
+        this.form.ref_type = 'sales_orders'
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/create-sales-order',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        )
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formSalesOrderCreateEdit)
+        )
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+        // navigateTo(`/sales/sales-orders`)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async updateModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      try {
+        let id = this.form.id
+
+        if (!this.form.is_scheduled) {
+          this.form.schedule = null
+        }
+
+        const formData = new FormData()
+
+        // Object.keys(this.form).forEach(key => {
+        //   const value = this.form[key as keyof typeof this.form]
+        //   if (value !== null && value !== undefined) {
+        //     if (key === 'files' && value instanceof File) {
+        //       formData.append(key, value)
+        //     }
+        //     else if (key === 'so_dts' && Array.isArray(this.form[key])) {
+        //       this.form[key].forEach((so_dt, index) => {
+        //         formData.append(`${key}[${index}]`, JSON.stringify(so_dt))
+        //       })
+        //     }
+        //     else {
+        //       formData.append(key, value as string | Blob)
+        //     }
+        //   }
+        // })
+
+        this.form.ref_type = 'sales_orders'
+
+        // Handle files first
+        if (this.form.files) {
+          if (Array.isArray(this.form.files)) {
+            this.form.files.forEach((file, index) => {
+              formData.append(`files`, file)
+            })
+          } else {
+            formData.append('files', this.form.files)
+          }
+        }
+
+        // Handle regular data
+        const regularData = {
+          ...this.form,
+          files: undefined // Remove files from regular data
+        }
+        formData.append('data', JSON.stringify(regularData))
+
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/update-sales-order',
+          // this.form,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        )
+
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formSalesOrderCreateEdit)
+        )
+
+        // navigateTo(`/masters/customizations/sales-orders/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        await this.show()
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        // navigateTo(`/sales/sales-orders`)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
     async updateSchedule() {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
@@ -978,7 +1165,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     handleClearQuery() {
       this.queryModal.qIndexProducts = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',

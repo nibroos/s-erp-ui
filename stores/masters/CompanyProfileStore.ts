@@ -34,7 +34,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
     queryModal: {
       qListIndex: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         global: '',
         order_column: 'company_name',
         order_direction: 'desc'
@@ -58,13 +58,13 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
         if (typeof this.form.id === 'string') {
           this.form.id = parseInt(this.form.id);
         }
-        
+
         const response = await useMyFetch().post(
           '/v1/company-profiles/show-company-profile',
           this.form
         )
         this.form = response.data.data[0]
-    
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data);
@@ -92,7 +92,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
           if (this.form[key] !== null && this.form[key] !== undefined) {
             if (key === 'company_sign' && this.form[key] instanceof File) {
               formData.append(key, this.form[key])
-            } 
+            }
             else if (key === 'company_logo' && this.form[key] instanceof File) {
               formData.append(key, this.form[key])
             }
@@ -114,7 +114,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
             }
           }
         )
-        
+
         this.form = JSON.parse(
           JSON.stringify(useInitials.formCompanyProfileCreateEdit)
         )
@@ -148,21 +148,21 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
     async update() {
       if (!!this.formLoading) return
       this.formLoading = true
-    
+
       const isConfirmed = await useAlert.showPopupConfirmation(
         'Are you sure to save this data?',
         'Data will be saved'
       )
-    
+
       if (!isConfirmed) {
         this.formLoading = false
         return
       }
-    
+
       try {
         let id = this.form.id
         const formData = new FormData()
-    
+
         Object.keys(this.form).forEach(key => {
           if (key === 'company_sign' || key === 'company_logo') {
             if (this.form[key] === null) {
@@ -173,7 +173,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
             } else if (this.form[key]) {
               formData.append(key, this.form[key])
             }
-          } 
+          }
           else if (key === 'bank_informations' && Array.isArray(this.form[key])) {
             formData.append(key, JSON.stringify(this.form[key]))
           }
@@ -181,7 +181,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
             formData.append(key, this.form[key])
           }
         })
-    
+
         const response = await useMyFetch().post(
           '/v1/company-profiles/update-company-profile',
           formData,
@@ -191,27 +191,27 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
             }
           }
         )
-        
+
         const currentId = this.form.id
-    
+
         this.form = JSON.parse(
           JSON.stringify(useInitials.formCompanyProfileCreateEdit)
         )
-    
+
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-    
+
         navigateTo(`/masters/company-profiles/edit/${currentId}`)
-    
+
         this.form.id = currentId
         this.show()
-    
+
         return response
       } catch (error: any) {
         const responseData = error.response.data
         console.log('Failed To Update Data', error.response.data)
         let errors = ''
-    
+
         if (typeof responseData.errors === 'object') {
           await Promise.all(
             Object.keys(responseData.errors).map((row: any) => {
@@ -221,7 +221,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
           )
         }
         useAlert.alertError(errors + `<br /> ${responseData.message}`)
-    
+
         return error.response.data
       } finally {
         this.formLoading = false

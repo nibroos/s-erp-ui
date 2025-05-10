@@ -282,6 +282,115 @@ const useQuotationStore = defineStore('QuotationStore', {
       }
     },
 
+    async storeModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      this.tabFormIndex = 0
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/quotations/create-quotation',
+          this.form
+        )
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formQuotationCreateEdit)
+        )
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+        // navigateTo(`/sales/quotations`)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async updateModal() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to save this data?',
+        'Data will be saved'
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      this.tabFormIndex = 0
+
+      try {
+        let id = this.form.id
+
+        const response = await useMyFetch().post(
+          '/v1/quotations/update-quotation',
+          this.form
+        )
+        this.form = JSON.parse(
+          JSON.stringify(useInitials.formQuotationCreateEdit)
+        )
+
+        // navigateTo(`/masters/customizations/quotations/edit/${response.data.data[0].id}`)
+
+        this.form.id = id
+        // await this.show()
+        // navigateTo(`/sales/quotations`)
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row][0]} <br />`
+              this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
     async delete(id: number | string | string[] | undefined) {
       this.form.id = id
       try {
@@ -419,7 +528,7 @@ const useQuotationStore = defineStore('QuotationStore', {
     handleClearQuery() {
       this.queryModal.qIndexProducts = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         item_group_ids: [],
         item_sub_group_ids: [],
         code: '',

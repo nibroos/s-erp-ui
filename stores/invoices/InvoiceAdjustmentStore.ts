@@ -3,17 +3,17 @@ import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { FormLayoutType } from '~/types/FormLayoutType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
-import type { 
-  FormInvoiceAdjustmentType, 
-  IndexInvoiceAdjustmentType, 
-  InvoiceAdjustmentDtType, 
-  QInvoiceAdjustmentIndexType, 
+import type {
+  FormInvoiceAdjustmentType,
+  IndexInvoiceAdjustmentType,
+  InvoiceAdjustmentDtType,
+  QInvoiceAdjustmentIndexType,
   QIndexInvoicesType,
   FormInvoiceAdjustmentDtInvoiceType
 } from '~/types/invoice-adjustments/InvoiceAdjustmentType'
-import { 
-  convertInvoiceAdjustmentItemRef, 
-  generateInvoiceAdjustmentDt, 
+import {
+  convertInvoiceAdjustmentItemRef,
+  generateInvoiceAdjustmentDt,
   updateInvoiceAdjustmentRefsFromMain,
   initCheckedInvoiceAdjustmentDt
 } from '~/composables/maps/InvoiceAdjustmentComp'
@@ -104,9 +104,9 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           '/v1/invoice-adjustments/index-invoice-adjustment',
           this.queryModal.qIndex
         )
-        
+
         this.metaModal.index = response.data
-        
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error?.response?.data)
@@ -126,15 +126,15 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //         id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
     //       }
     //     )
-    
+
     //     this.form = response.data.data[0]
-        
+
     //     if (!this.form.email && this.form.customer_id) {
     //       await this.fetchCustomerDetails(this.form.customer_id);
     //     }
 
     //     this.itemsCheck.checkMain = initCheckedInvoiceAdjustmentDt(this.form.adjustment_dts || []);
-    
+
     //     return response
     //   } catch (error: any) {
     //     console.log('Failed To Fetch Data', error.response.data)
@@ -154,14 +154,14 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
           }
         )
-    
+
         this.form = response.data.data[0]
 
         if (this.form.customer_id) {
           this.queryModal.qIndexInvoices.customer_id = this.form.customer_id;
           this.queryModal.qIndexInvoices.customer_ids = [this.form.customer_id];
         }
-        
+
         if (!this.form.email && this.form.customer_id) {
           await this.fetchCustomerDetails(this.form.customer_id);
         }
@@ -170,7 +170,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           ...item,
           selected: true
         }));
-    
+
         return response
       } catch (error: any) {
         console.log('Failed To Fetch Data', error.response.data)
@@ -188,7 +188,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             id: customerId
           }
         )
-        
+
         if (response.data && response.data.data && response.data.data.length > 0) {
           const customerData = response.data.data[0];
           this.autocompleteCustomer(customerData);
@@ -206,22 +206,22 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.loading.formLoading = false
         return
       }
-    
+
       const isConfirmed = await useAlert.showPopupConfirmation(
         'Are you sure to save this data?',
         'Data will be saved'
       )
-    
+
       if (!isConfirmed) {
         this.loading.formLoading = false
         return
       }
-    
+
       try {
         this.transferSelectedInvoicesToCheckMain();
 
         const formToSubmit = JSON.parse(JSON.stringify(this.form));
-        
+
         formToSubmit.adjustment_dts = this.itemsCheck.checkMain.map(item => {
           return {
             ...item,
@@ -229,7 +229,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             balance_amount: item.invoice_amount - item.adjustment_amount
           };
         });
-        
+
         const response = await useMyFetch().post(
           '/v1/invoice-adjustments/create-invoice-adjustment',
           formToSubmit
@@ -237,17 +237,17 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.form = JSON.parse(
           JSON.stringify(useInitials.formInvoiceAdjustmentCreateEdit)
         )
-    
+
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
         navigateTo(`/invoices/invoice-adjustments`)
-    
+
         return response
       } catch (error: any) {
         const responseData = error.response.data
         console.log('Failed To Create Data', error.response.data)
         let errors = ''
-    
+
         if (typeof responseData.errors === 'object') {
           await Promise.all(
             Object.keys(responseData.errors).map((row: any) => {
@@ -257,7 +257,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           )
         }
         useAlert.alertError(errors + `<br /> ${responseData.message}`)
-    
+
         return error.response.data
       } finally {
         this.loading.formLoading = false
@@ -267,25 +267,25 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     async update() {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
-    
+
       if (!this.validateForm()) {
         this.loading.formLoading = false
         return
       }
-    
+
       const isConfirmed = await useAlert.showPopupConfirmation(
         'Are you sure to save this data?',
         'Data will be saved'
       )
-    
+
       if (!isConfirmed) {
         this.loading.formLoading = false
         return
       }
-    
+
       try {
         let id = typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id;
-    
+
         const formToSubmit = JSON.parse(JSON.stringify(this.form));
 
         formToSubmit.adjustment_dts = this.itemsCheck.checkMain
@@ -297,9 +297,9 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
               balance_amount: item.invoice_amount - item.adjustment_amount
             };
           });
-        
+
         formToSubmit.id = id;
-    
+
         const response = await useMyFetch().post(
           '/v1/invoice-adjustments/update-invoice-adjustment',
           formToSubmit
@@ -307,21 +307,21 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.form = JSON.parse(
           JSON.stringify(useInitials.formInvoiceAdjustmentCreateEdit)
         )
-    
+
         this.form.id = id
         await this.show()
-    
+
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-    
+
         navigateTo(`/invoices/invoice-adjustments`)
-    
+
         return response
       } catch (error: any) {
         const responseData = error.response.data
         console.log('Failed To Update Data', error.response.data)
         let errors = ''
-    
+
         if (typeof responseData.errors === 'object') {
           await Promise.all(
             Object.keys(responseData.errors).map((row: any) => {
@@ -331,7 +331,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           )
         }
         useAlert.alertError(errors + `<br /> ${responseData.message}`)
-    
+
         return error.response.data
       } finally {
         this.loading.formLoading = false
@@ -373,15 +373,15 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     async searchInvoices() {
       if (this.loading.searchInvoicesLoading) return
       this.loading.searchInvoicesLoading = true
-    
+
       try {
         const response = await useMyFetch().post(
           '/v1/invoice-adjustments/search-invoices',
           this.queryModal.qIndexInvoices
         )
-    
+
         this.metaModal.indexInvoices = response.data
-        
+
         return response.data
       } catch (error: any) {
         console.log('Failed To Fetch Invoices Data', error.response?.data)
@@ -399,22 +399,22 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.errors.customer_id = 'Customer is required';
         isValid = false;
       }
-      
+
       if (!this.form.reference) {
         this.errors.reference = 'Reference type is required';
         isValid = false;
       }
-      
+
       if (!this.form.ref_start_date) {
         this.errors.ref_start_date = 'Start date is required';
         isValid = false;
       }
-      
+
       if (!this.form.ref_end_date) {
         this.errors.ref_end_date = 'End date is required';
         isValid = false;
       }
-      
+
       return isValid;
     },
 
@@ -422,10 +422,10 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //   if (!this.validateSearchReference()) {
     //     return;
     //   }
-    
+
     //   if (this.loading.searchInvoicesLoading) return
     //   this.loading.searchInvoicesLoading = true
-    
+
     //   try {
     //     const response = await useMyFetch().post(
     //       '/v1/invoice-adjustments/index-reference-invoices',
@@ -436,12 +436,12 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //         customer_id: this.queryModal.qIndexInvoices.customer_id
     //       }
     //     )
-    
+
     //     this.metaModal.indexInvoices = response.data
 
     //     if (response.data && response.data.data && response.data.data.length > 0) {
     //       const invoiceWithBank = response.data.data.find(invoice => invoice.bank_id !== null);
-          
+
     //       if (invoiceWithBank) {
     //         this.form.bank_id = invoiceWithBank.bank_id;
 
@@ -450,7 +450,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //             '/v1/company-profiles/show-bank-information',
     //             { id: invoiceWithBank.bank_id }
     //           );
-              
+
     //           if (bankResponse.data && bankResponse.data.data && bankResponse.data.data.length > 0) {
     //             const bankData = bankResponse.data.data[0];
     //             this.autocompleteBankInfo(bankData);
@@ -472,7 +472,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //         this.form.remark = response.data.data[0].remark || '';
     //       }
     //     }
-        
+
     //     return response.data
     //   } catch (error: any) {
     //     console.log('Failed To Fetch Reference Invoices Data', error.response?.data)
@@ -486,10 +486,10 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       if (!this.validateSearchReference()) {
         return;
       }
-    
+
       if (this.loading.searchInvoicesLoading) return
       this.loading.searchInvoicesLoading = true
-    
+
       try {
         const customer_id = this.form.customer_id || this.queryModal.qIndexInvoices.customer_id;
         const response = await useMyFetch().post(
@@ -526,19 +526,19 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         } else {
           this.metaModal.indexInvoices = response.data;
         }
-    
+
         if (response.data && response.data.data && response.data.data.length > 0) {
           const invoiceWithBank = response.data.data.find(invoice => invoice.bank_id !== null);
-          
+
           if (invoiceWithBank) {
             this.form.bank_id = invoiceWithBank.bank_id;
-    
+
             try {
               const bankResponse = await useMyFetch().post(
                 '/v1/company-profiles/show-bank-information',
                 { id: invoiceWithBank.bank_id }
               );
-              
+
               if (bankResponse.data && bankResponse.data.data && bankResponse.data.data.length > 0) {
                 const bankData = bankResponse.data.data[0];
                 this.autocompleteBankInfo(bankData);
@@ -546,7 +546,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             } catch (error) {
               console.log('Failed to fetch bank details', error);
             }
-    
+
             this.form.remark = invoiceWithBank.remark || '';
           } else {
             this.form.bank_id = null;
@@ -556,11 +556,11 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
               account_number: '',
               account_name: ''
             };
-    
+
             this.form.remark = response.data.data[0].remark || '';
           }
         }
-        
+
         return response.data
       } catch (error: any) {
         console.log('Failed To Fetch Reference Invoices Data', error.response?.data)
@@ -574,20 +574,20 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
         return;
       }
-    
+
       const selectedItems = this.metaModal.indexInvoices.data.filter(item => item.selected);
-      
+
       this.form.total_invoice = selectedItems.reduce(
         (acc, item) => acc + (item.invoice_amount || 0), 0
       );
-      
+
       this.form.total_adjustment = selectedItems.reduce(
         (acc, item) => acc + (item.adjustment_amount || 0), 0
       );
 
       const calculatedBalance = this.form.total_invoice - this.form.total_adjustment;
       this.form.total_balance = calculatedBalance < 0 ? 0 : calculatedBalance;
-      
+
       this.form.total_admin_bank = selectedItems.reduce(
         (acc, item) => acc + (item.admin_bank || 0), 0
       );
@@ -596,12 +596,12 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         const calculatedAmount = (item.adjustment_amount || 0) - (item.admin_bank || 0);
         item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
       });
-    
+
       const calculatedGrandTotal = selectedItems.reduce(
         (acc, item) => acc + (item.total_amount || 0), 0
       );
       this.form.grand_total = calculatedGrandTotal < 0 ? 0 : calculatedGrandTotal;
-    
+
       if (this.formLayout.summary) {
         this.formLayout.summary.total_invoice.value = this.form.total_invoice;
         this.formLayout.summary.total_adjustment.value = this.form.total_adjustment;
@@ -616,11 +616,11 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       const existingIndex = this.itemsCheck.checkMain.findIndex(
         item => item.ref_id === invoice.ref_id && item.ref_type === invoice.ref_type
       );
-      
+
       if (existingIndex === -1) {
         // Convert the invoice to InvoiceAdjustmentDtType
         const newItem = convertInvoiceAdjustmentItemRef(invoice, invoice.ref_type);
-        
+
         this.itemsCheck.checkMain.push(newItem);
         this.calculateTotalAmount();
       }
@@ -629,7 +629,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     handleClearQuery() {
       this.queryModal.qIndexInvoices = {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         invoice_ids: [],
         customer_ids: [],
         customer_id: null,
@@ -663,7 +663,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.formLayout.summary.grand_total.value = 0
       }
     },
-    
+
     handleClickClear() {
       const currentInvoiceNo = this.form.invoice_no;
       const currentId = this.form.id;
@@ -675,7 +675,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.form.id = currentId;
         this.form.invoice_no = currentInvoiceNo;
       }
-      
+
       this.itemsCheck.checkMain = []
       this.itemsCheck.checkInvoices = []
       this.errors = {}
@@ -734,12 +734,12 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     const calculatedAmount = item.adjustment_amount - item.admin_bank;
     //     item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
     //   });
-    
+
     //   this.form.total_invoice = this.itemsCheck.checkMain.reduce(
     //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.invoice_amount,
     //     0
     //   );
-    
+
     //   this.form.total_adjustment = this.itemsCheck.checkMain.reduce(
     //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.adjustment_amount,
     //     0
@@ -747,7 +747,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
 
     //   const calculatedBalance = this.form.total_invoice - this.form.total_adjustment;
     //   this.form.total_balance = calculatedBalance < 0 ? 0 : calculatedBalance;
-    
+
     //   this.form.total_admin_bank = this.itemsCheck.checkMain.reduce(
     //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.admin_bank,
     //     0
@@ -758,7 +758,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     0
     //   );
     //   this.form.grand_total = calculatedGrandTotal < 0 ? 0 : calculatedGrandTotal;
-    
+
     //   if (this.formLayout.summary) {
     //     this.formLayout.summary.total_invoice.value = this.form.total_invoice;
     //     this.formLayout.summary.total_adjustment.value = this.form.total_adjustment;
@@ -766,7 +766,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     this.formLayout.summary.total_admin_bank.value = this.form.total_admin_bank;
     //     this.formLayout.summary.grand_total.value = this.form.grand_total;
     //   }
-    
+
     //   return {
     //     summary: {
     //       total_invoice: this.form.total_invoice,
@@ -780,36 +780,36 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
 
     calculateTotalAmount() {
       const selectedItems = this.itemsCheck.checkMain.filter(item => item.selected);
-      
+
       selectedItems.forEach((item: InvoiceAdjustmentDtType) => {
         const calculatedAmount = item.adjustment_amount - item.admin_bank;
         item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
       });
- 
+
       this.form.total_invoice = selectedItems.reduce(
         (acc: number, item: InvoiceAdjustmentDtType) => acc + item.invoice_amount,
         0
       );
-    
+
       this.form.total_adjustment = selectedItems.reduce(
         (acc: number, item: InvoiceAdjustmentDtType) => acc + item.adjustment_amount,
         0
       );
-    
+
       const calculatedBalance = this.form.total_invoice - this.form.total_adjustment;
       this.form.total_balance = calculatedBalance < 0 ? 0 : calculatedBalance;
-    
+
       this.form.total_admin_bank = selectedItems.reduce(
         (acc: number, item: InvoiceAdjustmentDtType) => acc + item.admin_bank,
         0
       );
-    
+
       const calculatedGrandTotal = selectedItems.reduce(
         (acc: number, item: InvoiceAdjustmentDtType) => acc + item.total_amount,
         0
       );
       this.form.grand_total = calculatedGrandTotal < 0 ? 0 : calculatedGrandTotal;
-    
+
       if (this.formLayout.summary) {
         this.formLayout.summary.total_invoice.value = this.form.total_invoice;
         this.formLayout.summary.total_adjustment.value = this.form.total_adjustment;
@@ -817,7 +817,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.formLayout.summary.total_admin_bank.value = this.form.total_admin_bank;
         this.formLayout.summary.grand_total.value = this.form.grand_total;
       }
-    
+
       return {
         summary: {
           total_invoice: this.form.total_invoice,
@@ -827,7 +827,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           grand_total: this.form.grand_total,
         },
       };
-    },    
+    },
 
     updateAdjustmentAmount(item: InvoiceAdjustmentDtType, value: number) {
       item.adjustment_amount = value;
@@ -835,10 +835,10 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       if (item.adjustment_amount > item.balance_amount) {
         item.adjustment_amount = item.balance_amount;
       }
-      
+
       this.calculateTotalAmount();
     },
-    
+
     updateAdminBankAmount(item: InvoiceAdjustmentDtType, value: number) {
       item.admin_bank = value;
       this.calculateTotalAmount();
@@ -847,7 +847,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     async fetchDataServerFetch(options: { [key: string]: any }) {
       this.queryModal.qIndexInvoices.page = options.page;
       this.queryModal.qIndexInvoices.per_page = options.itemsPerPage;
-  
+
       if (options.sortBy && options.sortBy.length > 0) {
         this.queryModal.qIndexInvoices.order_column = options.sortBy[0].key;
         this.queryModal.qIndexInvoices.order_direction = options.sortBy[0].order;
@@ -855,7 +855,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.queryModal.qIndexInvoices.order_column = "";
         this.queryModal.qIndexInvoices.order_direction = "desc";
       }
-  
+
       await this.searchInvoices();
     },
 
@@ -867,17 +867,17 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.errors.customer_id = 'Customer is required';
         isValid = false;
       }
-      
+
       if (!this.form.currency_id) {
         this.errors.currency_id = 'Currency is required';
         isValid = false;
       }
-      
+
       if (!this.form.payment_date) {
         this.errors.payment_date = 'Payment date is required';
         isValid = false;
       }
-      
+
       if (!this.form.payment_amount || this.form.payment_amount <= 0) {
         this.errors.payment_amount = 'Payment amount must be greater than 0';
         isValid = false;
@@ -887,7 +887,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.errors.ref_end_date = 'End date is required when start date is provided';
         isValid = false;
       }
-      
+
       if (!this.form.ref_start_date && this.form.ref_end_date) {
         this.errors.ref_start_date = 'Start date is required when end date is provided';
         isValid = false;
@@ -903,7 +903,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         useAlert.alertError('Please calculate adjustment amounts first using "Adjusted Amount Auto Calculate" or "Auto Calculate Selection"');
         isValid = false;
       }
-      
+
       return isValid;
     },
 
@@ -921,9 +921,9 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       const exists = this.itemsCheck.checkMain.some(
         item => item.ref_id === invoice.ref_id && item.ref_type === invoice.ref_type
       );
-      
+
       const hasBalance = invoice.balance_amount > 0;
-      
+
       return !exists && hasBalance;
     },
 
@@ -950,7 +950,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       });
 
       remainingAmount = this.form.payment_amount - totalAdminBank;
-      
+
       if (remainingAmount <= 0) {
         this.itemsCheck.checkMain.forEach(item => {
           item.adjustment_amount = 0;
@@ -977,9 +977,9 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     useAlert.alertError('Please enter a valid payment amount first');
     //     return;
     //   }
-    
+
     //   const selectedItems = this.metaModal.indexInvoices.data.filter(item => item.selected);
-      
+
     //   if (selectedItems.length === 0) {
     //     useAlert.alertError('No invoices selected for adjustment');
     //     return;
@@ -999,7 +999,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //       item.invoice_uuid === b.invoice_uuid && item.ref_type === b.ref_type);
     //     return indexA - indexB;
     //   });
-    
+
     //   let remainingAmount = this.form.payment_amount;
     //   sortedSelectedItems.forEach(item => {
     //     if (remainingAmount <= 0) {
@@ -1015,7 +1015,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     const calculatedAmount = (item.adjustment_amount || 0) - (item.admin_bank || 0);
     //     item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
     //   });
-    
+
     //   this.calculateTotalsFromSearchResults();
     // },
 
@@ -1039,7 +1039,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         });
 
         const selectedItems = this.itemsCheck.checkMain.filter(item => item.selected);
-        
+
         if (selectedItems.length === 0) {
           useAlert.alertError('No invoices selected for adjustment');
           return;
@@ -1055,18 +1055,18 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           item.adjustment_amount = 0;
           item.total_amount = 0;
         });
-        
+
         let remainingAmount = this.form.payment_amount;
 
         for (let i = 0; i < sortedSelectedItems.length; i++) {
           const item = sortedSelectedItems[i];
-          
+
           if (remainingAmount <= 0) break;
 
           const maxAdjustment = item.balance_amount + item.total_adjustment;
-          
+
           if (maxAdjustment <= 0) continue;
-          
+
           if (remainingAmount >= maxAdjustment) {
             item.adjustment_amount = maxAdjustment;
             remainingAmount -= maxAdjustment;
@@ -1083,16 +1083,16 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           const calculatedAmount = item.adjustment_amount - item.admin_bank;
           item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
         }
-        
+
         this.calculateTotalAmount();
-      } 
+      }
       else if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
         useAlert.alertError('No invoices available for adjustment');
         return;
-      } 
+      }
       else {
         const selectedItems = this.metaModal.indexInvoices.data.filter(item => item.selected);
-        
+
         if (selectedItems.length === 0) {
           useAlert.alertError('No invoices selected for adjustment');
           return;
@@ -1122,14 +1122,14 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           item.adjustment_amount = 0;
           item.total_amount = 0;
         });
-        
+
         let remainingAmount = this.form.payment_amount;
 
         for (let i = 0; i < sortedSelectedItems.length; i++) {
           const item = sortedSelectedItems[i];
-          
+
           if (remainingAmount <= 0) break;
-          
+
           if (remainingAmount >= item.balance_amount) {
             item.adjustment_amount = item.balance_amount;
             remainingAmount -= item.balance_amount;
@@ -1146,15 +1146,15 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
           const calculatedAmount = (item.adjustment_amount || 0) - (item.admin_bank || 0);
           item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
         }
-        
+
         this.calculateTotalsFromSearchResults();
       }
-    },    
+    },
 
     clearReferences() {
       this.metaModal.indexInvoices.data = [];
       this.itemsCheck.checkMain = [];
-      
+
       this.form.total_invoice = 0;
       this.form.total_adjustment = 0;
       this.form.total_balance = 0;
@@ -1175,7 +1175,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //     useAlert.alertError('Please enter a valid payment amount first');
     //     return;
     //   }
-      
+
     //   if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
     //     useAlert.alertError('No invoices available for adjustment');
     //     return;
@@ -1187,13 +1187,13 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //       adminBankValues.set(`${item.ref_type}-${item.ref_id}`, item.admin_bank);
     //     }
     //   });
-    
+
     //   this.metaModal.indexInvoices.data.forEach(item => {
     //     item.selected = false;
     //     item.adjustment_amount = 0;
     //     item.total_amount = 0;
     //   });
-    
+
     //   const { updatedInvoices } = autoCalculateAdjustments(
     //     this.metaModal.indexInvoices.data,
     //     this.form.payment_amount
@@ -1205,11 +1205,11 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //       invoice.admin_bank = adminBankValues.get(key);
     //     }
     //   });
-    
+
     //   this.metaModal.indexInvoices.data = updatedInvoices;
-    
+
     //   this.itemsCheck.checkMain = [];
-    
+
     //   updatedInvoices.forEach(invoice => {
     //     if (invoice.selected) {
     //       const adjustmentItem = convertInvoiceAdjustmentItemRef(invoice, invoice.ref_type);
@@ -1218,7 +1218,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
     //       this.itemsCheck.checkMain.push(adjustmentItem);
     //     }
     //   });
-    
+
     //   this.calculateTotalsFromSearchResults();
     // },   
 
@@ -1233,33 +1233,33 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.itemsCheck.checkMain.forEach(item => {
           adminBankValues.set(`${item.ref_type}-${item.ref_id}`, item.admin_bank);
         });
-        
+
         const sortedItems = [...this.itemsCheck.checkMain].sort((a, b) => {
           const dateA = new Date(a.invoice_date);
           const dateB = new Date(b.invoice_date);
           return dateA.getTime() - dateB.getTime();
         });
-        
+
         sortedItems.forEach(item => {
           item.selected = false;
           const maxAdjustment = item.balance_amount + item.total_adjustment;
           item.adjustment_amount = 0;
           item.total_amount = 0;
         });
-        
+
         let remainingAmount = this.form.payment_amount;
-        
+
         for (let i = 0; i < sortedItems.length; i++) {
           const item = sortedItems[i];
-          
+
           if (remainingAmount <= 0) break;
-          
+
           const maxAdjustment = item.balance_amount + item.total_adjustment;
-          
+
           if (maxAdjustment <= 0) continue;
-          
+
           item.selected = true;
-          
+
           if (remainingAmount >= maxAdjustment) {
             item.adjustment_amount = maxAdjustment;
             remainingAmount -= maxAdjustment;
@@ -1267,22 +1267,22 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             item.adjustment_amount = remainingAmount;
             remainingAmount = 0;
           }
-          
+
           const key = `${item.ref_type}-${item.ref_id}`;
           if (adminBankValues.has(key)) {
             item.admin_bank = adminBankValues.get(key);
           }
-          
+
           const calculatedAmount = item.adjustment_amount - item.admin_bank;
           item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
         }
-        
+
         this.calculateTotalAmount();
-      } 
+      }
       else if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
         useAlert.alertError('No invoices available for adjustment');
         return;
-      } 
+      }
       else {
         const adminBankValues = new Map();
         this.metaModal.indexInvoices.data.forEach(item => {
@@ -1290,29 +1290,29 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             adminBankValues.set(`${item.ref_type}-${item.ref_id}`, item.admin_bank);
           }
         });
-      
+
         this.metaModal.indexInvoices.data.forEach(item => {
           item.selected = false;
           item.adjustment_amount = 0;
           item.total_amount = 0;
         });
-      
+
         const { updatedInvoices } = autoCalculateAdjustments(
           this.metaModal.indexInvoices.data,
           this.form.payment_amount
         );
-    
+
         updatedInvoices.forEach(invoice => {
           const key = `${invoice.ref_type}-${invoice.ref_id}`;
           if (adminBankValues.has(key)) {
             invoice.admin_bank = adminBankValues.get(key);
           }
         });
-      
+
         this.metaModal.indexInvoices.data = updatedInvoices;
 
         this.itemsCheck.checkMain = [];
-        
+
         updatedInvoices.forEach(invoice => {
           if (invoice.selected) {
             const adjustmentItem = convertInvoiceAdjustmentItemRef(invoice, invoice.ref_type);
@@ -1321,35 +1321,35 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
             this.itemsCheck.checkMain.push(adjustmentItem);
           }
         });
-      
+
         this.calculateTotalsFromSearchResults();
       }
-    },    
-    
+    },
+
     transferSelectedInvoicesToCheckMain() {
       if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
         return;
       }
-      
+
       const selectedInvoices = this.metaModal.indexInvoices.data.filter(item => item.selected);
-      
+
       if (selectedInvoices.length === 0) {
         return;
       }
 
       this.itemsCheck.checkMain = [];
-      
+
       selectedInvoices.forEach(invoice => {
         const adjustmentItem = convertInvoiceAdjustmentItemRef(invoice, invoice.ref_type);
         adjustmentItem.adjustment_amount = invoice.adjustment_amount || 0;
         adjustmentItem.admin_bank = invoice.admin_bank || 0;
-        
+
         const calculatedAmount = adjustmentItem.adjustment_amount - adjustmentItem.admin_bank;
         adjustmentItem.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
-        
+
         this.itemsCheck.checkMain.push(adjustmentItem);
       });
-      
+
       this.calculateTotalAmount();
     }
 

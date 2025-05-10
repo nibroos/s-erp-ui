@@ -15,7 +15,7 @@ const useUnitStore = defineStore('UnitStore', {
     queryModal: {
       qListIndex: {
         page: 1,
-        per_page: 10,
+        per_page: 100,
         parent_ids: [],
         global: '',
         order_column: 'name',
