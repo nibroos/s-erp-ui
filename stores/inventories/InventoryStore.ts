@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType, QInvStockIndexType } from '~/types/inventories/InventoryType'
+import type { FormInventoryType, IndexInventoryType, QInvIndexType, InvDtType, QIndexSalesOrdersType, InvDtDiscType, FormInvDtProductListType, QIndexPurchaseOrdersType, QIndexInventoryInsType, QInvStockIndexType, QInvStatusIndexType } from '~/types/inventories/InventoryType'
 
 const useInventoryStore = defineStore('InventoryStore', {
   state: () => ({
@@ -37,14 +37,20 @@ const useInventoryStore = defineStore('InventoryStore', {
       qIndexInventoryStatus: {
         page: 1,
         per_page: 100,
-        parent_ids: [],
+        item_ids: [],
+        item_group_ids: [],
+        item_sub_group_ids: [],
         global: '',
+        product_id: null,
         warehouse_id: null,
         item_id: null,
         branch_id: null,
+        date_type: '',
+        start_date: '',
+        end_date: '',
         order_column: 'ingoing_at',
         order_direction: 'desc'
-      } as QInvStockIndexType,
+      } as QInvStatusIndexType,
       qIndexStock: {
         page: 1,
         per_page: 100,
@@ -166,6 +172,11 @@ const useInventoryStore = defineStore('InventoryStore', {
         meta: {} as Meta
       } as PaginationMeta,
       indexInventoryIns: {
+        data: [] as FormInvDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexInventoryStatus: {
         data: [] as FormInvDtProductListType[],
         loading: false,
         meta: {} as Meta
@@ -953,6 +964,27 @@ const useInventoryStore = defineStore('InventoryStore', {
       }
     },
 
+    async indexInventoryStatus() {
+      if (this.metaModal.indexInventoryStatus.loading) return
+      this.metaModal.indexInventoryStatus.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-inventory-status',
+          this.queryModal.qIndexInventoryStatus
+        )
+
+        this.metaModal.indexInventoryStatus = response.data
+
+        // return this.metaModal.indexInventoryStatus
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexInventoryStatus.loading = false
+      }
+    },
+
     selectItemRefModal() {
       if (this.isOpenModal.products) {
         this.itemsCheck.checkMain = generateInvDt(this.itemsCheck.checkProducts, 'products', this.itemsCheck.checkMain)
@@ -1013,6 +1045,10 @@ const useInventoryStore = defineStore('InventoryStore', {
 
       this.resetSummary()
       this.countSelectedReferences()
+    },
+
+    handleClickClearInvStatus() {
+      this.queryModal.qIndexInventoryStatus = cloneObject(useInitials.qIndexInvStatus)
     },
 
     countSelectedReferences() {
