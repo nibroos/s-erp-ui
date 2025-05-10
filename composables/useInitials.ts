@@ -2,7 +2,7 @@
 import { random } from 'lodash'
 import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 import type { AutocompleteType } from '~/types/AutocompleteType'
-import type { FormInventoryType, QInvStockIndexType } from '~/types/inventories/InventoryType'
+import type { FormInventoryType, QInvStatusIndexType, QInvStockIndexType } from '~/types/inventories/InventoryType'
 import type { FormInvoiceAdjustmentType } from '~/types/invoice-adjustments/InvoiceAdjustmentType'
 import type { FormInvoiceDpType } from '~/types/invoice-dps/InvoiceDpType'
 import type { FormInvoiceMaintenanceType } from '~/types/invoice-maintenances/InvoiceMaintenanceType'
@@ -1077,6 +1077,24 @@ const qIndexStockClosings = {
   order_direction: 'desc'
 } as QInvStockIndexType
 
+const qIndexInvStatus = {
+  page: 1,
+  per_page: 100,
+  item_ids: [],
+  item_group_ids: [],
+  item_sub_group_ids: [],
+  global: '',
+  product_id: null,
+  warehouse_id: null,
+  item_id: null,
+  branch_id: null,
+  date_type: '',
+  start_date: '',
+  end_date: '',
+  order_column: 'ingoing_at',
+  order_direction: 'desc'
+} as QInvStatusIndexType
+
 type UseInitialsType = {
   pagination: typeof pagination;
   perPageOptions: typeof perPageOptions;
@@ -1113,6 +1131,7 @@ type UseInitialsType = {
   formPph23CreateEdit: typeof formPph23CreateEdit;
   formCreateEditOpnameSingle: typeof formCreateEditOpnameSingle;
   qIndexStockClosings: typeof qIndexStockClosings;
+  qIndexInvStatus: typeof qIndexInvStatus;
 }
 
 export const useInitials: UseInitialsType = {
@@ -1147,5 +1166,6 @@ export const useInitials: UseInitialsType = {
   formVatCreateEdit,
   formPph23CreateEdit,
   formCreateEditOpnameSingle,
-  qIndexStockClosings
+  qIndexStockClosings,
+  qIndexInvStatus
 }

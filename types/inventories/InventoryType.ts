@@ -182,6 +182,28 @@ export type QInvStockIndexType = {
   order_direction: string
 }
 
+export type QInvStatusIndexType = {
+  page: number
+  per_page: number
+  item_ids: number[]
+  item_group_ids: number[]
+  item_sub_group_ids: number[]
+  warehouse_id?: number | null
+  product_id?: number | null
+  item_id?: number | null
+  branch_id?: number | null
+  inventory_no?: string
+  surat_jalan_no?: string
+  do_no?: string
+  invoice_no?: string
+  global?: string
+  date_type: string
+  start_date?: string
+  end_date?: string
+  order_column: string
+  order_direction: string
+}
+
 export type QIndexSalesOrdersType = {
   page: number
   per_page: number
@@ -286,3 +308,5 @@ export type OptionalInvRefType = {
   item_id?: number | null
   product_id?: number | null
 }
+
+export type ModalInvStatusFilterTextType = 'inventory_no' | 'surat_jalan_no' | 'do_no' | 'invoice_no' | 'global'
