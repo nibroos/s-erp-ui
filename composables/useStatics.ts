@@ -278,6 +278,33 @@ const SoIndexStatus = [
   },
 ]
 
+const ticketIndexStatus = [
+  // { id: 'OPEN', name: 'OPEN' },
+  // { id: 'IN PROGRESS', name: 'IN PROGRESS' },
+  // { id: 'RESOLVED', name: 'RESOLVED' },
+  // { id: 'CLOSED', name: 'CLOSED' },
+  {
+    value: 'OPEN',
+    title: 'Open',
+    color: 'blue',
+  },
+  {
+    value: 'IN PROGRESS',
+    title: 'In Progress',
+    color: 'orange',
+  },
+  {
+    value: 'RESOLVED',
+    title: 'Resolved',
+    color: 'green',
+  },
+  {
+    value: 'CLOSED',
+    title: 'Closed',
+    color: 'red',
+  },
+]
+
 const SoIndexDateType = [
   {
     value: 'order_at',
@@ -307,12 +334,32 @@ const formStatusSalesOrder = [
   { id: 'FINISH', name: 'FINISH' },
 ]
 
+const formStatusTicket = [
+  { id: 'OPEN', name: 'OPEN' },
+  { id: 'IN PROGRESS', name: 'IN PROGRESS' },
+  { id: 'RESOLVED', name: 'RESOLVED' },
+  { id: 'CLOSED', name: 'CLOSED' },
+]
+
+const priorityTypes = [
+  { id: 'HIGH', name: 'HIGH' },
+  { id: 'MEDIUM', name: 'MEDIUM' },
+  { id: 'LOW', name: 'LOW' },
+]
+
 const formTabSalesOrder = {
   // payments: 0,
   items: 0,
   remarks: 1,
   schedules: 2,
   attachments: 3,
+}
+
+const formTabTicket = {
+  // payments: 0,
+  solution: 0,
+  schedules: 1,
+  remarks: 2,
 }
 
 const POIndexStatus = [
@@ -660,6 +707,34 @@ const initialColorsStatus = [
     color: "text-green-700",
     border: "border-green-700",
   },
+  {
+    name: "Open",
+    code: "bg-emerald-100 text-emerald-700 border !border-emerald-700",
+    icon: "material-symbols:add-circle-rounded",
+    color: "text-emerald-700",
+    border: "border-emerald-700",
+  },
+  {
+    name: "In Progress",
+    code: "bg-amber-100 text-amber-700 border !border-amber-700",
+    icon: "material-symbols:nest-clock-farsight-analog",
+    color: "text-amber-700",
+    border: "border-amber-700",
+  },
+  {
+    name: "Resolved",
+    code: "bg-blue-100 text-blue-700 border !border-blue-700",
+    icon: "material-symbols:check-circle-rounded",
+    color: "text-blue-700",
+    border: "border-blue-700",
+  },
+  {
+    name: "Closed",
+    code: "bg-red-100 text-red-700 border !border-red-700",
+    icon: "material-symbols:cancel",
+    color: "text-red-700",
+    border: "border-red-700",
+  },
 ]
 
 const headersCustomer: FieldSelectableType[] = [
@@ -779,4 +854,8 @@ export const useStatics = {
   initialColorsStatus,
   headersCustomer,
   filtersCustomer,
+  formStatusTicket,
+  formTabTicket,
+  priorityTypes,
+  ticketIndexStatus,
 }

@@ -35,7 +35,7 @@ const fieldsConfig = ref<FieldSelectableType[]>([
   { title: "Warehouse", key: "warehouse_name", sortable: false },
   { title: "I/O Type", key: "io_type_name", sortable: false },
   { title: "Customer", key: "customer_name", sortable: false },
-  { title: "Date", key: "ingoing_at", sortable: false },
+  { title: "I/O Date", key: "ingoing_at", sortable: false },
   {
     title: "Items",
     key: "items",
@@ -379,7 +379,7 @@ const fetchDataServerFetch = async (item: {
         }"
         class="elevation-1"
         :header-props="{
-          class: '!bg-[#F4F6F8] py-2',
+          class: '!bg-scLightest dark:!bg-dark2 py-2',
         }"
         show-current-page
         hover

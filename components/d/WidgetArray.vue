@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useNumber } from "~/composables/useNumber";
 import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
+import type { TicketWidgetSingleType } from "~/types/tickets/TicketType";
 const { sumArrayKey } = useNumber;
 
 export type WidgetType = {
-  data: WidgetSingleType[];
+  data: WidgetSingleType[] & TicketWidgetSingleType[];
   class?: string;
   isLoading?: boolean;
 };
@@ -145,12 +146,12 @@ watchEffect(() => {});
         <div class="flex flex-col gap-1">
           <h3 class="text-base font-bold text-black">{{ base.status }}</h3>
           <div>
-            {{ useNumber.formatNumberSeparator(base.order_count, 0, 0) }} Order
+            {{ useNumber.formatNumberSeparator(base.order_count ?? base.ticket_count, 0, 0) }} Report
           </div>
-          <div>
+          <div v-if="base.widget_type !== 'tickets'">
             {{ useNumber.formatNumberSeparator(base.total_qty, 0, 0) }} Qty
-          </div>
-          <div>{{ useNumber.formatNumberSeparator(base.grand_total) }}</div>
+          </div v-if="base.widget_type !== 'tickets'">
+          <div v-if="base.widget_type !== 'tickets'">{{ useNumber.formatNumberSeparator(base.grand_total) }}</div>
           <!-- <d-num-layout
             :value="base.grand_total"
             class="w-full gap-3"

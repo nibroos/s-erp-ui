@@ -455,6 +455,20 @@ onMounted(async () => {
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item>
 
+          <v-list-item
+            v-if="useAuth.permit('r_sos')"
+            color="#898F99"
+            class="!text-primary1"
+            to="/supports/tickets"
+            rounded="lg"
+          >
+            <template #prepend>
+              <v-icon>mdi-ticket-confirmation</v-icon>
+            </template>
+
+            <v-list-item-title>Ticket</v-list-item-title>
+          </v-list-item>
+
           <v-list-group v-if="isPermissionOnChildExists('sos')" value="Orders">
             <template #activator="{ props }">
               <v-list-item

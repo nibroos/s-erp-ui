@@ -1,106 +1,29 @@
 
 <script setup lang="ts">
-import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
+import useTicketStore from "~/stores/supports/TicketStore";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const emits = defineEmits(["create:schedule"]);
+const emits = defineEmits(["update:schedule"]);
 
-const headersCustomer = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
-    key: "code",
-    value: "code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Phone",
-    key: "phone",
-    value: "phone",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Email",
-    key: "email",
-    value: "email",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Address",
-    key: "address",
-    value: "address",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_name",
-    value: "customer_type_name",
-    align: "start",
-    sortable: true,
-  },
-]);
+const ticketStore = useTicketStore();
 
-const filtersCustomer = ref<FilterSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-  },
-  {
-    title: "Code",
-    key: "code",
-  },
-  {
-    title: "Phone",
-    key: "phone",
-  },
-  {
-    title: "Email",
-    key: "email",
-  },
-  {
-    title: "Address",
-    key: "address",
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_ids",
-    type: "autocomplete",
-    display: "name",
-    others: {
-      methodApi: "post",
-      api: "/v1/customer-types/index-customer-type",
-      singleApi: "/v1/customer-types/index-customer-type",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Customer Type",
-      innerSearchKey: "global",
-    },
-  },
-]);
-
-const salesOrderStore = useSalesOrderStore();
-
-const { form, errors, loading } = storeToRefs(salesOrderStore);
+const { form, errors, loading } = storeToRefs(ticketStore);
 
 const kanbanBoardExposeRef = ref();
 
-const handleCreateSchedule = () => {
-  salesOrderStore.createSchedule("schedules").then(() => {
-    emits("create:schedule");
+const handleUpdateSchedule = () => {
+  ticketStore.updateSchedule().then(() => {
+    emits("update:schedule");
+  });
+};
+
+const handleDeleteSchedule = () => {
+  if (!form.value.schedule) return;
+  ticketStore.deleteSchedule(form.value.schedule.id as number).then(() => {
+    emits("update:schedule");
   });
 };
 
@@ -159,7 +82,7 @@ const resetBoard = async () => {
           v-model="form.schedule.customer_id"
           class=""
           is-quick-select
-          @click:selected="(data) => salesOrderStore.autocompleteCustomer(data)"
+          @click:selected="(data) => ticketStore.autocompleteCustomer(data)"
           modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="useStatics.headersCustomer"
@@ -234,7 +157,21 @@ const resetBoard = async () => {
         />
 
         <d-bt
-          :cta="'Create Schedule'"
+          :cta="'Delete Schedule'"
+          :class="
+            classMerge(
+              '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
+            )
+          "
+          :text-class="classMerge('text-cancel dark:text-white mx-auto')"
+          :icon-class="classMerge('text-cancel dark:text-white mx-auto')"
+          icon="mdi-delete"
+          type="button"
+          @click="handleDeleteSchedule()"
+        />
+
+        <d-bt
+          :cta="'Update Schedule'"
           :class="
             classMerge(
               'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
@@ -243,7 +180,7 @@ const resetBoard = async () => {
           :text-class="classMerge('text-white mx-auto !font-bold')"
           :no-icon="true"
           type="button"
-          @click="handleCreateSchedule"
+          @click="handleUpdateSchedule"
         />
         <d-autocomplete-client
           v-model="form.schedule.steps_id"
@@ -264,7 +201,7 @@ const resetBoard = async () => {
         type="image"
         :loading="loading.editPageLoading"
       >
-        <schedule-board
+        <schedule-ticket-board
           ref="kanbanBoardExposeRef"
           class="mt-2"
           v-if="!loading.editPageLoading"

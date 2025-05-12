@@ -85,3 +85,15 @@ export const shortenBytes = (n: number) => {
 export const stringWithSpaceToDash = (str: string) => {
   return str.replace(/\s+/g, '-').toLowerCase()
 }
+
+export const stringSanitizeSymbolCapitalize = (str: string) => {
+  return str
+    .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Remove special characters except dash and underscore
+    .replace(/[\-_]/g, ' ') // Replace dash and underscore with space
+    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+    .trim() // Remove leading and trailing spaces
+    .toLowerCase() // Convert to lowercase
+    .split(' ') // Split into words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+    .join(' ') // Join back into a string
+}

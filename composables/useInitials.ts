@@ -16,6 +16,7 @@ import type { FormQuotationType } from '~/types/quotations/QuotationType'
 import type { FormSalesInvoiceType } from '~/types/sales-invoices/SalesInvoiceType'
 import type { FormSalesOrderType, FormScheduleStepType } from '~/types/sales-orders/SalesOrderType'
 import type { FieldSelectableType, FilterSelectableType, FormOptionSelectableType } from '~/types/SelectTableType'
+import type { FormTicketType } from '~/types/tickets/TicketType'
 
 const pagination = {
   current_page: 1,
@@ -298,6 +299,52 @@ const formSalesOrderCreateEdit = {
   phone: "",
   address: "",
 } as FormSalesOrderType
+
+const formTicketCreateEdit = {
+  id: null,
+  customer_id: null,
+  branch_id: null,
+  ticket_no: "",
+  title: "",
+  remark: "",
+  status: "OPEN",
+  priority_type: "LOW",
+  is_scheduled: 0,
+  reported_at: new Date().toISOString().split('T')[0],
+
+  schedule: {
+    id: null,
+    sales_order_id: null,
+    customer_id: null,
+    assignee_id: null,
+    schedule_no: "",
+    title: "",
+    module_type: "tickets",
+    ref_type: "tickets",
+    start_at: new Date().toISOString().split('T')[0],
+    end_at: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    // generate random hex color
+    color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+    status: "WAITING",
+    remark: "",
+    steps_id: 1,
+    attachments: [],
+    deleted_files: [],
+    files: [],
+  },
+
+  issue_attachments: [],
+  issue_files: [],
+  deleted_issue_files: [],
+
+  solution_attachments: [],
+  solution_files: [],
+  deleted_solution_files: [],
+
+  // email: "",
+  // phone: "",
+  address: "",
+} as FormTicketType
 
 const formPurchaseOrderCreateEdit = {
   id: null,
@@ -1132,6 +1179,7 @@ type UseInitialsType = {
   formCreateEditOpnameSingle: typeof formCreateEditOpnameSingle;
   qIndexStockClosings: typeof qIndexStockClosings;
   qIndexInvStatus: typeof qIndexInvStatus;
+  formTicketCreateEdit: typeof formTicketCreateEdit;
 }
 
 export const useInitials: UseInitialsType = {
@@ -1167,5 +1215,6 @@ export const useInitials: UseInitialsType = {
   formPph23CreateEdit,
   formCreateEditOpnameSingle,
   qIndexStockClosings,
-  qIndexInvStatus
+  qIndexInvStatus,
+  formTicketCreateEdit,
 }

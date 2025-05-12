@@ -18,9 +18,11 @@ import "@schedule-x/theme-default/dist/index.css";
 import useScheduleStore from "~/stores/orders/ScheduleStore";
 import useAuthStore from "~/stores/AuthStore";
 import type { FormScheduleType } from "~/types/sales-orders/SalesOrderType";
+import useTicketStore from "~/stores/supports/TicketStore";
 
 const scheduleStore = useScheduleStore();
 const salesOrderStore = useSalesOrderStore();
+const ticketStore = useTicketStore();
 const {
   queryModal,
   metaModal,
@@ -34,6 +36,12 @@ const {
   isOpenModal,
   modals,
 } = storeToRefs(salesOrderStore);
+const {
+  form: formTicket,
+  loading: loadingTicket,
+  // isOpenModal,
+  // modals,
+} = storeToRefs(ticketStore);
 
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
@@ -386,6 +394,7 @@ watch(
 
     if (!newValue) {
       formSalesOrder.value = cloneObject(useInitials.formSalesOrderCreateEdit);
+      formTicket.value = cloneObject(useInitials.formTicketCreateEdit);
       formSchedule.value = cloneObject(
         useInitials.formSalesOrderCreateEdit.schedule as FormScheduleType
       );
@@ -524,7 +533,11 @@ watch(
     <modals-final-modal
       :is-open="isOpen.detailEvent"
       custom-class="overflow-y-auto !w-11/12"
-      :label="`${modalData.selectedPlusEvent.title} - Schedule Detail`"
+      :label="`${
+        modalData.selectedPlusEvent.title
+      } - ${stringSanitizeSymbolCapitalize(
+        modalData.selectedPlusEvent.module_type ?? 'Details'
+      )} Module`"
       parent-class="!z-[1501]"
       @update:is-open="isOpen.detailEvent = $event"
       :focus-trap="false"
@@ -804,6 +817,283 @@ watch(
             </v-file-upload>
           </div>
         </div>
+
+        <div v-else-if="useTicketStore().form.id" class="flex flex-col gap-3">
+          <d-schedule-single-ticket @update:schedule="updateSchedule" />
+          <div class="" v-if="formTicket.schedule">
+            <d-text-area-input
+              v-model="formTicket.schedule.remark"
+              :label="`Remark`"
+              :placeholder="`Remark`"
+              class=""
+              :auto-grow="false"
+              :rows="3"
+            />
+          </div>
+          <div class="flex gap-2">
+            <div class="flex flex-col gap-2">
+              <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+                <!-- attached files -->
+                <div class="flex flex-col gap-2">
+                  <span class="text-sm font-medium dark:text-primary1"
+                    >Uploaded Files</span
+                  >
+                  <div>
+                    <div
+                      v-if="
+                        !formTicket.issue_attachments ||
+                        formTicket.issue_attachments.length == 0
+                      "
+                    >
+                      <span
+                        class="text-sm font-normal text-grey3 dark:text-primary1"
+                        >No files attached</span
+                      >
+                    </div>
+                    <div
+                      v-else
+                      class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                    >
+                      <div
+                        v-for="(file, index) in formTicket.issue_attachments"
+                        :key="index"
+                        class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                      >
+                        <div class="flex gap-2">
+                          <lazy-d-img
+                            v-if="file.file_type.includes('image')"
+                            :aspect-ratio="1"
+                            :alt="file.file_name"
+                            :src="file.file_url"
+                            width="50"
+                            class="border border-solid border-grey3 cursor-pointer"
+                            @click="
+                              ticketStore.openModalIssueAttachmentImg(
+                                true,
+                                file
+                              )
+                            "
+                          ></lazy-d-img>
+
+                          <div v-if="!file.file_type.includes('image')">
+                            <v-icon
+                              icon="mdi-file-document-outline"
+                              class="text-sc dark:text-primary1"
+                              size="50"
+                            />
+                          </div>
+
+                          <div class="flex flex-col justify-center">
+                            <input
+                              v-model="file.file_name"
+                              class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                            />
+                            <div class="text-xs dark:text-grey1">
+                              {{ shortenBytes(file.file_size) }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex gap-2">
+                          <d-bt
+                            v-if="file.file_type.includes('image')"
+                            icon="mdi-information-outline"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="full view"
+                            icon-size="16"
+                            :loading="loadingTicket.imageDownloadLoading"
+                            @click="ticketStore.handleViewFullPageFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            icon="mdi-download"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="download"
+                            icon-size="16"
+                            :loading="loadingTicket.imageDownloadLoading"
+                            @click="ticketStore.handleDownloadFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            @click="
+                              ticketStore.handleExistingIssueFile(file, index)
+                            "
+                            icon="mdi-delete"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                            icon-class="text-cancel dark:text-primary1"
+                            rounded="xl"
+                            cta="delete"
+                            icon-size="16"
+                          ></d-bt>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="">
+                <v-file-upload
+                  v-model="formTicket.issue_files"
+                  clearable
+                  density="compact"
+                  variant="compact"
+                  multiple
+                >
+                  <template v-slot:item="{ props: itemProps }">
+                    <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                      <template v-slot:prepend>
+                        <v-avatar size="32" rounded></v-avatar>
+                      </template>
+
+                      <template v-slot:clear="{ props: clearProps }">
+                        <v-btn
+                          class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                          v-bind="clearProps"
+                        ></v-btn>
+                      </template>
+                    </v-file-upload-item>
+                  </template>
+                </v-file-upload>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+                <!-- attached files -->
+                <div class="flex flex-col gap-2">
+                  <span class="text-sm font-medium dark:text-primary1"
+                    >Uploaded Files</span
+                  >
+                  <div>
+                    <div
+                      v-if="
+                        !formTicket.solution_attachments ||
+                        formTicket.solution_attachments.length == 0
+                      "
+                    >
+                      <span
+                        class="text-sm font-normal text-grey3 dark:text-primary1"
+                        >No files attached</span
+                      >
+                    </div>
+                    <div
+                      v-else
+                      class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                    >
+                      <div
+                        v-for="(file, index) in formTicket.solution_attachments"
+                        :key="index"
+                        class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                      >
+                        <div class="flex gap-2">
+                          <lazy-d-img
+                            v-if="file.file_type.includes('image')"
+                            :aspect-ratio="1"
+                            :alt="file.file_name"
+                            :src="file.file_url"
+                            width="50"
+                            class="border border-solid border-grey3 cursor-pointer"
+                            @click="
+                              ticketStore.openModalSolutionAttachmentImg(
+                                true,
+                                file
+                              )
+                            "
+                          ></lazy-d-img>
+
+                          <div v-if="!file.file_type.includes('image')">
+                            <v-icon
+                              icon="mdi-file-document-outline"
+                              class="text-sc dark:text-primary1"
+                              size="50"
+                            />
+                          </div>
+
+                          <div class="flex flex-col justify-center">
+                            <input
+                              v-model="file.file_name"
+                              class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                            />
+                            <div class="text-xs dark:text-grey1">
+                              {{ shortenBytes(file.file_size) }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex gap-2">
+                          <d-bt
+                            v-if="file.file_type.includes('image')"
+                            icon="mdi-information-outline"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="full view"
+                            icon-size="16"
+                            :loading="loadingTicket.imageDownloadLoading"
+                            @click="ticketStore.handleViewFullPageFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            icon="mdi-download"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="download"
+                            icon-size="16"
+                            :loading="loadingTicket.imageDownloadLoading"
+                            @click="ticketStore.handleDownloadFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            @click="
+                              ticketStore.handleExistingSolutionFile(
+                                file,
+                                index
+                              )
+                            "
+                            icon="mdi-delete"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                            icon-class="text-cancel dark:text-primary1"
+                            rounded="xl"
+                            cta="delete"
+                            icon-size="16"
+                          ></d-bt>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="">
+                <v-file-upload
+                  v-model="formTicket.solution_files"
+                  clearable
+                  density="compact"
+                  variant="compact"
+                  multiple
+                >
+                  <template v-slot:item="{ props: itemProps }">
+                    <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                      <template v-slot:prepend>
+                        <v-avatar size="32" rounded></v-avatar>
+                      </template>
+
+                      <template v-slot:clear="{ props: clearProps }">
+                        <v-btn
+                          class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                          v-bind="clearProps"
+                        ></v-btn>
+                      </template>
+                    </v-file-upload-item>
+                  </template>
+                </v-file-upload>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <template #footer>
@@ -837,6 +1127,30 @@ watch(
                 useSalesOrderStore().tabFormIndex = 2;
                 useSalesOrderStore()
                   .goToSalesOrder(modalData.selectedPlusEvent.sales_order_id)
+                  .then(() => {
+                    isOpen.detailEvent = false;
+                    isOpen.plusEvent = false;
+                    isOpen.createEvent = false;
+                  });
+              }
+            "
+          />
+          <d-bt
+            v-if="useTicketStore().form.id"
+            :cta="'Ticket Details'"
+            :class="
+              classMerge(
+                'w-1/3 whitespace-nowrap border-scDarker text-scDarker dark:text-primary1 dark:hover:bg-dark1 dark:bg-dark2 dark:border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal bg-primaryDarker hover:bg-primaryDarkest border-1.5 p-2 transition-all ease-in-out'
+              )
+            "
+            :text-class="classMerge('text-scDarker dark:text-white')"
+            :icon-class="classMerge('text-scDarker dark:text-white')"
+            icon="mdi-file-document"
+            @click="
+              () => {
+                useTicketStore().tabFormIndex = 2;
+                useTicketStore()
+                  .goToTicket(modalData.selectedPlusEvent.sales_order_id)
                   .then(() => {
                     isOpen.detailEvent = false;
                     isOpen.plusEvent = false;
@@ -988,5 +1302,8 @@ watch(
         </v-carousel-item>
       </v-carousel>
     </modals-final-modal>
+
+    <d-ticket-issue-attachments />
+    <d-ticket-solution-attachments />
   </div>
 </template>

@@ -169,6 +169,7 @@ const resetBoard = async () => {
           v-model="form.schedule.customer_id"
           class=""
           is-quick-select
+          is-initial-load
           @click:selected="(data) => salesOrderStore.autocompleteCustomer(data)"
           modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"

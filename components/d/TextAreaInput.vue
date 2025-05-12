@@ -77,7 +77,15 @@ watch(
       :density="density"
       :placeholder="placeholder"
       :type="type"
-      :class="classMerge('w-full text-dark2 dark:text-primary1', props.class)"
+      :class="
+        classMerge(
+          'w-full text-dark1 dark:text-primary1',
+          disabled
+            ? 'cursor-pointer bg-zinc-200 text-dark3 dark:bg-dark1 dark:text-primary1'
+            : '',
+          props.class
+        )
+      "
       :rows="rows"
       :auto-grow="autoGrow"
       :clearable="clearable"

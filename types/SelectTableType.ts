@@ -101,7 +101,7 @@ export type SelectTableType = {
   tabIndex?: number;
   isDefaultTabSlotExists?: boolean
   defaultTabName?: string
-  isRiyaowNum?: boolean
+  isInitialLoad?: boolean
   defaultClearFilter?: Record<string, any>
 
   // Modal

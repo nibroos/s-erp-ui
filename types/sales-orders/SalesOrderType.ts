@@ -141,6 +141,8 @@ export type SalesOrderAttachmentsType = {
   updated_by_name: any
 }
 
+export type RefTypeScheduleType = 'sales_orders' | 'schedules' | 'tickets'
+
 export type FormScheduleType = {
   id: number | null
   sales_order_id: number | null
@@ -148,8 +150,8 @@ export type FormScheduleType = {
   assignee_id: number | null
   schedule_no: string
   title: string
-  module_type: 'sales_orders' | 'feedbacks'
-  ref_type: 'sales_orders' | 'schedules'
+  module_type: 'sales_orders' | 'tickets' | 'schedules'
+  ref_type: RefTypeScheduleType
   start_at: string
   end_at: string
   color: string
@@ -451,4 +453,7 @@ export type WidgetSingleType = {
   icon: string;
   color: string;
   border: string;
+  widget_type: WidgetType;
 };
+
+export type WidgetType = 'sales_orders' | 'tickets'

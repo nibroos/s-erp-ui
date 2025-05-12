@@ -1064,6 +1064,7 @@ onMounted(async () => {
                 <d-date-picker-light
                   v-model="form.ingoing_at"
                   label="IN Date"
+                  :clearable="false"
                 ></d-date-picker-light>
               </div>
               <div class="sm:col-span-1">

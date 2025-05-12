@@ -951,18 +951,6 @@ const resetBoard = async () => {
   // await openModal(filteredModalForms.value);
 };
 
-const labelUpdateSchedule = () => {
-  if (
-    !form.value.is_scheduled &&
-    form.value.schedule &&
-    form.value.schedule.id
-  ) {
-    return "Delete Schedule";
-  } else {
-    return "Create Schedule";
-  }
-};
-
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
