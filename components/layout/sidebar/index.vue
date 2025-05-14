@@ -47,6 +47,21 @@ const itemOrders = [
   },
 ];
 
+const crmManagement = [
+  {
+    title: "Customer Management",
+    icon: "mdi-account-check-outline",
+    link: "/crm/customers",
+    permissions: ["r_sos"],
+  },
+  {
+    title: "CS Support",
+    icon: "mdi-face-agent",
+    link: "/crm/tickets",
+    permissions: ["r_sos"],
+  },
+];
+
 const itemSales = [
   {
     title: "Invoice DP",
@@ -249,6 +264,7 @@ const isPermissionAllChildExists = (parentName: string) => {
     case "management":
       // get all permissions from management
       joinPermissions = itemOrders
+        .concat(crmManagement)
         .concat(itemSales)
         .concat(itemPurchase)
         .concat(itemInventory)
@@ -275,6 +291,10 @@ const isPermissionOnChildExists = (parentName: string): boolean => {
     case "sos":
       // itemOrders
       childPermissions = itemOrders.map((item) => item.permissions.join());
+      return useAuth.permit(childPermissions);
+    case "sos":
+      // itemOrders
+      childPermissions = crmManagement.map((item) => item.permissions.join());
       return useAuth.permit(childPermissions);
     case "sos":
       // itemSales
@@ -455,6 +475,29 @@ onMounted(async () => {
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item>
 
+          <v-list-group v-if="isPermissionOnChildExists('sos')" value="CRM">
+            <template #activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                prepend-icon="mdi-account-outline"
+                title="CRM"
+                density="compact"
+                rounded="lg"
+              ></v-list-item>
+            </template>
+            <template v-for="(item, i) in crmManagement" :key="i">
+              <v-list-item
+                v-if="useAuth.permit(item.permissions)"
+                :title="item.title"
+                :to="item.link"
+                variant="text"
+                rounded="lg"
+                density="compact"
+                color="#898F99"
+                class="!text-primary1"
+              ></v-list-item>
+            </template>
+          </v-list-group>
           <v-list-group v-if="isPermissionOnChildExists('sos')" value="Orders">
             <template #activator="{ props }">
               <v-list-item

@@ -69,6 +69,7 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   itemsProp: "data",
   mappingDetail: "data",
   totalProp: "meta.total",
+  isInitialLoad: false,
 
   // Table
   height: "450",
@@ -368,10 +369,14 @@ const fetchSingle = async (id: number, oldId: number | null) => {
             property(props.mappingDetail)(res.data)
           )) as any;
 
-          selectedFull.value = showMetaModal.value.single;
+          if (!!itemsCheck.value) {
+            selectedFull.value = showMetaModal.value.single;
+            selectedText.value = showMetaModal.value.single[props.displayKey];
+          } else {
+            selectedText.value = "";
+          }
           emits("click:selected", showMetaModal.value.single, oldId);
 
-          selectedText.value = showMetaModal.value.single[props.displayKey];
           if (!!props.isDisplayMultipleKey) {
             selectedText.value = props.displaySingleMultipleKeys
               .map((key) => showMetaModal.value.single[key])
@@ -671,11 +676,17 @@ watch(showModal, async (newVal) => {
 });
 
 onMounted(async () => {
+  selectedFull.value = null;
+  selectedText.value = "";
   // await filterData()
-  await Promise.all([
-    // filterData(),
-    fetchSingle(props.modelValue, null),
-  ]);
+
+  if (props.isInitialLoad) {
+    await Promise.all([
+      filterData(),
+      // filterData(),
+      fetchSingle(props.modelValue, null),
+    ]);
+  }
 
   generateFiltersObj();
 

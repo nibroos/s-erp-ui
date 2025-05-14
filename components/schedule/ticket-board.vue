@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import useSalesOrderStore from "~/stores/orders/SalesOrderStore";
+import useTicketStore from "~/stores/supports/TicketStore";
 import type {
   FormScheduleStepType,
   FormScheduleType,
 } from "~/types/sales-orders/SalesOrderType";
-const salesOrderStore = useSalesOrderStore();
+const ticketStore = useTicketStore();
 
 // props
 const props = defineProps({
@@ -20,14 +20,14 @@ const props = defineProps({
 
 const emit = defineEmits(["update:steps"]);
 
-const { form } = storeToRefs(salesOrderStore);
+const { form } = storeToRefs(ticketStore);
 
 const updateSteps = (steps: FormScheduleStepType[]) => {
   console.log("kanbanboardstep", steps);
 
   if (!form.value.schedule) {
     form.value.schedule = cloneObject(
-      useInitials.formSalesOrderCreateEdit.schedule as FormScheduleType
+      useInitials.formTicketCreateEdit.schedule as FormScheduleType
     );
   }
 

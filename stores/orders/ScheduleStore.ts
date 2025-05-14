@@ -3,6 +3,7 @@ import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { FormSalesOrderType, FormScheduleType, SalesOrderAttachmentsType } from '~/types/sales-orders/SalesOrderType'
 import useSalesOrderStore from './SalesOrderStore'
+import useTicketStore from '../supports/TicketStore'
 
 const useScheduleStore = defineStore('ScheduleStore', {
   state: () => ({
@@ -142,6 +143,7 @@ const useScheduleStore = defineStore('ScheduleStore', {
         // Handle regular data
         const regularData = {
           ...this.form,
+          ref_type: this.form.ref_type,
           deleted_files: this.form.deleted_files,
           attachments: this.form.attachments,
           files: undefined // Remove files from regular data
@@ -348,9 +350,16 @@ const useScheduleStore = defineStore('ScheduleStore', {
       this.isOpen.detailEvent = true
       this.modalData.selectedPlusEvent = event
 
-      if (event.sales_order_id) {
+      console.log('event', event.module_type);
+
+      if (event.sales_order_id && event.module_type === 'sales_orders') {
+        console.log('event1', event);
         useSalesOrderStore().show(event.sales_order_id)
-      } else {
+      } else if (event.sales_order_id && event.module_type === 'tickets') {
+        console.log('event2', event);
+        useTicketStore().show(event.sales_order_id)
+      } else if (event.module_type === 'schedules') {
+        console.log('event3', event);
         this.show(event.id)
       }
     },

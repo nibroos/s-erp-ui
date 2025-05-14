@@ -837,8 +837,6 @@ const useInventoryStore = defineStore('InventoryStore', {
                   (resSalesOrder.ref_so_dt_bom_id && resSalesOrder.ref_so_dt_bom_id === checkSalesOrder.ref_so_dt_bom_id)
                 ) {
 
-                  console.log('abc', resSalesOrder.ref_so_dt_id, checkSalesOrder.ref_so_dt_id);
-
                   const combined = {
                     ...resSalesOrder,
                     ...checkSalesOrder
@@ -939,8 +937,6 @@ const useInventoryStore = defineStore('InventoryStore', {
                   checkInventory.ref_type === 'inv_in' &&
                   (!!resInventory.ref_inv_dt_id && !!checkInventory.ref_inv_dt_id && resInventory.ref_inv_dt_id === checkInventory.ref_inv_dt_id)
                 ) {
-
-                  console.log('abc', resInventory.ref_inv_dt_id, checkInventory.ref_inv_dt_id);
 
                   const combined = {
                     ...resInventory,

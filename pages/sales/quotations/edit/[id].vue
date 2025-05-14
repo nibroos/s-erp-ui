@@ -499,6 +499,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   // permission: {
   //   name: ["c_ms"],
@@ -891,6 +894,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="quotationStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="quotationStore.onClickPDF()"
     >
       <template #header>
         <form

@@ -8,7 +8,7 @@ import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
+import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType, WidgetSingleType, RefTypeScheduleType } from '~/types/sales-orders/SalesOrderType'
 import useScheduleStore from './ScheduleStore'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
@@ -706,7 +706,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
-    async updateSchedule() {
+    async updateSchedule(refType: RefTypeScheduleType = 'sales_orders') {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
 
@@ -738,7 +738,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule.is_delete = 1
         }
 
-        this.form.ref_type = 'sales_orders'
+        this.form.ref_type = refType
 
         const formData = new FormData()
 
@@ -756,6 +756,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         // Handle regular data
         const regularData = {
           ...this.form.schedule,
+          ref_type: this.form.ref_type,
+          module_type: refType,
           deleted_files: this.form.deleted_files,
           attachments: this.form.attachments,
           files: undefined // Remove files from regular data
@@ -805,7 +807,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
     },
 
-    async createSchedule() {
+    async createSchedule(refType: RefTypeScheduleType = 'sales_orders') {
       if (!!this.loading.formLoading) return
       this.loading.formLoading = true
 
@@ -837,7 +839,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
           this.form.schedule.is_delete = 1
         }
 
-        this.form.ref_type = 'sales_orders'
+        this.form.ref_type = refType
 
         const formData = new FormData()
 
@@ -855,6 +857,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         // Handle regular data
         const regularData = {
           ...this.form.schedule,
+          ref_type: this.form.ref_type,
+          module_type: refType,
           files: undefined // Remove files from regular data
         }
         formData.append('data', JSON.stringify(regularData))

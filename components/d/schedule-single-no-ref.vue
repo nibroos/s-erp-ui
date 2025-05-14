@@ -171,8 +171,8 @@ const resetBoard = async () => {
             is_active: 1,
           }"
           class=""
+          is-initial-load
           is-quick-select
-          @click:selected="(data) => salesOrderStore.autocompleteCustomer(data)"
           modal-parent-class="!z-[2500]"
           modal-custom-class="!w-4/5"
           :fields="useStatics.headersCustomer"

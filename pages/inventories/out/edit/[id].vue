@@ -843,6 +843,7 @@ watchEffect(() => {
             <d-date-picker-light
               v-model="form.ingoing_at"
               label="OUT Date"
+              :clearable="false"
             ></d-date-picker-light>
           </div>
           <div class="sm:col-span-1">

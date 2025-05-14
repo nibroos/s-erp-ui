@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
                   <template #title="{ item }">
                     <span
                       v-if="!!item.active"
-                      class="text-sm capitalize whitespace-nowrap"
+                      class="text-sm uppercase whitespace-nowrap"
                       :class="
                         classMerge(
                           'text-scDarker2 dark:!text-scDarker2 font-bold opacity-100'
@@ -142,13 +142,12 @@ onBeforeUnmount(() => {
                     <nuxt-link
                       v-else
                       :to="item.href"
-                      class="text-sm capitalize whitespace-nowrap"
+                      class="text-sm uppercase whitespace-nowrap"
                       role="button"
                       :class="classMerge('!text-dark2 dark:!text-primary1')"
                     >
                       {{ item.title }}
                     </nuxt-link>
-                    <!-- test abc{{ item.disabled }} -->
                   </template>
                 </v-breadcrumbs>
                 <!-- <div v-if="parentTitle" class="flex flex-row items-center">

@@ -167,4 +167,5 @@ export type QIndexProductsType = {
 export type FormProductCompType = {
   id?: number | null | undefined | string | string[]
   isOpen?: boolean
+  type?: 'page' | 'modal'
 }
