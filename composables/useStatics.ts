@@ -841,6 +841,35 @@ const filtersCustomer: FilterSelectableType[] = [
   },
 ];
 
+const RequestOrderIndexStatus = [
+  {
+    value: 'PENDING',
+    title: 'Pending',
+    color: 'orange',
+  },
+  {
+    value: 'PROCESS',
+    title: 'Process',
+    color: 'blue',
+  },
+  {
+    value: 'CANCELED',
+    title: 'Canceled',
+    color: 'grey',
+  },
+]
+
+const formStatusRequestOrder = [
+  { id: 'PENDING', name: 'PENDING' },
+  { id: 'PROCESS', name: 'PROCESS' },
+  { id: 'CANCELED', name: 'CANCELED' },
+]
+
+const formTabRequestOrder = {
+  items: 0,
+  remarks: 1,
+}
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -875,6 +904,9 @@ export const useStatics = {
   initialColorsStatus,
   headersCustomer,
   filtersCustomer,
+  RequestOrderIndexStatus,
+  formStatusRequestOrder,
+  formTabRequestOrder,
   formStatusTicket,
   formTabTicket,
   priorityTypes,

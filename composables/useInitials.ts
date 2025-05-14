@@ -1103,6 +1103,49 @@ const formInvoiceMaintenanceCreateEdit = {
   }
 } as FormInvoiceMaintenanceType
 
+const formRequestOrderCreateEdit = {
+  id: null,
+  // warehouse_id: null,
+  branch_id: null,
+  request_no: '',
+  request_date: new Date().toISOString().split('T')[0],
+  remark: '',
+  requested: '',
+  status: 'PENDING',
+  grand_total_order_product_qty: 0,
+  grand_total_order_item_qty: 0,
+  grand_total_wh_qty: 0,
+  grand_total_req_qty: 0,
+  request_order_dts: [],
+  
+  summary: {
+    total_order_item_qty: {
+      label: "Total Order Qty",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 0,
+      },
+    },
+    total_wh_qty: {
+      label: "Total Warehouse Qty",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 0,
+      },
+    },
+    total_req_qty: {
+      label: "Total Request Qty",
+      symbol: '',
+      value: 0,
+      format: {
+        precision: 0,
+      },
+    },
+  }
+}
+
 const formCreateEditOpnameSingle = {
   isOpen: false,
   id: null as number | null,
@@ -1178,6 +1221,7 @@ type UseInitialsType = {
   formInvoiceMaintenanceCreateEdit: typeof formInvoiceMaintenanceCreateEdit;
   formVatCreateEdit: typeof formVatCreateEdit;
   formPph23CreateEdit: typeof formPph23CreateEdit;
+  formRequestOrderCreateEdit: typeof formRequestOrderCreateEdit;
   formCreateEditOpnameSingle: typeof formCreateEditOpnameSingle;
   qIndexStockClosings: typeof qIndexStockClosings;
   qIndexInvStatus: typeof qIndexInvStatus;
@@ -1215,6 +1259,7 @@ export const useInitials: UseInitialsType = {
   formInvoiceMaintenanceCreateEdit,
   formVatCreateEdit,
   formPph23CreateEdit,
+  formRequestOrderCreateEdit,
   formCreateEditOpnameSingle,
   qIndexStockClosings,
   qIndexInvStatus,

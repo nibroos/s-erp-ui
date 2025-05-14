@@ -93,7 +93,7 @@ const itemPurchase = [
   {
     title: "Request Order",
     icon: "mdi-credit-card-outline",
-    link: "/purchase/request-order",
+    link: "/purchases/request-orders",
     permissions: ["r_pos"],
   },
   {
@@ -111,7 +111,7 @@ const itemPurchase = [
   {
     title: "Purchase Adjustment",
     icon: "mdi-credit-card-outline",
-    link: "/purchases/purchase-adjustment",
+    link: "/purchases/purchase-adjustments",
     permissions: ["r_pos"],
   },
 ];
