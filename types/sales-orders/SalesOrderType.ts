@@ -3,6 +3,7 @@ import type { ProductBomListType, ProductListType } from "../masters/ProductType
 import type { QuoDtsType } from "../quotations/QuotationType"
 import type { FormTaskType } from "../masters/TaskType"
 import type { KanbanListTasksType } from "../KanbanBoardType"
+import type { StatusTicketType } from "../tickets/TicketType"
 
 export type IndexSalesOrderType = {
   id: number
@@ -442,7 +443,7 @@ export type OptionalSoRefType = {
 export type WidgetSingleType = {
   id: number;
   name: string;
-  status: string;
+  status: StatusTicketType | string;
   symbol: string;
   code: any;
   transactions: number;
@@ -450,9 +451,11 @@ export type WidgetSingleType = {
   order_count: number;
   total_qty: number;
   grand_total: number;
+  ticket_count: number;
   icon: string;
   color: string;
   border: string;
+  base: string;
   widget_type: WidgetType;
 };
 

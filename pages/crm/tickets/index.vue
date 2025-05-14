@@ -177,12 +177,19 @@ const filtersConfig = ref<FilterSelectableType[]>([
 //   layoutStore.defineTitlePath(config);
 // };
 
+watchEffect(() => {
+  // changeTitle();
+  topTitle.value = "CS Support";
+});
+
 onMounted(() => {
   useTicketStore().indexWidget();
 });
 
 watchEffect(() => {
-  topTitle.value = "Ticket";
+  if (topTitle.value != "CS Support") {
+    topTitle.value = "CS Support";
+  }
 });
 </script>
 
@@ -198,7 +205,7 @@ watchEffect(() => {
     >
       <d-datatable
         api="/v1/tickets/index-ticket"
-        detail-link="/supports/tickets"
+        detail-link="/crm/tickets"
         method-api="post"
         detail-method-api="post"
         items-prop="data"
@@ -207,13 +214,13 @@ watchEffect(() => {
         search-placeholder="Search anything related to Order.."
         is-quick-select
         no-title
-        edit-link="/supports/tickets/edit"
+        edit-link="/crm/tickets/edit"
         delete-api="/v1/tickets/delete-ticket"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
         :create-option="{
-          link: '/supports/tickets/create',
+          link: '/crm/tickets/create',
           show: true,
           cta: '+ Create',
         }"

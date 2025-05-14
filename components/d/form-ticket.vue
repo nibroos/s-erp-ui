@@ -49,6 +49,7 @@ const {
   loading,
   openedModal,
   modals,
+  selection,
   formLayout: summaryLayout,
   currencySymbolLabel,
 } = storeToRefs(ticketStore);
@@ -83,7 +84,7 @@ const handleSubmit = async () => {
       emits("submit:form", res);
 
       if (props.type === "page") {
-        navigateTo(`/supports/tickets`);
+        navigateTo(`/crm/tickets`);
       }
     });
   } else {
@@ -92,7 +93,7 @@ const handleSubmit = async () => {
       emits("submit:form", res);
 
       if (props.type === "page") {
-        navigateTo(`/supports/tickets`);
+        navigateTo(`/crm/tickets`);
       }
     });
   }
@@ -109,12 +110,12 @@ const fetchInitialData = async () => {
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/supports/tickets",
+  parentPath: "/crm/tickets",
   currentTab: tabFormIndex.value,
-  tabs: ["Solutions", "Schedule", "Remark"],
+  tabs: ["Solutions", "Schedule", "Remark", "Sent Email"],
   button: {
     // create: {
-    //   path: "/supports/tickets/create",
+    //   path: "/crm/tickets/create",
     // },
     save: {
       show: true,
@@ -136,7 +137,7 @@ const initialFormLayout = () => {
 
   formLayout.value.button = {
     create: {
-      path: "/supports/tickets/create",
+      path: "/crm/tickets/create",
     },
     save: {
       show: true,
@@ -341,8 +342,9 @@ onMounted(async () => {
 });
 
 watchEffect(() => {
-  // changeTitle();
-  topTitle.value = "Tickets";
+  if (topTitle.value != "CS Support") {
+    topTitle.value = "CS Support";
+  }
 });
 </script>
 
@@ -464,11 +466,13 @@ watchEffect(() => {
           <div class="lg:col-span-7 col-span-7">
             <d-text-area-input
               v-model="form.address"
+              :clearable="false"
               :label="``"
               :placeholder="`Address`"
-              class=""
-              disabled
-              auto-grow
+              class="bg-zinc-200 cursor-not-allowed dark:bg-dark2"
+              :auto-grow="false"
+              :rows="2"
+              is-static
             />
           </div>
           <div class="lg:col-span-7 col-span-7">
@@ -477,7 +481,8 @@ watchEffect(() => {
               :label="`Issue Description Information`"
               :placeholder="`Issue Description Information`"
               class=""
-              auto-grow
+              :auto-grow="false"
+              :rows="3"
             />
           </div>
           <div
@@ -509,7 +514,7 @@ watchEffect(() => {
             </div>
             <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
               <!-- attached files -->
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 dark:text-primary1">
                 <span class="text-sm font-medium dark:text-primary1"
                   >Uploaded Files</span
                 >
@@ -691,11 +696,12 @@ watchEffect(() => {
               :label="``"
               :placeholder="`Solution Information`"
               class=""
-              auto-grow
+              :auto-grow="false"
+              :rows="3"
             />
           </div>
           <div
-            class="grid grid-cols-3 md:grid-cols-1 lg:col-span-7 col-span-7 gap-2"
+            class="grid grid-cols-3 md:grid-cols-1 lg:col-span-7 col-span-7 gap-3"
           >
             <div class="lg:col-span-6">
               <v-file-upload
@@ -723,10 +729,21 @@ watchEffect(() => {
             </div>
             <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
               <!-- attached files -->
-              <div class="flex flex-col gap-2">
-                <span class="text-sm font-medium dark:text-primary1"
-                  >Uploaded Files</span
-                >
+              <div class="flex flex-col gap-2 dark:text-primary1">
+                <div class="flex gap-2 items-center">
+                  <span class="text-sm font-medium dark:text-primary1"
+                    >Uploaded Files</span
+                  >
+                  <!-- <v-checkbox-btn
+                    v-model="selection.select_all_solution_attachments"
+                    class="flex items-center"
+                    hide-details
+                    density="compact"
+                    :true-value="1"
+                    :false-value="0"
+                    :label="`Select All`"
+                  /> -->
+                </div>
                 <div>
                   <div
                     v-if="
@@ -748,7 +765,16 @@ watchEffect(() => {
                       :key="index"
                       class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
                     >
-                      <div class="flex gap-2">
+                      <div class="flex gap-2 items-center">
+                        <v-checkbox-btn
+                          v-model="file.is_checked"
+                          class="flex items-center"
+                          hide-details
+                          density="compact"
+                          :true-value="1"
+                          :false-value="0"
+                        />
+
                         <lazy-d-img
                           v-if="file.file_type.includes('image')"
                           :aspect-ratio="1"
@@ -892,6 +918,40 @@ watchEffect(() => {
                 </div>
               </div>
             </div> -->
+            </div>
+
+            <div class="flex gap-2 items-center">
+              <d-bt
+                v-if="!!props.id"
+                :cta="'Send Email'"
+                :class="
+                  classMerge(
+                    'h-[2.5rem] px-3 flex gap-3 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3 w-max'
+                  )
+                "
+                :text-class="classMerge('text-white mx-auto !font-bold')"
+                icon="mdi-email"
+                icon-class="text-white"
+                type="button"
+                @click="ticketStore.sendSolutionEmail()"
+              />
+              <!-- <d-bt
+                v-if="!!props.id"
+                :cta="'View Email'"
+                :class="
+                  classMerge(
+                    'h-[2.5rem] px-3 flex gap-3 rounded-lg !bg-primary1 border !border-solid !border-sc transition-all ease-in-out hover:!bg-scLightest w-max dark:!bg-dark1  dark:hover:!bg-dark2'
+                  )
+                "
+                :text-class="
+                  classMerge('text-sc dark:text-primary1 mx-auto !font-bold')
+                "
+                icon="mdi-eye"
+                icon-class="text-sc dark:text-primary1"
+                type="button"
+                @click="isOpenModal.email_view = true"
+              /> -->
+              <d-ticket-solution-email-button />
             </div>
           </div>
         </div>

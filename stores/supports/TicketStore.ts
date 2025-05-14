@@ -56,6 +56,7 @@ const useTicketStore = defineStore('TicketStore', {
       issue_attachment_opened: 0,
       solution_attachment_imgs: false,
       solution_attachment_opened: 0,
+      email_view: false,
     },
     openedModal: {
       issue_attachment_img: {} as TicketAttachmentsType,
@@ -68,6 +69,11 @@ const useTicketStore = defineStore('TicketStore', {
     modals: {
       issue_attachment_imgs: [] as TicketAttachmentsType[],
       solution_attachment_imgs: [] as TicketAttachmentsType[],
+    },
+    selection: {
+      select_all_solution_attachments: false,
+      selected_solution_attachments: [] as number[],
+      selected_issue_attachments: [] as number[],
     },
     formLayout: {
       title: "Basic Information",
@@ -310,7 +316,7 @@ const useTicketStore = defineStore('TicketStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/supports/tickets`)
+        navigateTo(`/crm/tickets`)
 
         return response
       } catch (error: any) {
@@ -429,7 +435,7 @@ const useTicketStore = defineStore('TicketStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
-        navigateTo(`/supports/tickets`)
+        navigateTo(`/crm/tickets`)
 
         return response
       } catch (error: any) {
@@ -454,6 +460,7 @@ const useTicketStore = defineStore('TicketStore', {
     },
 
     autocompleteCustomer(data: any) {
+      this.form.address = data.address;
       // this.form.email = data.email;
       // this.form.phone = data.phone;
       this.form.customer_code = data.shortname;
@@ -527,7 +534,7 @@ const useTicketStore = defineStore('TicketStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        // navigateTo(`/supports/tickets`)
+        // navigateTo(`/crm/tickets`)
 
         return response
       } catch (error: any) {
@@ -646,7 +653,7 @@ const useTicketStore = defineStore('TicketStore', {
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
 
-        // navigateTo(`/supports/tickets`)
+        // navigateTo(`/crm/tickets`)
 
         return response
       } catch (error: any) {
@@ -659,6 +666,63 @@ const useTicketStore = defineStore('TicketStore', {
             Object.keys(responseData.errors).map((row: any) => {
               errors += `- ${responseData.errors[row][0]} <br />`
               this.errors[row] = responseData.errors[row][0]
+            })
+          )
+        }
+        useAlert.alertError(errors + `<br /> ${responseData.message}`)
+
+        return error.response.data
+      } finally {
+        this.loading.formLoading = false
+      }
+    },
+
+    async sendSolutionEmail() {
+      if (!!this.loading.formLoading) return
+      this.loading.formLoading = true
+
+      // count how many files in this.form.form.selected_solution_attachments
+      this.form.selected_solution_attachments = [
+        ...this.form.solution_attachments.filter((item: TicketAttachmentsType) => {
+          return !!item.is_checked
+        }).map((item: TicketAttachmentsType) => {
+          return item.id
+        })
+      ]
+      const countSelectedSolutionFiles = this.form.selected_solution_attachments.length
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Are you sure to send this email?',
+        `The solutions & ${countSelectedSolutionFiles} file(s) will be sent`
+      )
+
+      if (!isConfirmed) {
+        this.loading.formLoading = false
+        return
+      }
+
+      this.tabFormIndex = 0
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/tickets/send-solution-email-ticket',
+          this.form
+        )
+
+        useAlert.hideAlert()
+        useAlert.alertSuccess(response.data.message)
+
+        return response
+      } catch (error: any) {
+        const responseData = error.response.data
+        console.log('Failed To Create Data', error.response.data)
+        let errors = ''
+
+        if (typeof responseData.errors === 'object') {
+          await Promise.all(
+            Object.keys(responseData.errors).map((row: any) => {
+              errors += `- ${responseData.errors[row]} <br />`
+              this.errors[row] = responseData.errors[row]
             })
           )
         }
@@ -1115,7 +1179,7 @@ const useTicketStore = defineStore('TicketStore', {
     },
 
     async goToTicket(id: number) {
-      await navigateTo(`/supports/tickets/edit/${id}`);
+      await navigateTo(`/crm/tickets/edit/${id}`);
     },
 
     openModalIssueAttachmentImg(isOpen: boolean, issue_attachment: TicketAttachmentsType) {

@@ -75,6 +75,7 @@ const useQuotationStore = defineStore('QuotationStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -963,6 +964,29 @@ const useQuotationStore = defineStore('QuotationStore', {
 
     goToQuotation(id: number) {
       navigateTo(`/sales/quotations/edit/${id}`);
+    },
+
+    async onClickPDF() {
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/quotations/pdf-quotation',
+          this.form
+        )
+
+        console.log('response', response.data);
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
     },
 
   },

@@ -62,6 +62,8 @@ export type FormTicketType = {
   deleted_issue_files: number[]
   deleted_solution_files: number[]
 
+  selected_solution_attachments: number[]
+
   address?: string
 
   summary?: Record<string, SummaryPartType>
@@ -83,6 +85,8 @@ export type TicketAttachmentsType = {
   deleted_at: any
   created_by_name: string
   updated_by_name: any
+
+  is_checked?: number
 }
 
 export type QTicketIndexType = {
@@ -106,5 +110,6 @@ export type TicketWidgetSingleType = {
   icon: string;
   color: string;
   border: string;
+  base: string;
   widget_type: WidgetType
 };

@@ -21,6 +21,7 @@ interface IProps {
   initialValue?: string;
   rows?: number;
   autoGrow?: boolean;
+  isStatic?: boolean;
 }
 const props = withDefaults(defineProps<IProps>(), {
   disabled: false,
@@ -37,9 +38,11 @@ const props = withDefaults(defineProps<IProps>(), {
   initialValue: "",
   rows: 1,
   autoGrow: true,
+  isStatic: false,
 });
 
 const realValue = ref(props.modelValue);
+const cloneInitialValue = props.modelValue;
 
 const slots = useSlots();
 
@@ -64,6 +67,19 @@ watch(
     }
   }
 );
+
+watchEffect(() => {
+  if (props.isStatic) {
+    console.log(
+      "Static value:",
+      props.modelValue,
+      "Initial value:",
+      cloneInitialValue
+    );
+
+    realValue.value = cloneInitialValue;
+  }
+});
 </script>
 <template>
   <div

@@ -1829,7 +1829,7 @@ watchEffect(() => {
           </div>
           <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
             <!-- attached files -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 dark:text-primary1">
               <span class="text-sm font-medium dark:text-primary1"
                 >Uploaded Files</span
               >

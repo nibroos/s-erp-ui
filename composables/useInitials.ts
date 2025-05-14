@@ -341,6 +341,8 @@ const formTicketCreateEdit = {
   solution_files: [],
   deleted_solution_files: [],
 
+  selected_solution_attachments: [],
+
   // email: "",
   // phone: "",
   address: "",

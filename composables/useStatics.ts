@@ -595,6 +595,7 @@ const initialColorsStatus = [
     icon: "material-symbols:receipt-rounded",
     color: "text-[#00B8D9]",
     border: "border-[#00B8D9]",
+    base: "[#00B8D9]",
   },
   {
     name: "Order",
@@ -602,18 +603,21 @@ const initialColorsStatus = [
     icon: "mdi:cart",
     color: "text-yellow-700",
     border: "border-yellow-700",
+    base: "yellow-700",
   },
   {
     name: "Process",
     icon: "material-symbols:nest-clock-farsight-analog",
     color: "text-sky-700",
     border: "border-sky-700",
+    base: "sky-700",
   },
   {
     name: "Procsess",
     icon: "material-symbols:nest-clock-farsight-analog",
     color: "text-sky-700",
     border: "border-sky-700",
+    base: "sky-700",
   },
   {
     name: "Unpaid",
@@ -621,6 +625,7 @@ const initialColorsStatus = [
     icon: "mdi:receipt-text-minus-outline",
     color: "text-orange-700",
     border: "border-orange-700",
+    base: "orange-700",
     // --
   },
   {
@@ -628,6 +633,7 @@ const initialColorsStatus = [
     icon: "mdi:receipt-text-minus-outline",
     color: "text-amber-700",
     border: "border-amber-700",
+    base: "amber-700",
   },
   {
     name: "production",
@@ -635,12 +641,14 @@ const initialColorsStatus = [
     icon: "material-symbols:nest-clock-farsight-analog",
     color: "text-indigo-700",
     border: "border-indigo-700",
+    base: "indigo-700",
   },
   {
     name: "Shipping",
     icon: "gridicons:shipping",
     color: "text-fuchsia-700",
     border: "border-fuchsia-700",
+    base: "fuchsia-700",
   },
   {
     name: "Invoice",
@@ -648,12 +656,14 @@ const initialColorsStatus = [
     icon: "material-symbols:payments",
     color: "text-blue-700",
     border: "border-blue-700",
+    base: "blue-700",
   },
   {
     name: "Finish",
     icon: "material-symbols:check-circle-rounded",
     color: "text-[#36B37E]",
     border: "border-[#36B37E]",
+    base: "[#36B37E]",
   },
   {
     name: "Paid",
@@ -661,6 +671,7 @@ const initialColorsStatus = [
     icon: "material-symbols:check-circle-rounded",
     color: "text-emerald-700",
     border: "border-emerald-700",
+    base: "emerald-700",
     // --
   },
   {
@@ -669,6 +680,7 @@ const initialColorsStatus = [
     icon: "material-symbols:cancel",
     color: "text-rose-700",
     border: "border-rose-700",
+    base: "rose-700",
   },
   {
     name: "Canceled",
@@ -676,6 +688,7 @@ const initialColorsStatus = [
     icon: "material-symbols:cancel",
     color: "text-rose-700",
     border: "border-rose-700",
+    base: "rose-700",
   },
   // holding
   {
@@ -684,6 +697,7 @@ const initialColorsStatus = [
     icon: "material-symbols:pause-circle-outline",
     color: "text-amber-700",
     border: "border-amber-700",
+    base: "amber-700",
   },
   {
     name: "Pending",
@@ -691,6 +705,7 @@ const initialColorsStatus = [
     icon: "material-symbols:pending-actions",
     color: "text-orange-700",
     border: "border-orange-700",
+    base: "orange-700",
   },
   // waiting, approved
   {
@@ -699,6 +714,7 @@ const initialColorsStatus = [
     icon: "material-symbols:hourglass-empty",
     color: "text-gray-700",
     border: "border-gray-700",
+    base: "gray-700",
   },
   {
     name: "Approved",
@@ -706,6 +722,7 @@ const initialColorsStatus = [
     icon: "material-symbols:check-circle-rounded",
     color: "text-green-700",
     border: "border-green-700",
+    base: "green-700",
   },
   {
     name: "Open",
@@ -713,6 +730,7 @@ const initialColorsStatus = [
     icon: "material-symbols:add-circle-rounded",
     color: "text-emerald-700",
     border: "border-emerald-700",
+    base: "emerald-700",
   },
   {
     name: "In Progress",
@@ -720,6 +738,7 @@ const initialColorsStatus = [
     icon: "material-symbols:nest-clock-farsight-analog",
     color: "text-amber-700",
     border: "border-amber-700",
+    base: "amber-700",
   },
   {
     name: "Resolved",
@@ -727,6 +746,7 @@ const initialColorsStatus = [
     icon: "material-symbols:check-circle-rounded",
     color: "text-blue-700",
     border: "border-blue-700",
+    base: "blue-700",
   },
   {
     name: "Closed",
@@ -734,6 +754,7 @@ const initialColorsStatus = [
     icon: "material-symbols:cancel",
     color: "text-red-700",
     border: "border-red-700",
+    base: "red-700",
   },
 ]
 
