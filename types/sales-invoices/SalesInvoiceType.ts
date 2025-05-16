@@ -47,7 +47,7 @@ export type IndexSalesInvoiceType = {
   payment_term_name: string | null
   vat_name: string | null
   pph23_name: string | null
-  
+
   sales_invoice_dts?: SalesInvoiceDtType[] | null
 }
 
@@ -63,7 +63,7 @@ export type FormSalesInvoiceType = {
   invoice_no?: string
   invoice_date: string
   exchange_rate?: number | null
-  remark?: string | null
+  remark?: string
   rev_no?: number | null
   status?: string | null
   pph23_percentage: number
@@ -125,7 +125,7 @@ export type SalesInvoiceDtBomType = {
   item_specification?: string | null
   item_qty_stock?: number | null
   unit_name?: string
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -175,7 +175,7 @@ export type SalesInvoiceDtType = {
   unit_name?: string
   vat_name?: string | null
   pph23_name?: string | null
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -184,7 +184,7 @@ export type SalesInvoiceDtType = {
   created_at?: string | null
   updated_at?: string | null
   deleted_at?: string | null
-  
+
   sales_invoice_dt_boms?: SalesInvoiceDtBomType[] | null
   so_dts_boms?: SalesOrderDtBomType[] | null;
 }
@@ -272,7 +272,7 @@ export type FormSalesInvoiceDtProductListType = ProductListType & {
   disc_am?: number
   disc_perc?: number
   disc_perc_am?: number
-  
+
   sales_invoice_dt_boms?: SalesInvoiceDtBomType[] | null
 
   sales_order_id?: number | null
@@ -285,7 +285,7 @@ export type FormSalesInvoiceDtProductListType = ProductListType & {
   head_pph23_percentage?: number | null
   head_discount_amount?: number | null
   head_discount_percentage?: number | null
-  head_remark?: string | null
+  head_remark?: string
   head_is_vat?: number
   head_is_pph23?: number
 
@@ -301,7 +301,7 @@ export type FormVatType = {
   name: string;
   num: number;
   description?: string | null;
-  remark?: string | null;
+  remark?: string;
   date_at?: string | null;
   status?: number;
   multiplier?: string | null;

@@ -3,7 +3,7 @@ export type FormItemSubGroupType = {
   name: string
   group_name: string
   description?: string | null
-  remark?: string | null
+  remark?: string
   status?: number
   item_group_id: number | null
 }

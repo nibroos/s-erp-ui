@@ -6,6 +6,6 @@ export type FormIOType = {
   io_type: string | null
   group_id: number | null
   description?: string | null
-  remark?: string | null
+  remark?: string
   status?: number
 }

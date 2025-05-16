@@ -11,6 +11,7 @@ import type { FormVatType } from '~/types/masters/VatType'
 import type { FormTicketType, IndexTicketType, QTicketIndexType, TicketAttachmentsType, TicketWidgetSingleType } from '~/types/tickets/TicketType'
 import useScheduleStore from '../orders/ScheduleStore'
 import type { FormScheduleType } from '~/types/sales-orders/SalesOrderType'
+import type { CustomerType } from '~/types/masters/CustomerType'
 
 const useTicketStore = defineStore('TicketStore', {
   state: () => ({
@@ -459,11 +460,13 @@ const useTicketStore = defineStore('TicketStore', {
       }
     },
 
-    autocompleteCustomer(data: any) {
+    autocompleteCustomer(data: CustomerType) {
       this.form.address = data.address;
       // this.form.email = data.email;
       // this.form.phone = data.phone;
       this.form.customer_code = data.shortname;
+      this.form.customer_name = data.name;
+      this.form.email = data.email;
     },
 
     async storeModal() {

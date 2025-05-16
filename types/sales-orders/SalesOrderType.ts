@@ -84,7 +84,7 @@ export type FormSalesOrderType = {
   sales_order_no?: string
   po_buyer_no: string
   ship_dest?: string
-  remark?: string | null
+  remark?: string
   status: string
   exchange_rate?: number | null
   vat_perc: number
@@ -195,7 +195,7 @@ export type FormScheduleTaskType = {
   entity_id?: number | null
   entity_type?: ScheduleEntityType
   title?: string
-  remark?: string | null
+  remark?: string
   order_item?: number
   // color?: string
   // locations?: string
@@ -307,7 +307,7 @@ export type SoDtsType = {
   item_id: number
   ref_type: string
   product_uuid?: string | null
-  remark?: string | null
+  remark?: string
   vat_perc?: number
   vat_perc_am?: number
   pph23_perc?: number
@@ -421,7 +421,7 @@ export type FormSoDtProductListType = ProductListType & SoDtsType & QuoDtsType &
   head_disc_am?: number | null
   head_disc_perc?: number | null
   head_markup_perc?: number | null
-  head_remark?: string | null
+  head_remark?: string
   head_is_vat?: number
 
   item_name?: string

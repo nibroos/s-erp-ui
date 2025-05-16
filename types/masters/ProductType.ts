@@ -11,7 +11,7 @@ export type FormProductType = {
   barcode?: string | null
   specification?: string | null
   description?: string | null
-  remark?: string | null
+  remark?: string
   price_sell?: number | null
   price_buy?: number | null
   margin?: number | null
@@ -41,7 +41,7 @@ export type CreateBomsRequestType = {
   product_item_id: number
   item_unit_id: number
   qty: number
-  remark?: string | null
+  remark?: string
 
   ref_id?: number
   product_id: number

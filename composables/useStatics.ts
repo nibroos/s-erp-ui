@@ -360,6 +360,7 @@ const formTabTicket = {
   solution: 0,
   schedules: 1,
   remarks: 2,
+  sent_emails: 3,
 }
 
 const POIndexStatus = [
@@ -870,6 +871,18 @@ const formTabRequestOrder = {
   remarks: 1,
 }
 
+const headerSentEmails: FieldSelectableType[] = [
+  // ref_type, to_email, subject, remark, error_message, status, created_at, created_by_name
+  { title: "ID", key: "id", sortable: true },
+  { title: "Email", key: "to_email", sortable: true },
+  { title: "Subject", key: "subject", sortable: true },
+  { title: "Remark", key: "remark", sortable: true },
+  { title: "Error Message", key: "error_message", sortable: true },
+  { title: "Status", key: "status", sortable: true },
+  { title: "Created By", key: "created_by_name", sortable: true },
+  { title: "Created At", key: "created_at", sortable: true },
+]
+
 export const useStatics = {
   QuoIndexStatus,
   QuoIndexDateType,
@@ -911,4 +924,5 @@ export const useStatics = {
   formTabTicket,
   priorityTypes,
   ticketIndexStatus,
+  headerSentEmails,
 }

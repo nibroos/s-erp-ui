@@ -19,6 +19,19 @@
     "@schedule-x/theme-default": "^2.28.0",
     "@schedule-x/vue": "^2.26.0",
     "@sweetalert2/theme-dark": "^5.0.16",
+    "@tiptap/extension-bullet-list": "^2.12.0",
+    "@tiptap/extension-color": "^2.12.0",
+    "@tiptap/extension-highlight": "^2.12.0",
+    "@tiptap/extension-image": "^2.12.0",
+    "@tiptap/extension-link": "^2.12.0",
+    "@tiptap/extension-list": "^3.0.0-next.4",
+    "@tiptap/extension-list-item": "^2.12.0",
+    "@tiptap/extension-text-align": "^2.12.0",
+    "@tiptap/extension-text-style": "^2.12.0",
+    "@tiptap/extension-typography": "^2.12.0",
+    "@tiptap/pm": "^2.12.0",
+    "@tiptap/starter-kit": "^2.12.0",
+    "@tiptap/vue-3": "^2.12.0",
     "@types/axios": "^0.14.4",
     "@vuepic/vue-datepicker": "^8.4.0",
     "@vueuse/nuxt": "^10.9.0",
@@ -39,17 +52,19 @@
     "vue-router": "^4.3.0",
     "vue-sweetalert2": "^5.0.5",
     "vuedraggable": "^4.1.0",
+    "vuetify-pro-tiptap": "^2.6.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
+    "@types/lodash-es": "^4.17.12",
     "@types/qs": "^6.9.14",
     "autoprefixer": "^10.4.13",
-    "vite-plugin-vuetify": "^2.0.3",
-    "vuetify": "3.8.2",
-    "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
-    "nuxt-lodash": "^2.5.3"
+    "nuxt-lodash": "^2.5.3",
+    "sass": "^1.88.0",
+    "vite-plugin-vuetify": "^2.0.3",
+    "vuetify": "3.8.2"
   }
 }

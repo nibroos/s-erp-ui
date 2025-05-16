@@ -3,6 +3,6 @@ export type FormWarehouseType = {
   name: string
   code?: string | null
   description?: string | null
-  remark?: string | null
+  remark?: string
   status?: number
 }

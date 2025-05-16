@@ -36,6 +36,9 @@ import useAuthStore from "~/stores/AuthStore";
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
+const router = useRouter();
+const id = ref(router.currentRoute.value.params.id);
+
 const inventoryStore = useInventoryStore();
 const {
   tabFormIndex,
@@ -111,93 +114,6 @@ const headers = ref<FieldSelectableType[]>([
     headerProps: { class: "cursor-pointer action-table sticky-right" },
     cellProps: {
       class: "action-table sticky-right",
-    },
-  },
-]);
-
-const headersCustomer = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
-    key: "code",
-    value: "code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Phone",
-    key: "phone",
-    value: "phone",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Email",
-    key: "email",
-    value: "email",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Address",
-    key: "address",
-    value: "address",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_name",
-    value: "customer_type_name",
-    align: "start",
-    sortable: true,
-  },
-]);
-
-const filtersCustomer = ref<FilterSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-  },
-  {
-    title: "Code",
-    key: "code",
-  },
-  {
-    title: "Phone",
-    key: "phone",
-  },
-  {
-    title: "Email",
-    key: "email",
-  },
-  {
-    title: "Address",
-    key: "address",
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_ids",
-    type: "autocomplete",
-    display: "name",
-    others: {
-      methodApi: "post",
-      query: {
-        is_active: 1,
-      },
-      api: "/v1/customer-types/index-customer-type",
-      singleApi: "/v1/customer-types/index-customer-type",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Customer Type",
-      innerSearchKey: "global",
     },
   },
 ]);
@@ -742,9 +658,6 @@ const handleSubmit = async () => {
   await inventoryStore.update();
 };
 
-const router = useRouter();
-const id = ref(router.currentRoute.value.params.id);
-
 const fetchInitialData = async () => {
   form.value.id = Number(id.value);
   // await inventoryStore.indexProduct();
@@ -1267,11 +1180,11 @@ watchEffect(() => {
         </div>
         <div v-if="tabFormIndex == useStatics.formTabInventory.remarks">
           <div class="sm:col-span-1">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.remark"
               :label="`Remark`"
-              :placeholder="`Remark`"
-              :errors="errors.remark"
+              :placeholder="`Write the Remark...`"
+              class=""
             />
           </div>
         </div>
@@ -1577,9 +1490,9 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.inv_in = $event"
     >
-      <template #header-end>
+      <!-- <template #header-end>
         <d-form-inventory-in @submit:form="inventoryStore.fetchModalFilter()" />
-      </template>
+      </template> -->
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"

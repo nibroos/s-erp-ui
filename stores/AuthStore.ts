@@ -164,6 +164,8 @@ const useAuthStore = defineStore('AuthStore', {
             id: 1
           }
         )
+        console.log("getCompanyProfile", response);
+
         if (response.status === 200) {
           this.company = response.data.data[0]
         }

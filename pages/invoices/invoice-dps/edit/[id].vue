@@ -1026,11 +1026,11 @@ watch(
         </div>
         <div v-else-if="tabFormIndex == useStatics.formTabInvoiceDp.remarks">
           <div class="lg:col-span-6 mt-1">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.remark"
               :label="`Remark`"
-              :placeholder="`Remark`"
-              :errors="errors.remark"
+              :placeholder="`Write the Remark...`"
+              class=""
             />
           </div>
         </div>

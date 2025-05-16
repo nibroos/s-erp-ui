@@ -3,6 +3,9 @@ import useLayouts from "~/stores/configs/LayoutsStore";
 
 import { useTheme } from "vuetify";
 
+const authStore = AuthStore();
+const { company } = storeToRefs(authStore);
+
 const theme = useTheme();
 const { setTheme } = useThemeSwitch();
 
@@ -22,6 +25,12 @@ const initialTheme = () => {
     localStorage.setItem("theme", "light");
   }
 };
+
+watchEffect(async () => {
+  if (!company.value) {
+    await AuthStore().getCompanyProfile();
+  }
+});
 
 onMounted(async () => {
   initialTheme();
