@@ -849,7 +849,7 @@ const RequestOrderIndexStatus = [
   },
   {
     value: 'APPROVED',
-    title: 'approved',
+    title: 'Approved',
     color: 'blue',
   },
   {
