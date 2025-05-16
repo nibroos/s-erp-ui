@@ -343,7 +343,7 @@ const formTicketCreateEdit = {
 
   selected_solution_attachments: [],
 
-  // email: "",
+  email: "",
   // phone: "",
   address: "",
 } as FormTicketType

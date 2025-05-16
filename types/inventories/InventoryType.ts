@@ -67,7 +67,7 @@ export type FormInventoryType = {
   surat_jalan_no?: string
   invoice_no?: string
   ship_dest?: string
-  remark?: string | null
+  remark?: string
   status: string
   exchange_rate?: number | null
   is_vat?: number | null
@@ -290,7 +290,7 @@ export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType 
   head_pph23_perc?: number | null
   head_markup_perc?: number | null
   exchange_rate?: number | null
-  head_remark?: string | null
+  head_remark?: string
 
   item_name?: string
   item_code?: string

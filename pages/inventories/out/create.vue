@@ -1251,11 +1251,11 @@ watchEffect(() => {
         </div>
         <div v-if="tabFormIndex == useStatics.formTabInventory.remarks">
           <div class="sm:col-span-1">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.remark"
               :label="`Remark`"
-              :placeholder="`Remark`"
-              :errors="errors.remark"
+              :placeholder="`Write the Remark...`"
+              class=""
             />
           </div>
         </div>
@@ -1558,9 +1558,9 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.inv_in = $event"
     >
-      <template #header-end>
+      <!-- <template #header-end>
         <d-form-inventory-in @submit:form="inventoryStore.fetchModalFilter()" />
-      </template>
+      </template> -->
       <template #top>
         <form
           class="grid grid-cols-5 w-full flex-row items-center gap-2"

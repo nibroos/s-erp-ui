@@ -34,7 +34,7 @@ export type IndexInvoiceAdjustmentType = {
   customer_name: string | null
   branch_name: string | null
   bank_name: string | null
-  
+
   adjustment_dts?: InvoiceAdjustmentDtType[] | null
 }
 
@@ -51,7 +51,7 @@ export type FormInvoiceAdjustmentType = {
   reference?: string | null
   ref_start_date?: string | null
   ref_end_date?: string | null
-  remark?: string | null
+  remark?: string
   rev_no?: number | null
   total_invoice: number
   total_adjustment: number
@@ -88,8 +88,8 @@ export type InvoiceAdjustmentDtType = {
   adjustment_amount: number
   admin_bank: number
   total_amount: number
-  selected?: boolean 
-  
+  selected?: boolean
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -141,7 +141,7 @@ export type FormInvoiceAdjustmentDtInvoiceType = {
   adjustment_amount: number
   admin_bank: number
   total_amount: number
-  
+
   customer_id?: number | null
   customer_name?: string | null
   currency_id?: number | null

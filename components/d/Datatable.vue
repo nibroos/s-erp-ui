@@ -43,8 +43,10 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   searchPlaceholder: "Search anything related..",
   noTitle: false,
   isEdit: true,
+  fixedHeader: true,
   noAction: false,
   noDelete: false,
+  noFilter: false,
   editLink: "",
   createOption: () => ({
     link: "",
@@ -564,6 +566,7 @@ onMounted(async () => {
     <form
       :class="classMerge('flex flex-col gap-2 p-3')"
       @submit.prevent="filterData()"
+      v-if="!props.noFilter"
     >
       <div
         v-if="generatedFiltersObj.length > 0"
@@ -758,7 +761,7 @@ onMounted(async () => {
                 :return-object="props.returnObject"
                 :multiple="props.multiple"
                 @update:options="fetchDataServerFetch"
-                fixed-header
+                :fixed-header="props.fixedHeader"
                 :height="props.height"
                 hover
                 @click:row="onSelectOption"
@@ -841,10 +844,17 @@ onMounted(async () => {
         :loading="metaModal.loading"
         density="compact"
         :header-props="{
-          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+          class: classMerge(
+            '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+            props.headerTableClass
+          ),
         }"
         :row-props="{
-          class: 'cursor-pointer whitespace-nowrap',
+          // class: 'cursor-pointer whitespace-nowrap',
+          class: classMerge(
+            'cursor-pointer whitespace-nowrap',
+            props.rowTableClass
+          ),
         }"
         :item-value="props.itemValue"
         show-current-page

@@ -19,7 +19,7 @@ export type FormCompanyProfileType = {
   company_sign?: string | File | null
   company_logo?: string | File | null
   company_description?: string | null
-  company_remark?: string | null
+  company_remark?: string
   company_status?: number | null
   company_options_json?: any | null
   created_by_id?: number | null

@@ -61,7 +61,7 @@ export type FormInvoiceDpType = {
   invoice_no?: string
   invoice_date: string
   exchange_rate?: number | null
-  remark?: string | null
+  remark?: string
   status?: string | null
   pph23_percentage: number
   vat_percentage: number
@@ -270,7 +270,7 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
   head_pph23_percentage?: number | null
   head_discount_amount?: number | null
   head_discount_percentage?: number | null
-  head_remark?: string | null
+  head_remark?: string
   head_is_vat?: number
   head_is_pph23?: number
 
@@ -286,7 +286,7 @@ export type FormVatType = {
   name: string;
   num: number;
   description?: string | null;
-  remark?: string | null;
+  remark?: string;
   date_at?: string | null;
   status?: number;
   multiplier?: number | null;

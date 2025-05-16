@@ -1003,7 +1003,6 @@ watch(
 const labelForm = ref("Add Inventory IN");
 
 onMounted(async () => {
-  inventoryStore.handleClickClear();
   form.value.io_type = "INVENTORY_IN";
   await fetchInitialData();
   initialFormLayout();

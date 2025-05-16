@@ -5,6 +5,6 @@ export type FormVatType = {
   multiplier?: number
   divider?: number
   description?: string | null
-  remark?: string | null
+  remark?: string
   status?: number
 }

@@ -76,6 +76,7 @@ const useQuotationStore = defineStore('QuotationStore', {
       formLoading: false,
       editPageLoading: false,
       pdfLoading: false,
+      loadingCsv: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -988,6 +989,31 @@ const useQuotationStore = defineStore('QuotationStore', {
         this.loading.pdfLoading = false
       }
     },
+    async exportCSV() {
+      if (this.loading.loadingCsv) return
+      this.loading.loadingCsv = true
+
+      try {
+        const response = await useMyFetch().post(
+          `/api/quotations/csv-quotation`,
+          this.queryModal.qIndex,
+          {
+            responseType: 'blob',
+            headers: {
+              'Content-Type': 'text/csv',
+              Accept: 'text/csv'
+            }
+          }
+        )
+        return response
+      } catch (error: any) {
+        console.error('FAILED TO EXPORT CSV:', error)
+        throw error
+      } finally {
+        this.loading.loadingCsv = false
+      }
+    },
+
 
   },
   persist: [

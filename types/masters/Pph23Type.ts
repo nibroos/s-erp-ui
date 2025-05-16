@@ -3,6 +3,6 @@ export type FormPph23Type = {
   name: string
   num: number
   description?: string | null
-  remark?: string | null
+  remark?: string
   status?: number
 }

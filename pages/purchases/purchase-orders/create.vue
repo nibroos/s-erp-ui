@@ -970,11 +970,11 @@ watchEffect(() => {
         </div>
         <div v-if="tabFormIndex == useStatics.formTabPurchaseOrder.remarks">
           <div class="sm:col-span-1 mt-1">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.remark"
               :label="`Remark`"
-              :placeholder="`Remark`"
-              :errors="errors.remark"
+              :placeholder="`Write the Remark...`"
+              class=""
             />
           </div>
         </div>

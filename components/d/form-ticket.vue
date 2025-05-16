@@ -476,13 +476,11 @@ watchEffect(() => {
             />
           </div>
           <div class="lg:col-span-7 col-span-7">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.issue_desc"
-              :label="`Issue Description Information`"
-              :placeholder="`Issue Description Information`"
+              :label="`Issue Description`"
+              :placeholder="`Write the issue description...`"
               class=""
-              :auto-grow="false"
-              :rows="3"
             />
           </div>
           <div
@@ -691,14 +689,20 @@ watchEffect(() => {
           class="grid grid-cols-3 sm:grid-cols-1 gap-3"
         >
           <div class="lg:col-span-7 col-span-3">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.issue_solution"
               :label="``"
               :placeholder="`Solution Information`"
               class=""
+            />
+            <!-- <d-rich-text-e
+              v-model="form.issue_solution"
+              :label="`Solution Information`"
+              :placeholder="`Solution Information`"
+              class=""
               :auto-grow="false"
               :rows="3"
-            />
+            /> -->
           </div>
           <div
             class="grid grid-cols-3 md:grid-cols-1 lg:col-span-7 col-span-7 gap-3"
@@ -951,17 +955,17 @@ watchEffect(() => {
                 type="button"
                 @click="isOpenModal.email_view = true"
               /> -->
-              <d-ticket-solution-email-button />
+              <d-ticket-solution-email-button v-if="!!props.id" />
             </div>
           </div>
         </div>
         <div v-if="tabFormIndex == useStatics.formTabTicket.remarks">
           <div class="lg:col-span-6">
-            <d-text-area-input
+            <d-rich-text
               v-model="form.remark"
               :label="`Remark`"
-              :placeholder="`Remark`"
-              :errors="errors.remark"
+              :placeholder="`Write the Remark...`"
+              class=""
             />
           </div>
         </div>
@@ -1137,6 +1141,28 @@ watchEffect(() => {
                 />
               </v-skeleton-loader>
             </div>
+          </div>
+        </div>
+
+        <div v-if="tabFormIndex == useStatics.formTabTicket.sent_emails">
+          abc
+          <div class="lg:col-span-6">
+            <v-data-table-virtual
+              :items="form.sent_emails ?? []"
+              :headers="useStatics.headerSentEmails"
+              item-value="id"
+              density="compact"
+              height="500"
+              fixed-header
+              class="col-span-3 sm:col-span-1 table-hover"
+              :header-props="{
+                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
+              }"
+              :row-props="{
+                class: 'whitespace-nowrap',
+              }"
+            >
+            </v-data-table-virtual>
           </div>
         </div>
       </template>

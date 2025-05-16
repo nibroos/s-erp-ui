@@ -1,0 +1,10 @@
+$value: 'erp';
+
+.vuetify-pro-tiptap-editor__content.markdown-theme-#{$value} strong {
+  color: #27272a !important;
+  // your custom styles
+  &.__dark {
+    color: #e4e4e7 !important;
+    // your dark mode custom styles
+  }
+}

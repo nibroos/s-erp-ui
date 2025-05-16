@@ -4,6 +4,7 @@ import type { QuoDtsType } from "../quotations/QuotationType"
 import type { FormTaskType } from "../masters/TaskType"
 import type { KanbanListTasksType } from "../KanbanBoardType"
 import type { FormScheduleType, WidgetType } from "../sales-orders/SalesOrderType"
+import type { SentEmailType } from "./SentEmailType"
 
 export type StatusTicketType = 'OPEN' | 'IN PROGRESS' | 'RESOLVED' | 'CLOSED'
 export type PriorityTicketType = 'LOW' | 'MEDIUM' | 'HIGH'
@@ -51,7 +52,7 @@ export type FormTicketType = {
   title: string
   issue_desc?: string
   issue_solution?: string
-  remark?: string | null
+  remark?: string
   reported_at: string
 
   schedule: FormScheduleType | null
@@ -68,7 +69,11 @@ export type FormTicketType = {
 
   summary?: Record<string, SummaryPartType>
 
+  sent_emails?: SentEmailType[]
+  email?: string
   customer_code?: string
+  customer_name?: string
+  updated_at?: string
 }
 
 export type TicketAttachmentsType = {
@@ -113,3 +118,4 @@ export type TicketWidgetSingleType = {
   base: string;
   widget_type: WidgetType
 };
+

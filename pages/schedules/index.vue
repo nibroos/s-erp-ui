@@ -327,14 +327,14 @@ const calendarApp = createCalendar({
     onRangeUpdate(range) {
       console.log("new calendar range start date", range.start);
       console.log("new calendar range end date", range.end);
-      // queryModal.value.qListIndex.start_at = range.start;
-      // queryModal.value.qListIndex.end_at = range.end;
+      queryModal.value.qListIndex.start_at = range.start;
+      queryModal.value.qListIndex.end_at = range.end;
 
-      // scheduleStore.indexSchedule().then(() => {
-      //   calendarApp.events.set(
-      //     metaModal.value.index.data as CalendarEventExternal[]
-      //   );
-      // });
+      scheduleStore.indexSchedule().then(() => {
+        calendarApp.events.set(
+          metaModal.value.index.data as CalendarEventExternal[]
+        );
+      });
     },
     onEventClick(calendarEvent) {
       scheduleStore.openDetailEventModal(calendarEvent);

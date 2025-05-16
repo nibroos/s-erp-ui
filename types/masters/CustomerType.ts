@@ -9,6 +9,7 @@ export type CustomerType = {
   phone?: string
   email?: string
   shortname?: string
+  address?: string
   status?: number
   created_by_name?: string
   updated_by_name?: string
@@ -27,7 +28,7 @@ export type FormCustomerType = {
   email?: string | null
   address?: string | null
   shortname?: string | null
-  remark?: string | null
+  remark?: string
   pic?: string | null
   status?: number
 }

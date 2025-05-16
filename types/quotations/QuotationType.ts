@@ -66,7 +66,7 @@ export type FormQuotationType = {
   rev_no?: string
   quo_no: string
   title: string
-  remark?: string | null
+  remark?: string
   status: string
   is_approved: number
   is_vat: number
@@ -200,7 +200,7 @@ export type QuoDtsType = {
   item_id: number
   ref_type: string
   product_uuid?: string | null
-  remark?: string | null
+  remark?: string
   // is_lock_vat?: number
   vat_perc?: number
   vat_perc_am?: number

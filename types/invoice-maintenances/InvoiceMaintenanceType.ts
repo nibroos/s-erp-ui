@@ -51,7 +51,7 @@ export type IndexInvoiceMaintenanceType = {
   vat_name: string | null
   pph23_name: string | null
   bank_name: string | null
-  
+
   invoice_maintenance_dts?: InvoiceMaintenanceDtType[] | null
 }
 
@@ -67,7 +67,7 @@ export type FormInvoiceMaintenanceType = {
   invoice_no?: string
   invoice_date: string
   exchange_rate?: number | null
-  remark?: string | null
+  remark?: string
   rev_no?: number | null
   status?: string | null
   approved_status?: string | null
@@ -130,7 +130,7 @@ export type InvoiceMaintenanceDtBomType = {
   item_specification?: string | null
   item_qty_stock?: number | null
   unit_name?: string
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -180,7 +180,7 @@ export type InvoiceMaintenanceDtType = {
   unit_name?: string
   vat_name?: string | null
   pph23_name?: string | null
-  
+
   created_by_id?: number | null
   updated_by_id?: number | null
   deleted_by_id?: number | null
@@ -189,7 +189,7 @@ export type InvoiceMaintenanceDtType = {
   created_at?: string | null
   updated_at?: string | null
   deleted_at?: string | null
-  
+
   invoice_maintenance_dt_boms?: InvoiceMaintenanceDtBomType[] | null
   so_dts_boms?: SalesOrderDtBomType[] | null;
 }
@@ -275,7 +275,7 @@ export type FormInvoiceMaintenanceDtProductListType = ProductListType & {
   disc_am?: number
   disc_perc?: number
   disc_perc_am?: number
-  
+
   invoice_maintenance_dt_boms?: InvoiceMaintenanceDtBomType[] | null
 
   reference_id?: number | null
@@ -288,7 +288,7 @@ export type FormInvoiceMaintenanceDtProductListType = ProductListType & {
   head_pph23_percentage?: number | null
   head_discount_amount?: number | null
   head_discount_percentage?: number | null
-  head_remark?: string | null
+  head_remark?: string
   head_is_vat?: number
   head_is_pph23?: number
 
@@ -304,7 +304,7 @@ export type FormVatType = {
   name: string;
   num: number;
   description?: string | null;
-  remark?: string | null;
+  remark?: string;
   date_at?: string | null;
   status?: number;
   multiplier?: string | null;

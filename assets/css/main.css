@@ -77,3 +77,29 @@
   height: 75vh;
   max-height: 90vh;
 }
+
+[data-theme="dark"] .vuetify-pro-tiptap-editor__content.markdown-theme-default strong {
+  color: white !important;
+}
+
+.vuetify-pro-tiptap-editor__content.markdown-theme-default strong {
+  color: #27272a !important;
+}
+
+.vuetify-pro-tiptap-editor__content.markdown-theme-default p {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+}
+
+.vuetify-pro-tiptap-editor--fullscreen {
+  z-index: 1200 !important;
+}
+
+/* 
+[data-theme="dark"] .vuetify-pro-tiptap-editor__content.markdown-theme-default blockquote {
+  border-left: white !important;
+} */
+/* 
+.vuetify-pro-tiptap-editor__content.markdown-theme-default blockquote {
+  border-left: #977669 !important;
+} */

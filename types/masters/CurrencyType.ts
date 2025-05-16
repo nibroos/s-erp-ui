@@ -3,7 +3,7 @@ export type FormCurrencyType = {
   name: string
   num: number
   description?: string | null
-  remark?: string | null
+  remark?: string
   symbol: string | null
   status?: number
 }

@@ -74,7 +74,7 @@ export type FormPurchaseOrderType = {
   po_date: string
   delivery_date: string
   shipping_destination?: string
-  remark?: string | null
+  remark?: string
   status: string
   exchange_rate?: number | null
   discount_percentage: number
@@ -173,7 +173,7 @@ export type PoDtsType = {
   ref_type: string
   ref_json?: any
   gen_code?: string | null
-  remark?: string | null
+  remark?: string
   need_qty: number
   qty: number
   balance?: number
@@ -260,7 +260,7 @@ export type FormPoDtProductListType = ProductListType & PoDtsType & {
   head_pph23_percentage?: number | null
   head_discount_amount?: number | null
   head_discount_percentage?: number | null
-  head_remark?: string | null
+  head_remark?: string
 
   item_id?: number
   item_name?: string

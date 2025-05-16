@@ -69,6 +69,9 @@ export type SelectTableType = {
   class?: string
   btnClass?: string
   textClass?: string
+  headerTableClass?: string
+  rowTableClass?: string
+  fixedHeader?: boolean
   disabled?: boolean
   loading?: boolean | undefined
   disabledTextClass?: string
@@ -92,6 +95,7 @@ export type SelectTableType = {
   isEdit?: boolean
   noAction?: boolean
   noDelete?: boolean
+  noFilter?: boolean
   show?: boolean
   sortable?: boolean
   editLink?: string

@@ -4,6 +4,7 @@ import { createVuetify } from 'vuetify'
 import DateIODateFnsAdapter from '@date-io/date-fns'
 import { VFileUpload, VFileUploadItem } from 'vuetify/labs/VFileUpload'
 import { VCalendar } from 'vuetify/labs/VCalendar'
+import { vuetifyProTipTap } from './tipTapProPlugin'
 
 const dateFns = new DateIODateFnsAdapter()
 
