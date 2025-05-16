@@ -21,4 +21,5 @@ export type DatePickerLightType = {
   disabled?: boolean
   initialValue?: string | null
   fallbackDate?: string | null
+  minDate?: string
 }

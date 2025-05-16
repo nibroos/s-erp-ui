@@ -234,6 +234,7 @@ watch(
       @date-update="closeDatePicker"
       :disabled="props.disabled"
       :teleport="true"
+      :min-date="props.minDate"
     >
       <template #action-extra>
         <div
