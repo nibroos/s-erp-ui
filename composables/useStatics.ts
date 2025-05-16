@@ -848,8 +848,8 @@ const RequestOrderIndexStatus = [
     color: 'orange',
   },
   {
-    value: 'PROCESS',
-    title: 'Process',
+    value: 'APPROVED',
+    title: 'approved',
     color: 'blue',
   },
   {
@@ -861,7 +861,7 @@ const RequestOrderIndexStatus = [
 
 const formStatusRequestOrder = [
   { id: 'PENDING', name: 'PENDING' },
-  { id: 'PROCESS', name: 'PROCESS' },
+  { id: 'APPROVED', name: 'APPROVED' },
   { id: 'CANCELED', name: 'CANCELED' },
 ]
 

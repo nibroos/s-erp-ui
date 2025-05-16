@@ -97,7 +97,7 @@ function getStatusColor(status: string): string {
   switch (status) {
     case "PENDING":
       return "orange";
-    case "PROCESS":
+    case "APPROVED":
       return "blue";
     case "CANCELED":
       return "grey";
