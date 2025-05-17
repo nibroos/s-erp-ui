@@ -1145,7 +1145,6 @@ watchEffect(() => {
         </div>
 
         <div v-if="tabFormIndex == useStatics.formTabTicket.sent_emails">
-          abc
           <div class="lg:col-span-6">
             <v-data-table-virtual
               :items="form.sent_emails ?? []"

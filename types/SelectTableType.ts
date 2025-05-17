@@ -107,6 +107,10 @@ export type SelectTableType = {
   defaultTabName?: string
   isInitialLoad?: boolean
   defaultClearFilter?: Record<string, any>
+  isInfinateScroll?: boolean
+  pageEndProp?: string
+  hideDefaultFooter?: boolean
+  isRowNum?: boolean
 
   // Modal
   showModal?: boolean
@@ -133,6 +137,7 @@ export type SelectTableType = {
   itemsProp?: string
   mappingDetail?: string
   totalProp?: string
+  metaProp?: string
 
   // Table
   height?: string

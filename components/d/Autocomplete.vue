@@ -130,8 +130,6 @@ const debouncedSearch = debounce(
 
       const resData = response.data;
 
-      console.log("resData", resData);
-
       options.value = <any[]>property(props.itemsProp)(resData);
       paginationDone.value = !property(props.pageEndProp)(resData);
       page.value = 1;

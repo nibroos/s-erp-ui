@@ -8,7 +8,10 @@ import type {
   FilterSelectableType,
   SelectTableType,
 } from "~/types/SelectTableType";
-import { type Pagination } from "~/interfaces/LaravelPaginationInterface";
+import {
+  type Meta,
+  type Pagination,
+} from "~/interfaces/LaravelPaginationInterface";
 
 const slots = useSlots() as Record<string, any>;
 
@@ -76,19 +79,23 @@ const props = withDefaults(defineProps<SelectTableType>(), {
 
   itemsProp: "data",
   mappingDetail: "data",
+  metaProp: "meta",
   totalProp: "meta.total",
+  pageEndProp: "meta.next_page_url",
+  isInfinateScroll: false,
+  hideDefaultFooter: false,
   tabs: () => [],
   tabIndex: 0,
   isDefaultTabSlotExists: true,
   defaultTabName: "",
   isRowNum: true,
-  defaultClearFilter: {
+  defaultClearFilter: () => ({
     page: 1,
     per_page: 100,
     global: "",
     order_column: "id",
     order_direction: "asc",
-  },
+  }),
 
   // Table
   height: "450",
@@ -209,6 +216,7 @@ const generateHeadersObj = () => {
       align: "center",
       sortable: false,
       show: true,
+      width: "5%",
     });
   }
 
@@ -225,6 +233,7 @@ const generateHeadersObj = () => {
 };
 
 let api = ref<string>(props.api);
+let paginationDone = ref<boolean>(false);
 
 let showModal = ref<boolean>(props.showModal);
 let multiple = ref<boolean>(props.multiple);
@@ -247,6 +256,15 @@ const filters = ref<Record<string, any>>({
 const metaModal = ref<Pagination<any[]>>({
   data: [],
   loading: false,
+  meta: {
+    total: 0,
+    current_page: 1,
+    last_page: 1,
+    from: 1,
+    to: 1,
+    per_page: 100,
+    prev_page_url: "",
+  },
 });
 
 const showMetaModal = ref<Record<string, any>>({
@@ -292,8 +310,21 @@ const filterData = async () => {
     response = await useMyFetch()
       .post(apiUrl, filters.value)
       .then((res) => {
-        metaModal.value.data = <any[]>property(props.itemsProp)(res.data);
+        const resData = property(props.itemsProp)(res.data) as Record<
+          string,
+          any
+        >[];
+        if (props.isInfinateScroll) {
+          metaModal.value.data = [...metaModal.value.data, ...resData];
+        } else {
+          metaModal.value.data = resData;
+        }
+
+        // metaModal.value.data = <any[]>property(props.itemsProp)(res.data);
         metaModal.value.total = property(props.totalProp)(res.data) as string;
+        metaModal.value.meta = (<any>(
+          property(props.metaProp)(res.data)
+        )) as Meta;
       })
       .finally(() => {
         metaModal.value.loading = false;
@@ -305,11 +336,16 @@ const filterData = async () => {
       .then((res) => {
         metaModal.value.data = <any[]>property(props.itemsProp)(res.data);
         metaModal.value.total = property(props.totalProp)(res.data) as string;
+        metaModal.value.meta = (<any>(
+          property(props.metaProp)(res.data)
+        )) as Meta;
       })
       .finally(() => {
         metaModal.value.loading = false;
       });
   }
+
+  paginationDone.value = !property(props.pageEndProp)(metaModal.value);
 };
 
 const selectedText = ref<string>("");
@@ -505,6 +541,13 @@ const getDefaultTabSlotNameIndex = (): number => {
   return tabs.value.findIndex((tab) => tab === defaultTabName.value);
 };
 
+const onIntersect = (isIntersecting: boolean): void => {
+  if (isIntersecting && !metaModal.value.loading) {
+    filters.value.page++;
+    useDebouncedRef(filterData(), 100);
+  }
+};
+
 watch(
   () => itemsCheck.value,
   (newValue: any, oldValue: any) => {
@@ -549,6 +592,19 @@ onMounted(async () => {
   if (!!props.modelValue) {
     itemsCheck.value.push(props.modelValue);
   }
+});
+
+defineExpose({
+  openModal,
+  clearSelected,
+  fetchDataServerFetch,
+  filterData,
+  showHideColumn,
+  showHideFilter,
+  onSelectItems,
+  onClickDelete,
+  fetchSingle,
+  fetchBulk,
 });
 </script>
 
@@ -866,7 +922,28 @@ onMounted(async () => {
         hover
         @click:row="onSelectOption"
         @dblclick:row="onDoubleClick"
+        :hide-default-footer="props.hideDefaultFooter"
       >
+        <template #body.append>
+          <tr
+            v-if="
+              !paginationDone &&
+              !!api &&
+              metaModal.data.length > 0 &&
+              props.isInfinateScroll
+            "
+            class="pa-4 teal--text w-full text-center"
+          >
+            <td
+              class="text-center"
+              v-intersect="onIntersect"
+              :colspan="headersModal.length"
+              style="height: 50px"
+            >
+              Loading more items ...
+            </td>
+          </tr>
+        </template>
         <template #no-data> No data available </template>
 
         <template
@@ -898,14 +975,26 @@ onMounted(async () => {
               </slot>
             </div>
           </slot>
+
           <slot v-else-if="field.key == 'row_num'">
-            <span v-if="metaModal.data[index] && field.value">{{
-              useNumber.determineRowNumber(
-                filters.per_page,
-                filters.page,
-                index
-              )
-            }}</span>
+            <span
+              v-if="
+                metaModal.data[index] && field.value && !props.isInfinateScroll
+              "
+              >{{
+                useNumber.determineRowNumber(
+                  filters.per_page,
+                  filters.page,
+                  index
+                )
+              }}
+            </span>
+            <span
+              v-else-if="
+                metaModal.data[index] && field.value && props.isInfinateScroll
+              "
+              >{{ index + 1 }}</span
+            >
           </slot>
           <slot v-else :name="`item.${field.key}`" :item="item" :index="index">
             <span v-if="metaModal.data[index] && field.value">{{

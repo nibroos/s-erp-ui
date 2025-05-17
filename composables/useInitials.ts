@@ -89,13 +89,13 @@ const formCustomerCreateEdit = {
   id: null,
   customer_type_id: null,
   agent_id: null,
-  currency_id: null,
+  currency_id: 116,
   name: '',
   phone: null,
   email: null,
   address: null,
   shortname: null,
-  remark: null,
+  remark: '',
   pic: null,
   status: 1,
 } as FormCustomerType
@@ -107,7 +107,7 @@ const formCurrencyCreateEdit = {
   remark: '',
   symbol: '',
   status: 1,
-  currency_id: null,
+  currency_id: 116,
 } as FormCurrencyType
 
 const formPaymentTermCreateEdit = {
@@ -189,7 +189,7 @@ const formQuotationCreateEdit = {
   id: null,
   customer_id: null,
   order_type_id: null,
-  currency_id: null,
+  currency_id: 116,
   vat_id: null,
   payment_id: null,
   pph23_id: null,
@@ -232,7 +232,7 @@ const formSalesOrderCreateEdit = {
   id: null,
   customer_id: null,
   order_type_id: null,
-  currency_id: null,
+  currency_id: 116,
   vat_id: null,
   payment_id: null,
   pph23_id: null,
@@ -352,7 +352,7 @@ const formPurchaseOrderCreateEdit = {
   id: null,
   customer_id: null,
   purchase_type_id: null,
-  currency_id: null,
+  currency_id: 116,
   vat_id: null,
   payment_term_id: null,
   shipping_term_id: null,
@@ -363,7 +363,7 @@ const formPurchaseOrderCreateEdit = {
   po_date: new Date().toISOString().split('T')[0],
   delivery_date: '',
   shipping_destination: '',
-  remark: null,
+  remark: '',
   status: 'PROCESS',
   exchange_rate: 0,
   discount_percentage: 0,
@@ -575,7 +575,7 @@ const productFieldsFilterConfig = {
 const formInventoryCreateEdit = {
   id: null,
   customer_id: null,
-  currency_id: null,
+  currency_id: 116,
   vat_id: null,
   payment_id: null,
   pph23_id: null,
@@ -1117,7 +1117,7 @@ const formRequestOrderCreateEdit = {
   grand_total_wh_qty: 0,
   grand_total_req_qty: 0,
   request_order_dts: [],
-  
+
   summary: {
     total_order_item_qty: {
       label: "Total Order Qty",

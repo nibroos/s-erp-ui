@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="z-10 h-screen w-full text-zinc-900 dark:text-zinc-50">
-    <v-app class="bg-white dark:!bg-dark3">
+    <v-app class="dark:!bg-dark3">
       <!-- ---------------------------------------------- -->
       <!---Sidebar -->
       <!-- ---------------------------------------------- -->
@@ -104,10 +104,7 @@ onBeforeUnmount(() => {
       <!-- ---------------------------------------------- -->
       <!---Header -->
       <!-- ---------------------------------------------- -->
-      <v-app-bar
-        elevation="0"
-        class="!bg-zinc-50 dark:!bg-dark3 !border-b !border-dark1"
-      >
+      <v-app-bar elevation="0" class="dark:!bg-dark3 !border-b !border-dark1">
         <div class="flex justify-between items-center w-full">
           <v-app-bar-nav-icon class="" @click.stop="handleClikSidebar" flat />
 
