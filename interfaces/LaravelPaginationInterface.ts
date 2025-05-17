@@ -14,6 +14,7 @@ export interface Pagination<TData> {
   total?: string
   loading?: boolean
   summary?: Record<string, any>
+  meta?: Meta
 }
 
 export interface Meta {

@@ -120,8 +120,10 @@ function sumArrayKey(array: Record<string, any>[], key: string): number {
   return sum
 }
 
-function determineRowNumber(perPage: number, page: number, index: number) {
-  return (page - 1) * perPage + index + 1
+function determineRowNumber(perPage: number, page: number, index: number): number {
+  return (Number(page) - 1) * Number(perPage) + Number(index) + 1
+  // (1 - 1) * 10 + 1 + 1 
+  // 0 * 10 + 1 + 1
 }
 
 export const useNumber = {

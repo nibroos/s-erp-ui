@@ -15,6 +15,14 @@ import type { SoDtDiscType, WidgetSingleType } from '~/types/sales-orders/SalesO
 const useDashboardStore = defineStore('DashboardStore', {
   state: () => ({
     queryModal: {
+      qIndexSalesByStatus: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        global: '',
+        order_column: '',
+        order_direction: 'desc'
+      } as QIndexType,
       qIndexSalesByOrderType: {
         page: 1,
         per_page: 100,
@@ -34,6 +42,11 @@ const useDashboardStore = defineStore('DashboardStore', {
     },
     metaModal: {
       index: {
+        data: [] as IndexDashboardType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexSalesByStatus: {
         data: [] as IndexDashboardType[],
         loading: false,
         meta: {} as Meta
@@ -63,9 +76,7 @@ const useDashboardStore = defineStore('DashboardStore', {
     itemsCheck: {
     },
     isOpenModal: {
-      products: false,
-      so: false,
-      ro: false,
+      bestCustomer: false,
     },
   }),
 
@@ -82,6 +93,30 @@ const useDashboardStore = defineStore('DashboardStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexSalesByStatus() {
+      if (this.metaModal.indexSalesByStatus.loading) return
+      this.metaModal.indexSalesByStatus.loading = true
+
+      let params = this.queryModal.qIndexSalesByStatus
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/widget-sales-order-by-status',
+          params
+        )
+
+        this.metaModal.indexWidgets = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexSalesByStatus.data = widgets
+
+        // return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+      } finally {
+        this.metaModal.indexSalesByStatus.loading = false
       }
     },
 
@@ -136,7 +171,7 @@ const useDashboardStore = defineStore('DashboardStore', {
   },
   persist: [
     {
-      paths: ['queryModal', 'formTabDashboard'],
+      paths: [],
       storage: localStorage
     }
   ]
