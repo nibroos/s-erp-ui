@@ -674,89 +674,6 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       this.isOpenModal.salesOrders = false;
     },
 
-    // onClickUpdateProductsModal() {
-    //   if (this.isOpenModal.salesOrders) {
-    //     const existingCustomerId = this.form.customer_id;
-    //     const existingCurrencyId = this.form.currency_id;
-    //     const existingExchangeRate = this.form.exchange_rate;
-    //     const existingIsVat = this.form.is_vat;
-    //     const existingVatId = this.form.vat_id;
-    //     const existingVatPercentage = this.form.vat_percentage;
-    //     const existingPph23Id = this.form.pph23_id;
-    //     const existingPph23Percentage = this.form.pph23_percentage;
-    //     const existingDiscountAmount = this.form.discount_amount;
-    //     const existingDiscountPercentage = this.form.discount_percentage;
-    //     const existingRemark = this.form.remark;
-
-    //     if (!existingCustomerId) {
-    //       this.form.customer_id = this.headAutocomplete.so.customer_id;
-    //     }
-
-    //     if (!existingCurrencyId) {
-    //       this.form.currency_id = this.headAutocomplete.so.currency_id;
-    //     }
-
-    //     if (!existingExchangeRate || existingExchangeRate === 0) {
-    //       this.form.exchange_rate = this.headAutocomplete.so.exchange_rate;
-    //     }
-
-    //     if (existingIsVat === undefined || existingIsVat === null) {
-    //       this.form.is_vat = this.headAutocomplete.so.is_vat as number;
-    //     }
-
-    //     if (!existingVatId) {
-    //       this.form.vat_id = this.headAutocomplete.so.vat_id;
-    //     }
-
-    //     if (!existingVatPercentage || existingVatPercentage === 0) {
-    //       this.form.vat_percentage = this.headAutocomplete.so.vat_percentage as number;
-    //     }
-
-    //     if (!existingPph23Id) {
-    //       this.form.pph23_id = this.headAutocomplete.so.pph23_id;
-    //     }
-
-    //     if (!existingPph23Percentage || existingPph23Percentage === 0) {
-    //       this.form.pph23_percentage = this.headAutocomplete.so.pph23_percentage as number;
-    //     }
-
-    //     if (!existingDiscountAmount || existingDiscountAmount === 0) {
-    //       this.form.discount_amount = this.headAutocomplete.so.discount_amount as number;
-    //     }
-
-    //     if (!existingDiscountPercentage || existingDiscountPercentage === 0) {
-    //       this.form.discount_percentage = this.headAutocomplete.so.discount_percentage as number;
-    //     }
-
-    //     if (!existingRemark) {
-    //       this.form.remark = this.headAutocomplete.so.remark;
-    //     }
-    //   }
-
-    //   const existingItems = [...this.itemsCheck.checkMain];
-
-    //   this.selectItemRefModal();
-
-    //   if (this.form.dp_percentage > 0) {
-    //     this.itemsCheck.checkMain.forEach(item => {
-    //       const existingItem = existingItems.find(existing => 
-    //         existing.ref_type === item.ref_type && 
-    //         existing.ref_id === item.ref_id && 
-    //         existing.ref_dt_id === item.ref_dt_id
-    //       );
-
-    //       if (!existingItem) {
-    //         item.dp_percentage = this.form.dp_percentage;
-    //         item.total_dp = item.total_amount * (this.form.dp_percentage / 100);
-    //       }
-    //     });
-    //   }
-
-    //   this.countSelectedReferences();
-    //   this.closeAllModal();
-    //   this.calculateTotalAmount();
-    // },
-
     onClickUpdateProductsModal() {
       if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
         const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
@@ -885,7 +802,11 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
 
-        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        if (this.form.id) {
+          this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        } else {
+          this.queryModal.qIndexSalesOrders.invoice_id = null;
+        }
 
         // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
         //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');

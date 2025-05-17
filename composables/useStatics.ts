@@ -528,7 +528,7 @@ const formTabInvoiceDp = {
 
 const formStatusInvoiceDp = [
   { id: 'UNPAID', name: 'UNPAID' },
-  { id: 'PAID', name: 'PAID' },
+  // { id: 'PAID', name: 'PAID' },
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
@@ -557,7 +557,7 @@ const formTabSalesInvoice = {
 
 const formStatusSalesInvoice = [
   { id: 'UNPAID', name: 'UNPAID' },
-  { id: 'PAID', name: 'PAID' },
+  // { id: 'PAID', name: 'PAID' },
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
@@ -586,7 +586,7 @@ const formTabInvoiceMaintenance = {
 
 const formStatusInvoiceMaintenance = [
   { id: 'UNPAID', name: 'UNPAID' },
-  { id: 'PAID', name: 'PAID' },
+  // { id: 'PAID', name: 'PAID' },
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
@@ -862,7 +862,7 @@ const RequestOrderIndexStatus = [
 
 const formStatusRequestOrder = [
   { id: 'PENDING', name: 'PENDING' },
-  { id: 'APPROVED', name: 'APPROVED' },
+  // { id: 'APPROVED', name: 'APPROVED' },
   { id: 'CANCELED', name: 'CANCELED' },
 ]
 

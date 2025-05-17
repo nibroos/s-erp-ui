@@ -580,6 +580,22 @@ watchEffect(() => {
             </div>
 
             <div class="lg:col-span-6">
+              <d-text-input
+                v-model="form.title"
+                :label="`Title`"
+                :placeholder="`Title`"
+                :errors="errors.title"
+              />
+            </div>
+
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.adjustment_date"
+                label="Adjustment Date"
+              ></d-date-picker-light>
+            </div>
+
+            <div class="lg:col-span-6">
               <d-date-picker-light
                 v-model="form.payment_date"
                 label="Payment Date"

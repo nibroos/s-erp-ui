@@ -9,8 +9,10 @@ export type IndexInvoiceDpType = {
   vat_id: number | null
   pph23_id: number | null
   branch_id: number | null
+  title: string
   invoice_no: string
   invoice_date: string | null
+  due_date: string | null
   exchange_rate: number | null
   remark: string | null
   status: string | null
@@ -58,8 +60,10 @@ export type FormInvoiceDpType = {
   pph23_id?: number | null
   branch_id?: number | null
   bank_id?: number | null
+  title: string
   invoice_no?: string
   invoice_date: string
+  due_date?: string
   exchange_rate?: number | null
   remark?: string
   status?: string | null

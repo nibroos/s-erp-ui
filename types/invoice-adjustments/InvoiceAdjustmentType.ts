@@ -6,7 +6,9 @@ export type IndexInvoiceAdjustmentType = {
   currency_id: number | null
   branch_id: number | null
   bank_id: number | null
+  title: string
   invoice_no: string
+  adjustment_date: string | null
   payment_date: string | null
   payment_amount: number | null
   exchange_rate: number | null
@@ -44,7 +46,9 @@ export type FormInvoiceAdjustmentType = {
   currency_id?: number | null
   branch_id?: number | null
   bank_id?: number | null
+  title?: string
   invoice_no?: string
+  adjustment_date?: string | null
   payment_date: string
   payment_amount: number
   exchange_rate?: number | null

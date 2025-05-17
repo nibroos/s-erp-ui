@@ -351,9 +351,12 @@ onBeforeUnmount(() => {
             :cta="mergedConfig?.button?.save?.cta ?? 'Save Change'"
             :class="
               classMerge(
-                'rounded-lg !border border-solid !border-sc text-white transition-all ease-in-out hover:!bg-scLightest',
+                'rounded-lg !border border-solid transition-all ease-in-out',
+                mergedConfig.button?.save?.disabled 
+                  ? '!bg-zinc-300 !border-zinc-300 cursor-not-allowed hover:!bg-zinc-300 hover:!border-zinc-300'
+                  : '!border-sc text-white hover:!bg-scLightest',
                 `${
-                  mergedConfig.mode == 'create'
+                  mergedConfig.mode == 'create' && !mergedConfig.button?.save?.disabled
                     ? '!bg-sc hover:!bg-scDarker3'
                     : ''
                 }`,
@@ -362,9 +365,12 @@ onBeforeUnmount(() => {
             "
             :text-class="
               classMerge(
-                'text-sc mx-auto',
+                'mx-auto',
+                mergedConfig.button?.save?.disabled
+                  ? 'text-zinc-500'
+                  : 'text-sc',
                 mergedConfig.button?.save?.textClass ?? '',
-                `${mergedConfig.mode == 'create' ? '!text-white' : ''}`
+                `${mergedConfig.mode == 'create' && !mergedConfig.button?.save?.disabled ? '!text-white' : ''}`
               )
             "
             :loading="props.config.button?.save?.loading"
@@ -372,6 +378,7 @@ onBeforeUnmount(() => {
             :is-loading-default="mergedConfig.button?.save?.isLoadingDefault"
             :no-icon="true"
             :disabled-class="mergedConfig.button.save?.disabledClass"
+            :disabled="mergedConfig.button.save?.disabled"
             type="submit"
             @click="handleClickSave"
             @click:loading="emits('click:save:loading', $event)"

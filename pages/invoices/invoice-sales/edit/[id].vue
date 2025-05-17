@@ -130,6 +130,17 @@ const headersBom = ref([
   { title: "Remark", key: "remark", sortable: true },
 ] as any);
 
+const headersInventoryOut = ref([
+  { title: "Inventory Out No", key: "inventory_out_no", sortable: true },
+  { title: "Out Date", key: "out_date", sortable: true },
+  { title: "Due At", key: "due_at", sortable: true },
+  { title: "Price", key: "price", sortable: true },
+  { title: "Qty", key: "qty", sortable: true },
+  { title: "Discount", key: "disc_final", sortable: true },
+  { title: "DP Amount", key: "total_dp", sortable: true },
+  { title: "Balance Amount", key: "total_balance", sortable: true },
+] as any);
+
 const filtersCustomer = ref<FilterSelectableType[]>([
   {
     title: "Name",
@@ -421,6 +432,7 @@ const formLayout = ref({
       loading: false,
       type: "submit",
       text: "Update",
+      disabled: false
     },
     clear: {
       show: true,
@@ -532,6 +544,16 @@ watch(
     }
   }
 );
+
+watch(
+  () => form.value.status,
+  (newStatus, oldStatus) => {
+    if (formLayout.value.button?.save) {
+      formLayout.value.button.save.disabled = newStatus === 'PAID';
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -630,9 +652,25 @@ watch(
           </div>
 
           <div class="lg:col-span-6">
+            <d-text-input
+              v-model="form.title"
+              :label="`Title`"
+              :placeholder="`Title`"
+              :errors="errors.title"
+            />
+          </div>
+
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.invoice_date"
               label="Invoice Date"
+            ></d-date-picker-light>
+          </div>
+
+          <div class="lg:col-span-6">
+            <d-date-picker-light
+              v-model="form.due_date"
+              label="Due Date"
             ></d-date-picker-light>
           </div>
 
@@ -644,6 +682,7 @@ watch(
               item-value="id"
               item-title="name"
               :clearable="false"
+              :disabled="form.status === 'PAID'"
             />
           </div>
 
@@ -1190,6 +1229,136 @@ watch(
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Sales Orders ({{
               salesInvoiceStore.itemsCheck.checkSalesOrders.length
+            }})
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
+
+    <modals-final-modal
+      :is-open="isOpenModal.inventoryOuts"
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="List of Inventory Out"
+      parent-class="!z-[1500]"
+      @update:is-open="isOpenModal.inventoryOuts = $event"
+    >
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="salesInvoiceStore.fetchModalFilter()"
+        >
+          <d-autocomplete
+            v-model="queryModal.qIndexInventoryOuts.customer_id"
+            :query="{
+              is_active: 1,
+            }"
+            api="/v1/customers/index-customer"
+            method-api="post"
+            page-end-prop="meta.next_page_url"
+            item-title="name"
+            item-value="id"
+            inner-search-key="global"
+            label="Customer"
+            placeholder="Select customer"
+          />
+
+          <d-autocomplete-client
+            v-model="queryModal.qIndexInventoryOuts.item_type"
+            :items="[
+              { id: 'product', name: 'Product' },
+              { id: 'item', name: 'Item' },
+            ]"
+            label="Item Type"
+            item-value="id"
+            item-title="name"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexInventoryOuts.inventory_out_no"
+            label="Inventory Out No"
+            placeholder="Search by Inventory Out No"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-text-input
+            v-model="queryModal.qIndexInventoryOuts.global"
+            label="Global Search"
+            placeholder="Search global"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="salesInvoiceStore.fetchModalFilter()"
+            @click:clear="salesInvoiceStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="salesInvoiceStore.itemsCheck.checkInventoryOuts"
+        v-model:page="queryModal.qIndexInventoryOuts.page"
+        :items="metaModal.indexInventoryOuts.data ?? []"
+        :headers="headersInventoryOut"
+        :items-per-page="queryModal.qIndexInventoryOuts.per_page"
+        :items-length="metaModal.indexInventoryOuts.meta.total ?? 0"
+        :items-per-page-options="[10, 25, 50, 100]"
+        :loading="metaModal.indexInventoryOuts.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="ref_dt_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => salesInvoiceStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize">{{ item.item_type }}</span>
+        </template>
+        <template #item.out_date="{ item }">
+          {{ formatDate(item.out_date) }}
+        </template>
+        <template #item.due_at="{ item }">
+          {{ formatDate(item.due_at) }}
+        </template>
+        <template #item.price="{ item }">
+          <d-num-layout :value="item.price" />
+        </template>
+        <template #item.qty="{ item }">
+          <d-num-layout :value="item.qty" />
+        </template>
+        <template #item.disc_final="{ item }">
+          <d-num-layout
+            :value="item.disc_am > 0 ? item.disc_am : item.disc_perc_am"
+          />
+        </template>
+        <template #item.total_dp="{ item }">
+          <d-num-layout :value="item.total_dp || 0" />
+        </template>
+        <template #item.total_balance="{ item }">
+          <d-num-layout :value="item.total_balance || 0" />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end items-center gap-2">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="salesInvoiceStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Inventory Outs ({{
+              salesInvoiceStore.itemsCheck.checkInventoryOuts.length
             }})
           </button>
         </div>

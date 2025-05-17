@@ -375,6 +375,22 @@ watchEffect(() => {
             </div>
 
             <div class="lg:col-span-6">
+              <d-text-input
+                v-model="form.title"
+                :label="`Title`"
+                :placeholder="`Title`"
+                :errors="errors.title"
+              />
+            </div>
+
+            <div class="lg:col-span-6">
+              <d-date-picker-light
+                v-model="form.adjustment_date"
+                label="Adjustment Date"
+              ></d-date-picker-light>
+            </div>
+
+            <div class="lg:col-span-6">
               <d-date-picker-light
                 v-model="form.payment_date"
                 label="Payment Date"
@@ -453,78 +469,6 @@ watchEffect(() => {
               />
             </div>
           </div>
-
-          <div class="grid grid-cols-6 lg:grid-cols-1 gap-2 mt-5">
-            <div class="lg:col-span-6 font-medium text-[#6C757D]">
-              <p>Reference Data</p>
-            </div>
-
-            <div class="lg:col-span-6 font-medium text-[#6C757D]">
-              <p>Periode Date</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-6 lg:grid-cols-1 gap-2 mt-2">
-            <div class="lg:col-span-6">
-              <d-autocomplete-client
-                v-model="form.reference"
-                :items="refTypeOptions"
-                item-title="title"
-                item-value="value"
-                label="Reference"
-              />
-              <div v-if="errors.reference" class="text-rose-500 text-sm mt-1">
-                {{ errors.reference }}
-              </div>
-            </div>
-
-            <div class="lg:col-span-6">
-              <d-date-picker-light
-                v-model="form.ref_start_date"
-                label="Start Date"
-              ></d-date-picker-light>
-              <div
-                v-if="errors.ref_start_date"
-                class="text-rose-500 text-sm mt-1"
-              >
-                {{ errors.ref_start_date }}
-              </div>
-            </div>
-
-            <div class="lg:col-span-6">
-              <d-date-picker-light
-                v-model="form.ref_end_date"
-                label="End Date"
-              ></d-date-picker-light>
-              <div
-                v-if="errors.ref_end_date"
-                class="text-rose-500 text-sm mt-1"
-              >
-                {{ errors.ref_end_date }}
-              </div>
-            </div>
-
-            <div class="lg:col-span-6 flex gap-2 mb-3">
-              <v-btn
-                color="#ffffff"
-                class="!bg-[#695149] hover:!bg-[#463630] rounded-md !min-w-0 !h-10 !px-3 !py-2"
-                variant="text"
-                @click="invoiceAdjustmentStore.searchReferenceInvoices()"
-              >
-                <v-icon icon="mdi-magnify" size="18" />
-              </v-btn>
-
-              <v-btn
-                color="#ffffff"
-                class="!bg-[#6C757D] hover:!bg-[#4e545a] rounded-md !min-w-0 !h-10 !px-3 !py-2"
-                variant="text"
-                @click="invoiceAdjustmentStore.handleClearReferenceQuery()"
-              >
-                <v-icon icon="mdi-refresh" size="18" />
-              </v-btn>
-            </div>
-          </div>
-
           <d-bt type="submit" class="!hidden"></d-bt>
         </form>
       </template>
@@ -532,44 +476,109 @@ watchEffect(() => {
       <template #content>
         <div v-if="tabFormIndex == 0">
           <div class="mt-2">
-            <div class="grid grid-cols-2 sm:grid-cols-1 gap-2 mb-2">
-              <div class="flex gap-2">
-                <v-btn
-                  color="#695149"
-                  class="text-white rounded-md !h-10 !px-4"
-                  density="compact"
-                  @click="invoiceAdjustmentStore.autoAdjustedAmountCalculate()"
-                >
-                  <span style="font-size: 12.5px"
-                    >Adjusted Amount Auto Calculate</span
-                  >
-                </v-btn>
-
-                <v-btn
-                  color="#695149"
-                  class="text-white rounded-md !h-10 !px-4"
-                  density="compact"
-                  @click="invoiceAdjustmentStore.autoCalculateSelection()"
-                >
-                  <span style="font-size: 12.5px"
-                    >Auto Calculate Selection</span
-                  >
-                </v-btn>
+            <div class="w-full flex gap-2 mb-1">
+              <div class="w-4/6 flex gap-2">
+                <div class="font-medium text-[15px] text-[#6C757D] w-1/3">
+                  <p>REFERENCE DATA</p>
+                </div>
+                <div class="font-medium text-[15px] text-[#6C757D] w-2/3">
+                  <p>PERIODE DATA</p>
+                </div>
+              </div>
+              <div class="font-medium text-[15px] text-[#6C757D] w-2/6">
+                <p>AUTOMATION ACTION</p>
+              </div>
+            </div>
+            
+            <div class="w-full flex gap-2 mb-1">
+              <div class="w-4/6 flex gap-2">
+                <div class="w-1/3">
+                  <d-autocomplete-client
+                    v-model="form.reference"
+                    :items="refTypeOptions"
+                    item-title="title"
+                    item-value="value"
+                    label="Reference"
+                  />
+                  <div v-if="errors.reference" class="text-rose-500 text-sm mt-1">
+                    {{ errors.reference }}
+                  </div>
+                </div>
+    
+                <div class="w-2/3 flex gap-2">
+                  <div class="w-1/3">
+                    <d-date-picker-light
+                      v-model="form.ref_start_date"
+                      label="Start Date"
+                    ></d-date-picker-light>
+                    <div
+                      v-if="errors.ref_start_date"
+                      class="text-rose-500 text-sm mt-1"
+                    >
+                      {{ errors.ref_start_date }}
+                    </div>
+                  </div>
+      
+                  <div class="w-1/3">
+                    <d-date-picker-light
+                      v-model="form.ref_end_date"
+                      label="End Date"
+                    ></d-date-picker-light>
+                    <div
+                      v-if="errors.ref_end_date"
+                      class="text-rose-500 text-sm mt-1"
+                    >
+                      {{ errors.ref_end_date }}
+                    </div>
+                  </div>
+  
+                  <div class="w-1/3 flex gap-1">
+                    <v-btn
+                      color="#ffffff"
+                      class="!bg-[#695149] hover:!bg-[#463630] rounded-md !min-w-0 !h-10 !px-3 !py-2"
+                      variant="text"
+                      @click="invoiceAdjustmentStore.searchReferenceInvoices()"
+                    >
+                      <v-icon icon="mdi-magnify" size="18" />
+                    </v-btn>
+      
+                    <v-btn
+                      color="#ffffff"
+                      class="!bg-[#6C757D] hover:!bg-[#4e545a] rounded-md !min-w-0 !h-10 !px-3 !py-2"
+                      variant="text"
+                      @click="invoiceAdjustmentStore.handleClearReferenceQuery()"
+                    >
+                      <v-icon icon="mdi-refresh" size="18" />
+                    </v-btn>
+                  </div>
+                </div>
               </div>
 
-              <!-- <d-bt
-                :cta="'Clear References'"
-                :class="
-                  classMerge(
-                    '!bg-zinc-200 justify-self-end hover:!bg-grey2 dark:!bg-dark2 gap-1 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-zinc-200 dark:border-none w-max'
-                  )
-                "
-                :text-class="classMerge('text-scDarker dark:text-white mx-auto')"
-                :icon-class="classMerge('text-scDarker dark:text-white mx-auto')"
-                icon="mdi-refresh"
-                type="button"
-                @click="invoiceAdjustmentStore.clearReferences()"
-              /> -->
+              <div class="w-2/6 flex gap-2">
+                <div class="w-full flex gap-2 mb-3">
+                  <v-btn
+                    color="#695149"
+                    class="text-white rounded-md !h-10 !px-4"
+                    density="compact"
+                    @click="invoiceAdjustmentStore.autoAdjustedAmountCalculate()"
+                  >
+                    <span style="font-size: 12.5px"
+                      >Adjusted Amount Auto Calculate</span
+                    >
+                  </v-btn>
+    
+                  <v-btn
+                    color="#695149"
+                    class="text-white rounded-md !h-10 !px-4"
+                    density="compact"
+                    @click="invoiceAdjustmentStore.autoCalculateSelection()"
+                  >
+                    <span style="font-size: 12.5px"
+                      >Auto Calculate Selection</span
+                    >
+                  </v-btn>
+                </div>
+              </div>
             </div>
 
             <v-data-table-virtual

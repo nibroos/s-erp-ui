@@ -10,8 +10,10 @@ export type IndexInvoiceMaintenanceType = {
   pph23_id: number | null
   branch_id: number | null
   bank_id: number | null
+  title: string
   invoice_no: string
   invoice_date: string | null
+  due_date: string | null
   exchange_rate: number | null
   remark: string | null
   rev_no: number | null
@@ -64,8 +66,10 @@ export type FormInvoiceMaintenanceType = {
   pph23_id?: number | null
   branch_id?: number | null
   bank_id?: number | null
+  title: string
   invoice_no?: string
   invoice_date: string
+  due_date?: string
   exchange_rate?: number | null
   remark?: string
   rev_no?: number | null
@@ -240,6 +244,7 @@ export type QIndexSalesOrdersType = {
   product_code?: string
   product_name?: string
   specific_ids?: string
+  invoice_id?: number | null
 }
 
 export type VatModeType = 'header' | 'detail' | null
