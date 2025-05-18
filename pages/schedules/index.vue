@@ -20,9 +20,12 @@ import useAuthStore from "~/stores/AuthStore";
 import type { FormScheduleType } from "~/types/sales-orders/SalesOrderType";
 import useTicketStore from "~/stores/supports/TicketStore";
 
+const authStore = useAuthStore();
 const scheduleStore = useScheduleStore();
 const salesOrderStore = useSalesOrderStore();
 const ticketStore = useTicketStore();
+
+const { theme } = storeToRefs(authStore);
 const {
   queryModal,
   metaModal,
@@ -376,7 +379,7 @@ const refreshCalendar = async () => {
 };
 
 watch(
-  () => useAuthStore().theme,
+  () => theme.value,
   (newValue) => {
     if (newValue === "dark") {
       calendarApp.setTheme("dark");

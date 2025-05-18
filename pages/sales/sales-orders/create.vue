@@ -569,6 +569,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   // permission: {
   //   name: ["c_ms"],
@@ -932,6 +935,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="salesOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="salesOrderStore.onClickPDF()"
     >
       <template #title-append>
         <d-select-table
@@ -991,6 +995,11 @@ watchEffect(() => {
               inner-search-key="global"
               label="Order Type"
               :errors="errors.order_type_id"
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompleteOrderType(data);
+                }
+              "
             ></d-autocomplete>
           </div>
           <div class="lg:col-span-6">
@@ -1147,6 +1156,7 @@ watchEffect(() => {
             <d-autocomplete
               v-model="form.payment_id"
               api="/v1/company-profiles/index-bank-information"
+              single-api="/v1/company-profiles/index-bank-information"
               page-end-prop="meta.next_page_url"
               item-title="name"
               item-value="id"
@@ -1161,6 +1171,11 @@ watchEffect(() => {
               :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
               is-display-multiple-key
               :errors="errors.payment_id"
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompleteOrderPayment(data);
+                }
+              "
             ></d-autocomplete>
           </div>
 

@@ -95,6 +95,7 @@ export type SelectTableType = {
   isEdit?: boolean
   noAction?: boolean
   noDelete?: boolean
+  noPdf?: boolean
   noFilter?: boolean
   show?: boolean
   sortable?: boolean
@@ -128,6 +129,8 @@ export type SelectTableType = {
   selectedDetailMethodApi?: 'get' | 'post'
   deleteApi?: string
   deleteMethodApi?: 'post' | 'delete'
+  pdfApi?: string
+  pdfMethodApi?: 'post'
 
   selectStrategy?: 'single' | 'page' | 'all' | undefined
 

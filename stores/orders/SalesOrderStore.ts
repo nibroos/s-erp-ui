@@ -10,6 +10,8 @@ import type { QIndexProductsType } from '~/types/masters/ProductType'
 import type { FormVatType } from '~/types/masters/VatType'
 import type { FormSoDtBomListType, FormSoDtProductListType, FormSalesOrderType, IndexSalesOrderType, QSoIndexType, SoDtBomType, SoDtType, QIndexQuotationsType, SoDtDiscType, FormScheduleType, SalesOrderAttachmentsType, WidgetSingleType, RefTypeScheduleType } from '~/types/sales-orders/SalesOrderType'
 import useScheduleStore from './ScheduleStore'
+import type { CustomerType } from '~/types/masters/CustomerType'
+import type { BankInformationType } from '~/types/masters/CompanyProfileType'
 
 const useSalesOrderStore = defineStore('SalesOrderStore', {
   state: () => ({
@@ -95,8 +97,10 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
+      pdfLoading: false,
       imageDownloadLoading: false,
       widgetLoading: false,
+      loadingCsv: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -1228,10 +1232,12 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       this.countSelectedReferences();
     },
 
-    autocompleteCustomer(data: any) {
+    autocompleteCustomer(data: CustomerType) {
       this.form.email = data.email;
       this.form.phone = data.phone;
+      this.form.address = data.address;
       this.form.customer_code = data.shortname;
+      this.form.customer_name = data.name;
 
       if (!!data.currency_id && !this.form.currency_id) {
         this.form.currency_id = data.currency_id
@@ -1242,13 +1248,25 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
 
       if (!!data.id) {
-        this.queryModal.qIndexQuotations.customer_id = data.id;
-        this.queryModal.qIndexQuotations.customer_ids = [data.id];
+        this.queryModal.qIndexQuotations.customer_id = data.id as number;
+        this.queryModal.qIndexQuotations.customer_ids = [data.id as number];
       }
+    },
+
+    autocompleteOrderType(data: any) {
+      console.log("autocompleteOrderType, data", data);
+
+      this.form.order_type_name = data.name;
+    },
+
+    autocompleteOrderPayment(data: BankInformationType) {
+      this.form.account_name = data.account_name as string;
+      this.form.bank_name = data.name as string;
     },
 
     autocompleteVat(data: FormVatType) {
       this.form.vat_perc = Number(data.num);
+      this.form.vat_name = data.name;
 
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
@@ -1350,6 +1368,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
     autocompletePph(data: FormPph23Type) {
       this.form.pph23_perc = Number(data.num);
+      this.form.pph23_name = data.name;
 
       // apply to all childs
       this.itemsCheck.checkMain.forEach((item: SoDtType) => {
@@ -1365,6 +1384,7 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
 
     autocompleteCurrency(data: FormCurrencyType) {
+      this.form.currency_name = data.name;
       this.form.exchange_rate = Number(data.num);
       this.currencySymbolLabel = data.symbol;
 
@@ -1950,6 +1970,58 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       }
       finally {
         this.loading.imageDownloadLoading = false
+      }
+    },
+
+    async onClickPDF() {
+      this.form.so_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/pdf-sales-order',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        console.log('response', response.data);
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
+    },
+    async exportCSV() {
+      if (this.loading.loadingCsv) return
+      this.loading.loadingCsv = true
+
+      try {
+        const response = await useMyFetch().post(
+          `/api/sales-orders/csv-sales-order`,
+          this.queryModal.qIndex,
+          {
+            responseType: 'blob',
+            headers: {
+              'Content-Type': 'text/csv',
+              Accept: 'text/csv'
+            }
+          }
+        )
+        return response
+      } catch (error: any) {
+        console.error('FAILED TO EXPORT CSV:', error)
+        throw error
+      } finally {
+        this.loading.loadingCsv = false
       }
     },
 

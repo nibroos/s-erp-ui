@@ -117,9 +117,16 @@ export type FormSalesOrderType = {
   files?: File[]
   deleted_files: number[]
 
+  customer_name?: string
   email?: string
   phone?: string
   address?: string
+  order_type_name?: string
+  currency_name?: string
+  vat_name?: string
+  pph23_name?: string
+  bank_name?: string
+  account_name?: string
 
   summary?: Record<string, SummaryPartType>
 

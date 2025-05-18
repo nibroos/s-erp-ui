@@ -1,3 +1,5 @@
+import useAuthStore from "~/stores/AuthStore"
+
 export default function useThemeSwitch() {
   const enabled = useState(() => ({}))
 
@@ -22,10 +24,12 @@ export default function useThemeSwitch() {
       if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
         document.documentElement.setAttribute("data-theme", "dark")
         document.documentElement.style.backgroundColor = "rgb(63 63 70)";
+        useAuthStore().theme = "dark"
         //   enabled.value = true
       } else {
         document.documentElement.removeAttribute("data-theme")
         document.documentElement.style.backgroundColor = "rgb(243 244 246)";
+        useAuthStore().theme = "light"
         //   enabled.value = false
       }
     }

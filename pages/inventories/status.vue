@@ -453,35 +453,22 @@ const fetchDataServerFetch = async (item: {
         </template>
         <template #item="{ item, index }">
           <tr v-if="!!item.is_total">
-            <td
-              colspan="6"
-              class="text-center"
-              style="background-color: #9ea4ad; color: white"
-            >
+            <td colspan="6" class="text-center bg-zinc-200 dark:!bg-scDarker2">
               Total
             </td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td style="background-color: #9ea4ad; color: white"></td>
-            <td
-              class="text-end"
-              style="background-color: #9ea4ad; color: white"
-            >
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2"></td>
+            <td class="bg-zinc-200 dark:!bg-scDarker2">
               <d-num-layout :min-precision="0" :value="item.in_total" />
             </td>
-            <td
-              class="text-end"
-              style="background-color: #9ea4ad; color: white"
-            >
+            <td class="bg-zinc-200 dark:!bg-scDarker2">
               <d-num-layout :min-precision="0" :value="item.out_total" />
             </td>
-            <td
-              class="text-end"
-              style="background-color: #9ea4ad; color: white"
-            >
+            <td class="bg-zinc-200 dark:!bg-scDarker2">
               <d-num-layout :min-precision="0" :value="item.balance_total" />
             </td>
           </tr>
