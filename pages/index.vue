@@ -11,8 +11,19 @@ definePageMeta({
   layout: "auth",
   middleware: ["auth"],
 });
+
+onMounted(() => {
+  navigateTo("dashboard");
+});
 </script>
 
 <template>
-  <div>Dashboard</div>
+  <div>
+    <v-skeleton-loader
+      v-for="i in 6"
+      elevation="0"
+      type="list-item-three-line"
+      boilerplate
+    ></v-skeleton-loader>
+  </div>
 </template>

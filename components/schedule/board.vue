@@ -32,6 +32,20 @@ const updateSteps = (steps: FormScheduleStepType[]) => {
   }
 
   if (form.value.schedule) {
+    // count form.schedule.total_all_tasks_done
+    const totalAllTasksDone = steps.reduce((acc, step) => {
+      return acc + step.tasks.filter((task) => task.is_checked).length;
+    }, 0);
+
+    form.value.schedule.total_all_tasks_done = totalAllTasksDone;
+    form.value.schedule.total_tasks = steps.reduce(
+      (acc, step) => acc + step.tasks.length,
+      0
+    );
+
+    console.log("total_all_tasks_done", totalAllTasksDone);
+    console.log("total_tasks", form.value.schedule.total_tasks);
+
     form.value.schedule.steps = steps;
   }
   emit("update:steps", steps);

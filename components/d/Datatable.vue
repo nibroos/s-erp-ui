@@ -718,6 +718,26 @@ defineExpose({
             "
             :max-length-display="filter.others?.maxLengthDisplay ?? 70"
           />
+
+          <d-select-table
+            v-if="filter.type === 'select-table'"
+            :api="filter.others?.api"
+            :detail-api="filter.others?.detailApi"
+            method-api="post"
+            detail-method-api="post"
+            :mapping-detail="filter.others?.mappingDetail"
+            :items-prop="filter.others?.itemsProp"
+            :label="filter.title"
+            :item-value="filter.others?.itemValue"
+            :item-title="filter.others?.itemTitle"
+            v-model="filters[filter.key]"
+            :class="filter.others?.class"
+            :multiple="filter.others?.multiple"
+            :modal-custom-class="filter.others?.modalCustomClass"
+            :fields="filter.others?.fields"
+            :filters="filter.others?.filters"
+            :inner-search-key="filter.others?.innerSearchKey"
+          />
         </div>
 
         <d-text-input

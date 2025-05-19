@@ -126,10 +126,25 @@ const resetBoard = async () => {
 
   // await openModal(filteredModalForms.value);
 };
+
+const percentSchedule = computed(() => {
+  if (!form.value.schedule) {
+    return 0;
+  }
+
+  return (
+    ((form.value.schedule.total_all_tasks_done ?? 0) /
+      (form.value.schedule.total_tasks ?? 0)) *
+    100
+  );
+});
 </script>
 
 <template>
-  <div v-if="form.is_scheduled && form.schedule != null">
+  <div
+    v-if="form.is_scheduled && form.schedule != null"
+    class="flex flex-col gap-2"
+  >
     <div class="grid grid-cols-6 gap-2 items-center content-center">
       <div class="lg:col-span-6">
         <d-text-input
@@ -283,6 +298,26 @@ const resetBoard = async () => {
         />
       </div>
     </div>
+
+    <v-progress-linear
+      color="brown"
+      height="20"
+      v-model="percentSchedule"
+      striped
+    >
+      <div
+        v-if="!!form.schedule"
+        :class="
+          classMerge(
+            'text-left',
+            percentSchedule >= 50 ? 'text-white' : 'text-dark'
+          )
+        "
+      >
+        {{ form.schedule.title ?? "Schedule Progress" }} |
+        {{ useNumber.formatNumberSeparator(percentSchedule, 0, 0) }}%
+      </div>
+    </v-progress-linear>
     <div class="overflow-x-auto">
       <v-skeleton-loader
         height="240"
