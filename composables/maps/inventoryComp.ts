@@ -46,14 +46,22 @@ export function convertInvItemRefProduct(
 
   if (refType == 'products') {
     optional.ref_id = item.product_id
-  } else if (refType == 'so') {
+  }
+  else if (refType == 'so') {
     optional.ref_id = item.ref_id
-  } else if (refType == 'po') {
+  }
+  else if (refType == 'ro') {
+    optional.ref_id = item.ref_id
+  }
+  else if (refType == 'po') {
     optional.ref_id = item.ref_id
   } else if (refType == 'inv_in') {
     optional.ref_id = item.ref_id
   }
   optional.item_id = item.item_id
+
+  console.log('convertInvItemRefProduct-optional-ro', optional, refType, item.ref_ro_dt_id);
+
 
   const data: InvDtType = {
     ...item,
@@ -64,6 +72,7 @@ export function convertInvItemRefProduct(
     vat_id: item.vat_id,
     ref_so_dt_id: item.ref_so_dt_id,
     ref_so_dt_bom_id: item.ref_so_dt_bom_id,
+    ref_ro_dt_id: item.ref_ro_dt_id,
     ref_po_dt_id: item.ref_po_dt_id,
     ref_po_dt_bom_id: item.ref_po_dt_bom_id,
     ref_inv_dt_id: item.ref_inv_dt_id,
@@ -103,6 +112,7 @@ export function generateInvDt(
   let selectedRefList = {
     products: [] as InvDtType[],
     so: [] as InvDtType[],
+    ro: [] as InvDtType[],
     po: [] as InvDtType[],
     inv_in: [] as InvDtType[],
   }
@@ -113,6 +123,10 @@ export function generateInvDt(
 
   selectedRefList.so = checkMain.filter((item: InvDtType) => {
     return item.ref_type == 'so'
+  })
+
+  selectedRefList.ro = checkMain.filter((item: InvDtType) => {
+    return item.ref_type == 'ro'
   })
 
   selectedRefList.po = checkMain.filter((item: InvDtType) => {
@@ -131,10 +145,16 @@ export function generateInvDt(
   if (checkOpened == 'products') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList.so, ...selectedRefList[checkOpened]]
-  } else if (checkOpened == 'so') {
+  }
+  else if (checkOpened == 'so') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
-  } else if (checkOpened == 'inv_in') {
+  }
+  else if (checkOpened == 'ro') {
+    selectedRefList[checkOpened] = [...newRefItems]
+    updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
+  }
+  else if (checkOpened == 'inv_in') {
     selectedRefList[checkOpened] = [...newRefItems]
     updatedList = [...selectedRefList[checkOpened], ...selectedRefList.products]
   } else if (checkOpened == 'po') {
@@ -174,6 +194,10 @@ export function updateInvRefsModalFromMain(
           (mainItem.ref_type == 'so' && (
             (!!mainItem.ref_so_dt_id && !!prodItem.ref_so_dt_id && mainItem.ref_so_dt_id == prodItem.ref_so_dt_id) ||
             (!!mainItem.ref_so_dt_bom_id && !!prodItem.ref_so_dt_bom_id && mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)
+          )) ||
+          (mainItem.ref_type == 'ro' && (
+            (!!mainItem.ref_ro_dt_id && !!prodItem.ref_ro_dt_id && mainItem.ref_ro_dt_id == prodItem.ref_ro_dt_id) ||
+            (!!mainItem.ref_ro_dt_bom_id && !!prodItem.ref_ro_dt_bom_id && mainItem.ref_ro_dt_bom_id == prodItem.ref_ro_dt_bom_id)
           )) ||
           (mainItem.ref_type == 'po' && (
             (!!mainItem.ref_po_dt_id && !!prodItem.ref_po_dt_id && mainItem.ref_po_dt_id == prodItem.ref_po_dt_id) ||

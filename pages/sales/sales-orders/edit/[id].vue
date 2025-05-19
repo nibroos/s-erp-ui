@@ -654,6 +654,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   // permission: {
   //   name: ["c_ms"],
@@ -1007,6 +1010,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="salesOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="salesOrderStore.onClickPDF()"
     >
       <template #title-append>
         <d-select-table
@@ -1066,6 +1070,11 @@ watchEffect(() => {
               inner-search-key="global"
               label="Order Type"
               :errors="errors.order_type_id"
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompleteOrderType(data);
+                }
+              "
             ></d-autocomplete>
           </div>
           <div class="lg:col-span-6">
@@ -1222,6 +1231,7 @@ watchEffect(() => {
             <d-autocomplete
               v-model="form.payment_id"
               api="/v1/company-profiles/index-bank-information"
+              single-api="/v1/company-profiles/index-bank-information"
               page-end-prop="meta.next_page_url"
               item-title="name"
               item-value="id"
@@ -1236,8 +1246,14 @@ watchEffect(() => {
               :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
               is-display-multiple-key
               :errors="errors.payment_id"
+              @click:selected="
+                (data) => {
+                  salesOrderStore.autocompleteOrderPayment(data);
+                }
+              "
             ></d-autocomplete>
           </div>
+
           <div class="lg:col-span-6 flex gap-2">
             <d-switch-status
               v-model="form.is_vat"
@@ -1630,29 +1646,13 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="flex flex-col gap-2"
         >
-          <div class="flex gap-2 items-center">
-            <d-switch-status
-              v-model="form.is_scheduled"
-              :label="`Schedule`"
-              v-if="!form.is_scheduled"
-              :true-value="1"
-              :false-value="0"
-            />
-
-            <d-bt
-              v-if="!form.is_scheduled && form.schedule && form.schedule.id"
-              :cta="'Delete Schedule'"
-              :class="
-                classMerge(
-                  'h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
-                )
-              "
-              :text-class="classMerge('text-white mx-auto !font-bold')"
-              :no-icon="true"
-              type="button"
-              @click="handleUpdateSchedule"
-            />
-          </div>
+          <d-switch-status
+            v-model="form.is_scheduled"
+            :label="`Schedule`"
+            v-if="!form.is_scheduled"
+            :true-value="1"
+            :false-value="0"
+          />
           <div v-if="form.is_scheduled && form.schedule != null">
             <div class="grid grid-cols-6 gap-2 items-center content-center">
               <div class="lg:col-span-6">
@@ -1751,39 +1751,16 @@ watchEffect(() => {
                   type="button"
                   @click="resetBoard()"
                 />
-
                 <d-switch-status
                   v-model="form.is_scheduled"
+                  :label="`Schedule`"
                   v-if="form.is_scheduled"
                   :true-value="1"
                   :false-value="0"
-                  label=""
-                />
-                <d-bt
-                  :cta="'Update Schedule'"
-                  :class="
-                    classMerge(
-                      'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
-                    )
-                  "
-                  :text-class="classMerge('text-white mx-auto !font-bold')"
-                  :no-icon="true"
-                  type="button"
-                  @click="handleUpdateSchedule"
-                />
-                <d-autocomplete-client
-                  v-model="form.schedule.steps_id"
-                  :items="useInitials.defaultSteps"
-                  label="Steps"
-                  item-value="id"
-                  item-title="name"
-                  :clearable="false"
-                  disabled
-                  max-length-display="90"
-                  class="!hidden"
                 />
               </div>
             </div>
+
             <div class="overflow-x-auto">
               <v-skeleton-loader
                 height="240"
@@ -1810,8 +1787,9 @@ watchEffect(() => {
               density="compact"
               variant="compact"
               multiple
+              @update:modelValue="salesOrderStore.handleUploadFile"
             >
-              <template v-slot:item="{ props: itemProps }">
+              <template v-slot:item="{ file: itemProps }">
                 <v-file-upload-item v-bind="itemProps" lines="one" nav>
                   <template v-slot:prepend>
                     <v-avatar size="32" rounded></v-avatar>
@@ -1826,168 +1804,6 @@ watchEffect(() => {
                 </v-file-upload-item>
               </template>
             </v-file-upload>
-          </div>
-          <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
-            <!-- attached files -->
-            <div class="flex flex-col gap-2 dark:text-primary1">
-              <span class="text-sm font-medium dark:text-primary1"
-                >Uploaded Files</span
-              >
-              <div>
-                <div v-if="form.attachments.length == 0">
-                  <span
-                    class="text-sm font-normal text-grey3 dark:text-primary1"
-                    >No files attached</span
-                  >
-                </div>
-                <div
-                  v-else
-                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-                >
-                  <div
-                    v-for="(file, index) in form.attachments"
-                    :key="index"
-                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
-                  >
-                    <div class="flex gap-2">
-                      <lazy-d-img
-                        v-if="file.file_type.includes('image')"
-                        :aspect-ratio="1"
-                        :alt="file.file_name"
-                        :src="file.file_url"
-                        width="50"
-                        class="border border-solid border-grey3 cursor-pointer"
-                        @click="
-                          salesOrderStore.openModalAttachmentImg(true, file)
-                        "
-                      ></lazy-d-img>
-
-                      <div v-if="!file.file_type.includes('image')">
-                        <v-icon
-                          icon="mdi-file-document-outline"
-                          class="text-sc dark:text-primary1"
-                          size="50"
-                        />
-                      </div>
-
-                      <div class="flex flex-col justify-center">
-                        <input
-                          v-model="file.file_name"
-                          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
-                        />
-                        <div class="text-xs dark:text-grey1">
-                          {{ shortenBytes(file.file_size) }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <d-bt
-                        v-if="file.file_type.includes('image')"
-                        icon="mdi-information-outline"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                        icon-class="text-sc dark:text-primary1"
-                        rounded="xl"
-                        cta="full view"
-                        icon-size="16"
-                        :loading="loading.imageDownloadLoading"
-                        @click="salesOrderStore.handleViewFullPageFile(file)"
-                      ></d-bt>
-                      <d-bt
-                        icon="mdi-download"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                        icon-class="text-sc dark:text-primary1"
-                        rounded="xl"
-                        cta="download"
-                        icon-size="16"
-                        :loading="loading.imageDownloadLoading"
-                        @click="salesOrderStore.handleDownloadFile(file)"
-                      ></d-bt>
-                      <d-bt
-                        @click="salesOrderStore.handleExistingFile(file, index)"
-                        icon="mdi-delete"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                        icon-class="text-cancel dark:text-primary1"
-                        rounded="xl"
-                        cta="delete"
-                        icon-size="16"
-                      ></d-bt>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- <div class="flex flex-col gap-2">
-              <div>
-                <span class="text-sm font-medium dark:text-primary1"
-                  >New Files</span
-                >
-              </div>
-              <div class="">
-                <div v-if="!form.files">
-                  <span
-                    class="text-sm font-normal text-grey3 dark:text-primary1"
-                    >No files attached</span
-                  >
-                </div>
-                <div
-                  v-else
-                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-                >
-                  <div
-                    v-for="(file, index) in form.files"
-                    :key="index"
-                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
-                  >
-                    <div class="flex gap-2">
-                      <v-img
-                        :aspect-ratio="1"
-                        :src="file.url"
-                        :alt="file.name"
-                        width="50"
-                        cover
-                        class="border border-solid border-grey3"
-                      ></v-img>
-
-                      <div class="flex flex-col justify-center">
-                        <span class="text-sm dark:text-primary1">{{
-                          file.name
-                        }}</span>
-                        <span class="text-xs dark:text-grey1">{{
-                          shortenBytes(file.size)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <d-bt
-                        icon="mdi-download"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                        icon-class="text-sc dark:text-primary1"
-                        rounded="xl"
-                        cta="download"
-                        icon-size="16"
-                      ></d-bt>
-                      <d-bt
-                        @click="salesOrderStore.handleDeleteFile(file, index)"
-                        icon="mdi-delete"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                        icon-class="text-cancel dark:text-primary1"
-                        rounded="xl"
-                        cta="delete"
-                        icon-size="16"
-                        :is-notif="true"
-                        :notif-text="`${file.name} deleted`"
-                      ></d-bt>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> -->
           </div>
         </div>
       </template>

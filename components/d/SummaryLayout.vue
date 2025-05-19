@@ -21,7 +21,7 @@ const props = defineProps<{
 <template>
   <div
     v-if="props.config && Object.keys(props.config).length > 0"
-    class="grid w-full auto-cols-auto grid-flow-col gap-3 font-medium text-zinc-500 dark:text-primary1"
+    class="grid grid-cols-1 w-full gap-3 font-medium text-zinc-500 dark:text-primary1"
   >
     <div
       v-for="(value, key) in props.config as Record<string, SummaryPartType>"

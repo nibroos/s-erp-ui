@@ -63,7 +63,7 @@ const defaultProps: TProps = {
     },
     tabs: [],
     currentTab: "",
-    summary: {},
+    summary: null,
     triggerLayout: false,
     contentClass: "",
     divHeightOverflowLimit: 300,
@@ -286,6 +286,47 @@ watchEffect(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", updateHeight);
 });
+
+const isFloatingSummary = ref(true);
+const isMinimizedSummary = ref(false);
+const isSummaryLocked = ref(false);
+
+const toggleSummaryLock = () => {
+  if (!mergedConfig.value.summary) return;
+
+  isSummaryLocked.value = !isSummaryLocked.value;
+};
+
+// Modify existing toggleMinimizeSummary
+const toggleMinimizeSummary = (event?: MouseEvent) => {
+  if (!mergedConfig.value.summary) return;
+
+  if (event) {
+    event.stopPropagation(); // Prevent click from bubbling to document
+  }
+  isMinimizedSummary.value = !isMinimizedSummary.value;
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (!mergedConfig.value.summary) return;
+
+  const summaryElement = document.querySelector(".floating-summary");
+  if (
+    !isSummaryLocked.value &&
+    summaryElement &&
+    !summaryElement.contains(event.target as Node)
+  ) {
+    isMinimizedSummary.value = true;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <template>
@@ -503,15 +544,88 @@ onBeforeUnmount(() => {
         <slot name="header" v-if="slots.header" />
       </div>
 
-      <slot name="summary" />
-      <!-- {{ mergedConfig.summary }} -->
-      <d-summary-layout
-        v-if="
-        !!props.config.summary && Object.keys(props.config.summary as object).length > 0 &&
-        !slots.summary
-      "
-        :config="props.config.summary"
-      />
+      <div class="relative">
+        <div
+          v-if="isFloatingSummary && !!props.config.summary"
+          class="floating-summary fixed right-4 bottom-4 z-[1400] w-[25rem] rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:!bg-zinc-800 md:w-[20rem] text-sm"
+          :class="isMinimizedSummary ? 'h-12 overflow-hidden' : ''"
+          @click.stop
+        >
+          <d-bt
+            :icon="isSummaryLocked ? 'mdi-lock' : 'mdi-lock-open'"
+            class="absolute right-2 top-2 p-1 z-10 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600"
+            text-class="!text-dark3 dark:text-primary1"
+            icon-class="!text-dark3 dark:text-primary1"
+            @click="toggleSummaryLock"
+            :title="isSummaryLocked ? 'Unlock summary' : 'Lock summary'"
+            is-no-text
+            rounded="xl"
+            size=""
+            icon-size="18"
+            v-if="!isMinimizedSummary"
+          />
+          <div
+            class="flex gap-2 items-center h-full justify-center bg-primary1 dark:bg-dark3 hover:bg-zinc-200 dark:hover:bg-dark2 rounded-lg ease-in-out transition-all cursor-pointer"
+            @click="toggleMinimizeSummary"
+          >
+            <div
+              v-if="isMinimizedSummary && !!props.config.summary"
+              class="flex items-center justify-between w-full px-2"
+            >
+              <div class="flex items-center gap-2">
+                <v-icon
+                  icon="mdi-chevron-down"
+                  class="transition-transform !text-dark3 dark:!text-primary1"
+                  :class="isMinimizedSummary ? 'rotate-180' : 'rotate-0'"
+                />
+                <!-- last key summary (grand_total or anything) -->
+                <div class="text-sm font-bold text-dark3 dark:text-primary1">
+                  {{
+                    props.config.summary[
+                      Object.keys(props.config.summary).slice(-1)[0]
+                    ].label
+                  }}
+                </div>
+              </div>
+              <div class="text-sm font-bold text-dark3 dark:text-primary1">
+                <d-num-layout
+                  :value="
+                    props.config.summary[
+                      Object.keys(props.config.summary).slice(-1)[0]
+                    ].value
+                  "
+                  :min-precision="2"
+                  :max-precision="2"
+                />
+              </div>
+            </div>
+            <d-bt
+              v-else
+              :icon="'mdi-chevron-down'"
+              :class="
+                classMerge(
+                  'w-full h-full flex gap-2 py-2 px-4 dark:bg-transparent rounded-lg ease-in-out transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600',
+                  isMinimizedSummary ? 'rotate-180' : 'rotate-0'
+                )
+              "
+              text-class="!text-dark3 dark:!text-primary1"
+              icon-class="!text-dark3 dark:!text-primary1"
+              rounded="xl"
+              size=""
+              cta="Summary Details"
+              icon-size="18"
+            >
+            </d-bt>
+          </div>
+          <div class="px-4 pb-4">
+            <d-summary-layout
+              v-if="!slots.summary"
+              :config="props.config.summary"
+            />
+            <slot name="summary" v-else />
+          </div>
+        </div>
+      </div>
     </div>
     <div
       v-if="!!slots.content"
@@ -557,5 +671,26 @@ onBeforeUnmount(() => {
   position: absolute;
   bottom: 0;
   left: 0;
+}
+
+.fixed {
+  transition: all 0.3s ease;
+}
+
+.h-12 {
+  transition: height 0.3s ease;
+}
+
+.floating-summary {
+  transition: all 0.3s ease;
+}
+
+.floating-summary:hover .lock-button {
+  opacity: 1;
+}
+
+.lock-button {
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 </style>

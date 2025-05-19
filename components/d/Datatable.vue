@@ -49,6 +49,7 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   fixedHeader: true,
   noAction: false,
   noDelete: false,
+  noPdf: true,
   noFilter: false,
   editLink: "",
   createOption: () => ({
@@ -74,6 +75,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   selectedDetailApi: "/api/master/items/bulk-show",
   deleteApi: "",
   deleteMethodApi: "post",
+  pdfApi: "",
+  pdfMethodApi: "post",
 
   selectStrategy: "single",
 
@@ -126,8 +129,14 @@ const emits = defineEmits([
   "click:find",
   "update:filters",
   "click:delete",
+  "click:pdf",
   "update:currentTab",
 ]);
+
+const loadings = ref({
+  pdfLoading: false,
+  deleteLoading: false,
+});
 
 const tabs = ref(props.tabs);
 const tabIndex = ref(props.tabIndex);
@@ -263,7 +272,6 @@ const metaModal = ref<Pagination<any[]>>({
     from: 1,
     to: 1,
     per_page: 100,
-    prev_page_url: "",
   },
 });
 
@@ -516,6 +524,33 @@ const onClickDelete = async (event: any, row: any) => {
     }
   } catch (error) {
     useAlert.alertError((error as any).response.data.message);
+  }
+};
+
+const onClickPdf = async (event: any, row: any) => {
+  if (loadings.value.pdfLoading) return;
+  loadings.value.pdfLoading = true;
+
+  emits("click:pdf", row);
+
+  let response;
+
+  try {
+    if (props.pdfMethodApi == "post") {
+      response = await useMyFetch().post(props.pdfApi, {
+        id: row.item.id,
+        is_id_only: 1,
+      });
+
+      const { data } = response.data;
+      window.open(data.link, "_blank");
+    } else if (props.pdfMethodApi == "pdf") {
+      response = await useMyFetch().post(`${props.pdfApi}/${row.item.id}`);
+    }
+  } catch (error) {
+    useAlert.alertError((error as any).response.data.message);
+  } finally {
+    loadings.value.pdfLoading = false;
   }
 };
 
@@ -837,7 +872,7 @@ defineExpose({
                     :index="index"
                     class="abcd"
                   >
-                    <div class="flex items-center justify-center gap-2 abc">
+                    <div class="flex items-center justify-center gap-2">
                       <slot name="actions.delete" :item="item" :index="index">
                         <d-button
                           v-if="!props.noDelete"
@@ -958,7 +993,7 @@ defineExpose({
             :index="index"
             class="abcd"
           >
-            <div class="flex items-center justify-center gap-2 abc">
+            <div class="flex items-center justify-center gap-2">
               <slot name="actions.delete" :item="item" :index="index">
                 <d-button
                   v-if="!props.noDelete"
@@ -970,6 +1005,21 @@ defineExpose({
                   rounded="xl"
                   size=""
                   cta="select"
+                  icon-size="16"
+                ></d-button>
+              </slot>
+
+              <slot name="actions.pdf" :item="item" :index="index">
+                <d-button
+                  v-if="!props.noPdf"
+                  @click="onClickPdf($event, { item, index })"
+                  icon="mdi-download"
+                  class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                  icon-class="text-cancel dark:text-primary1"
+                  text-class="text-cancel dark:text-primary1"
+                  rounded="xl"
+                  size=""
+                  cta="PDF"
                   icon-size="16"
                 ></d-button>
               </slot>

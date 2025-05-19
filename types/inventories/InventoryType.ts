@@ -1,6 +1,6 @@
-import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductListType } from "../masters/ProductType"
 import type { SoDtsType } from "../sales-orders/SalesOrderType"
+import type { SummaryPartType } from '../../components/d/SummaryLayout.vue';
 
 export type IndexInventoryType = {
   id: number
@@ -103,6 +103,8 @@ export type InvDtType = {
   pph23_id?: number | null
   ref_so_dt_id: number | string | null
   ref_so_dt_bom_id: number | string | null
+  ref_ro_dt_id: number | string | null
+  ref_ro_dt_bom_id: number | string | null
   ref_po_dt_id: number | string | null
   ref_po_dt_bom_id: number | string | null
   ref_inv_dt_id: number | string | null
@@ -145,7 +147,7 @@ export type InvDtsType = InvDtType
 
 export type InvDtDiscType = 'p' | 'a' | 'all' | null
 
-export type InvDtRefType = 'products' | 'so' | 'po' | 'inv_in'
+export type InvDtRefType = 'products' | 'so' | 'po' | 'inv_in' | 'ro'
 
 export type InvDtItemType = 'item' | 'product'
 
@@ -156,6 +158,8 @@ export type ModalIndexProductFilterTextType = 'code' | 'name' | 'sku' | 'factory
 
 export type ModalIndexSalesOrderFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
 export type ModalIndexSalesOrderFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
+export type ModalIndexRequestOrderFilterAutoCompleteType = 'item_group_ids' | 'item_sub_group_ids'
+export type ModalIndexRequestOrderFilterTextType = 'code' | 'name' | 'sku' | 'factory_code'
 export type ModalIndexRefFilterDateType = 'start_date' | 'end_date'
 
 export type QInvIndexType = {
@@ -271,10 +275,32 @@ export type QIndexInventoryInsType = {
   order_direction?: string
 }
 
+export type QIndexRequestOrderType = {
+  page: number
+  per_page: number
+  request_order_ids?: number[] | null
+  item_group_ids?: number[] | null
+  item_sub_group_ids?: number[] | null
+  warehouse_ids?: number[] | null
+  product_ids?: number[] | null
+  warehouse_id?: number | null
+  product_id?: number[] | null
+  code?: string
+  name?: string
+  sku?: string
+  factory_code?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
+  order_column?: string
+  order_direction?: string
+}
+
 export type VatModeType = 'header' | 'detail' | null
 
 export type FormInvDtProductListType = ProductListType & InvDtsType & SoDtsType & {
   customer_id?: number | null
+  warehouse_id?: number | null
   inv_dt_id?: number | null
   so_dt_id?: number | null
   po_dt_id?: number | null

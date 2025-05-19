@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
       }"
     >
       <div class="grid grid-cols-3 gap-3">
-        <div class="flex flex-col gap-2 bg-white dark:bg-dark2">
+        <div class="flex flex-col gap-2 dark:bg-dark2">
           <div class="flex items-center justify-between px-4 pt-2">
             <div class="flex flex-col">
               <h1 class="text-lg text-dark1 font-bold dark:text-white">
@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
 
             <d-bt
               icon="mdi-refresh"
-              class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 rounded-lg ease-in-out transition-all"
+              class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 dark:!bg-dark3 dark:hover:!bg-dark1 rounded-lg ease-in-out transition-all"
               icon-class="dark:text-primary1 text-dark1"
               text-class="dark:text-primary1 text-dark1"
               rounded="xl"
@@ -215,7 +215,7 @@ onBeforeUnmount(() => {
             </template>
           </d-datatable>
         </div>
-        <div class="flex flex-col gap-2 bg-white dark:bg-dark2">
+        <div class="flex flex-col gap-2 dark:bg-dark2">
           <div class="flex items-center justify-between px-4 pt-2">
             <div class="flex flex-col">
               <h1 class="text-lg text-dark1 font-bold dark:text-white">
@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
 
             <d-bt
               icon="mdi-refresh"
-              class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 rounded-lg ease-in-out transition-all"
+              class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 dark:!bg-dark3 dark:hover:!bg-dark1 rounded-lg ease-in-out transition-all"
               icon-class="dark:text-primary1 text-dark1"
               text-class="dark:text-primary1 text-dark1"
               rounded="xl"
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
           </d-datatable>
         </div>
 
-        <div class="flex flex-col gap-2 bg-white dark:bg-dark2">
+        <div class="flex flex-col gap-2 dark:bg-dark2">
           <div class="flex items-center justify-between px-4 pt-2">
             <div class="flex flex-col">
               <h1 class="text-lg text-dark1 font-bold dark:text-white">
@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
               ></d-bt>
               <d-bt
                 icon="mdi-refresh"
-                class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 rounded-lg ease-in-out transition-all"
+                class="px-2 py-1.5 gap-1 !bg-zinc-100 hover:!bg-zinc-200 dark:!bg-dark3 dark:hover:!bg-dark1 rounded-lg ease-in-out transition-all"
                 icon-class="dark:text-primary1 text-dark1"
                 text-class="dark:text-primary1 text-dark1"
                 rounded="xl"

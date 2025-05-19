@@ -16,7 +16,7 @@ export type FormLayoutType = {
   }
   tabs?: string[]
   currentTab?: string | number
-  summary?: SummaryLayoutType
+  summary?: SummaryLayoutType | null
   triggerLayout?: boolean
   contentClass?: string
   divHeightOverflowLimit?: number

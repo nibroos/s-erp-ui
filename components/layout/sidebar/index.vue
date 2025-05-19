@@ -291,15 +291,14 @@ const isPermissionOnChildExists = (parentName: string): boolean => {
     case "sos":
       // itemOrders
       childPermissions = itemOrders.map((item) => item.permissions.join());
-      return useAuth.permit(childPermissions);
-    case "sos":
-      // itemOrders
-      childPermissions = crmManagement.map((item) => item.permissions.join());
-      return useAuth.permit(childPermissions);
-    case "sos":
-      // itemSales
-      childPermissions = itemSales.map((item) => item.permissions.join());
-      return useAuth.permit(childPermissions);
+      let crmPermissions = crmManagement.map((item) => item.permissions.join());
+      let salesPermissions = itemSales.map((item) => item.permissions.join());
+      let finalPermissions = childPermissions.concat(
+        childPermissions,
+        crmPermissions,
+        salesPermissions
+      );
+      return useAuth.permit(finalPermissions);
     case "ms":
       // itemPurchase
       childPermissions = itemMaster.map((item) => item.permissions.join());
