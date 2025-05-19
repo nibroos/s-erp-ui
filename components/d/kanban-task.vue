@@ -109,6 +109,7 @@ const handleActions = (action: string, list?: KanbanListActionsType) => {
           density="compact"
           :true-value="1"
           :false-value="0"
+          @change="updateTask"
         />
         <input
           v-model="task.title"

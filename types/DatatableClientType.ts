@@ -229,6 +229,7 @@ export type DisplayColumnType =
   | 'reference'
   | 'autocomplete'
   | 'autocomplete-client'
+  | 'select-table'
   | 'boolean'
   | 'image'
   | 'link'

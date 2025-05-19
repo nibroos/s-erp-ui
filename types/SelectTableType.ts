@@ -24,7 +24,7 @@ export type MethodAttributeSelectableType = {
   dateFormat?: string // 'DD/MM/YYYY' | 'DD/MM/YYYY HH:mm' etc
   reference?: ReferenceDisplayType
   rules?: any[]
-  others?: AutocompleteType & AutocompleteClientType & DatePickerLightType
+  others?: AutocompleteType & AutocompleteClientType & DatePickerLightType & SelectTableType
 }
 
 export type FieldSelectableType = {

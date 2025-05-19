@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
 import useRequestOrderStore from "~/stores/purchases/RequestOrderStore";
-import type { IndexRequestOrderType, QIndexType } from "~/types/request-orders/RequestOrderType";
+import type {
+  IndexRequestOrderType,
+  QIndexType,
+} from "~/types/request-orders/RequestOrderType";
 import type {
   FieldSelectableType,
   FilterSelectableType,
@@ -83,6 +86,32 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "request_no",
   },
   {
+    title: "Items",
+    key: "product_ids",
+    type: "select-table",
+    others: {
+      methodApi: "post",
+      query: {
+        is_active: 1,
+      },
+      api: "/v1/products/index-product",
+      singleApi: "/v1/products/index-product",
+      mappingDetail: "data[0]",
+      itemsProp: "data",
+      pageEndProp: "meta.next_page_url",
+      totalProp: "meta.total",
+      itemTitle: "name",
+      itemValue: "id",
+      label: "Items",
+      innerSearchKey: "global",
+      multiple: true,
+      returnObject: false,
+      modalCustomClass: "!w-4/5",
+      fields: useInitials.productFieldsFilterConfig.fields,
+      filters: useInitials.productFieldsFilterConfig.filters,
+    },
+  },
+  {
     title: "Status",
     key: "status",
     type: "autocomplete-client",
@@ -91,7 +120,6 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
 ]);
-
 
 function getStatusColor(status: string): string {
   switch (status) {
@@ -157,10 +185,16 @@ onMounted(() => {
           />
         </template>
         <template #item.grand_total_order_product_qty="{ item }">
-          <d-num-layout :value="item.grand_total_order_product_qty" :precision="0" />
+          <d-num-layout
+            :value="item.grand_total_order_product_qty"
+            :precision="0"
+          />
         </template>
         <template #item.grand_total_order_item_qty="{ item }">
-          <d-num-layout :value="item.grand_total_order_item_qty" :precision="0" />
+          <d-num-layout
+            :value="item.grand_total_order_item_qty"
+            :precision="0"
+          />
         </template>
         <template #item.grand_total_wh_qty="{ item }">
           <d-num-layout :value="item.grand_total_wh_qty" :precision="0" />

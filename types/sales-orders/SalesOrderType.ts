@@ -174,6 +174,11 @@ export type FormScheduleType = {
 
   is_scheduled?: number
   is_delete?: number
+
+  total_task_step_4_done?: number
+  total_task_step_4?: number
+  total_all_tasks_done?: number
+  total_tasks?: number
 }
 
 export type FormScheduleStepType = {

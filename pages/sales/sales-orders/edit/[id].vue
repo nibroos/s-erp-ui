@@ -954,6 +954,18 @@ const resetBoard = async () => {
   // await openModal(filteredModalForms.value);
 };
 
+const percentSchedule = computed(() => {
+  if (!form.value.schedule) {
+    return 0;
+  }
+
+  return (
+    ((form.value.schedule.total_all_tasks_done ?? 0) /
+      (form.value.schedule.total_tasks ?? 0)) *
+    100
+  );
+});
+
 watch(
   () => itemsCheck.value.checkQuotations,
   (newVal) => {
@@ -1646,13 +1658,29 @@ watchEffect(() => {
           v-if="tabFormIndex == useStatics.formTabSalesOrder.schedules"
           class="flex flex-col gap-2"
         >
-          <d-switch-status
-            v-model="form.is_scheduled"
-            :label="`Schedule`"
-            v-if="!form.is_scheduled"
-            :true-value="1"
-            :false-value="0"
-          />
+          <div class="flex gap-2 items-center">
+            <d-switch-status
+              v-model="form.is_scheduled"
+              :label="`Schedule`"
+              v-if="!form.is_scheduled"
+              :true-value="1"
+              :false-value="0"
+            />
+
+            <d-bt
+              v-if="!form.is_scheduled && form.schedule && form.schedule.id"
+              :cta="'Delete Schedule'"
+              :class="
+                classMerge(
+                  'h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
+                )
+              "
+              :text-class="classMerge('text-white mx-auto !font-bold')"
+              :no-icon="true"
+              type="button"
+              @click="handleUpdateSchedule"
+            />
+          </div>
           <div v-if="form.is_scheduled && form.schedule != null">
             <div class="grid grid-cols-6 gap-2 items-center content-center">
               <div class="lg:col-span-6">
@@ -1751,15 +1779,69 @@ watchEffect(() => {
                   type="button"
                   @click="resetBoard()"
                 />
+
                 <d-switch-status
                   v-model="form.is_scheduled"
-                  :label="`Schedule`"
                   v-if="form.is_scheduled"
                   :true-value="1"
                   :false-value="0"
+                  label=""
+                />
+                <d-bt
+                  :cta="'Update Schedule'"
+                  :class="
+                    classMerge(
+                      'min-h-[2.5rem] px-2 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3'
+                    )
+                  "
+                  :text-class="classMerge('text-white mx-auto !font-bold')"
+                  :no-icon="true"
+                  type="button"
+                  @click="handleUpdateSchedule"
+                />
+                <d-autocomplete-client
+                  v-model="form.schedule.steps_id"
+                  :items="useInitials.defaultSteps"
+                  label="Steps"
+                  item-value="id"
+                  item-title="name"
+                  :clearable="false"
+                  disabled
+                  max-length-display="90"
+                  class="!hidden"
                 />
               </div>
             </div>
+            <!-- <v-progress-linear
+              color="brown"
+              height="20"
+              v-model="percentSchedule"
+            >
+              <div v-if="!!form.schedule" class="">
+                {{ form.schedule.title ?? "Schedule Progress" }} |
+                {{ percentSchedule }}
+              </div>
+              %
+            </v-progress-linear> -->
+            <v-progress-linear
+              color="brown"
+              height="20"
+              v-model="percentSchedule"
+              striped
+            >
+              <div
+                v-if="!!form.schedule"
+                :class="
+                  classMerge(
+                    'text-left',
+                    percentSchedule >= 50 ? 'text-white' : 'text-dark'
+                  )
+                "
+              >
+                {{ form.schedule.title ?? "Schedule Progress" }} |
+                {{ useNumber.formatNumberSeparator(percentSchedule, 0, 0) }}%
+              </div>
+            </v-progress-linear>
 
             <div class="overflow-x-auto">
               <v-skeleton-loader
@@ -1787,9 +1869,8 @@ watchEffect(() => {
               density="compact"
               variant="compact"
               multiple
-              @update:modelValue="salesOrderStore.handleUploadFile"
             >
-              <template v-slot:item="{ file: itemProps }">
+              <template v-slot:item="{ props: itemProps }">
                 <v-file-upload-item v-bind="itemProps" lines="one" nav>
                   <template v-slot:prepend>
                     <v-avatar size="32" rounded></v-avatar>
@@ -1804,6 +1885,99 @@ watchEffect(() => {
                 </v-file-upload-item>
               </template>
             </v-file-upload>
+          </div>
+          <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+            <!-- attached files -->
+            <div class="flex flex-col gap-2 dark:text-primary1">
+              <span class="text-sm font-medium dark:text-primary1"
+                >Uploaded Files</span
+              >
+              <div>
+                <div v-if="form.attachments.length == 0">
+                  <span
+                    class="text-sm font-normal text-grey3 dark:text-primary1"
+                    >No files attached</span
+                  >
+                </div>
+                <div
+                  v-else
+                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                >
+                  <div
+                    v-for="(file, index) in form.attachments"
+                    :key="index"
+                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                  >
+                    <div class="flex gap-2">
+                      <lazy-d-img
+                        v-if="file.file_type.includes('image')"
+                        :aspect-ratio="1"
+                        :alt="file.file_name"
+                        :src="file.file_url"
+                        width="50"
+                        class="border border-solid border-grey3 cursor-pointer"
+                        @click="
+                          salesOrderStore.openModalAttachmentImg(true, file)
+                        "
+                      ></lazy-d-img>
+
+                      <div v-if="!file.file_type.includes('image')">
+                        <v-icon
+                          icon="mdi-file-document-outline"
+                          class="text-sc dark:text-primary1"
+                          size="50"
+                        />
+                      </div>
+
+                      <div class="flex flex-col justify-center">
+                        <input
+                          v-model="file.file_name"
+                          class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                        />
+                        <div class="text-xs dark:text-grey1">
+                          {{ shortenBytes(file.file_size) }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <d-bt
+                        v-if="file.file_type.includes('image')"
+                        icon="mdi-information-outline"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="full view"
+                        icon-size="16"
+                        :loading="loading.imageDownloadLoading"
+                        @click="salesOrderStore.handleViewFullPageFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        icon="mdi-download"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                        icon-class="text-sc dark:text-primary1"
+                        rounded="xl"
+                        cta="download"
+                        icon-size="16"
+                        :loading="loading.imageDownloadLoading"
+                        @click="salesOrderStore.handleDownloadFile(file)"
+                      ></d-bt>
+                      <d-bt
+                        @click="salesOrderStore.handleExistingFile(file, index)"
+                        icon="mdi-delete"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                        icon-class="text-cancel dark:text-primary1"
+                        rounded="xl"
+                        cta="delete"
+                        icon-size="16"
+                      ></d-bt>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </template>
