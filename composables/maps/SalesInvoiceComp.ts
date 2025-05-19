@@ -8,7 +8,7 @@ export const convertSalesInvoiceItemRefProduct = (
   let productUuid = randomId()
   let productId = item.product_id ?? item.ref_id
 
-  const price = item.price_sell || 0;
+  const price = item.price_sell || item.price || 0;
   const qty = item.qty || 1;
   const subtotal = price * qty;
 
@@ -60,7 +60,7 @@ export const convertSalesInvoiceItemRefProduct = (
     item_unit_id: item.item_unit_id,
     vat_id: item.vat_id,
     pph23_id: item.pph23_id,
-    ref_id: item.sales_order_id as number,
+    ref_id: item.sales_order_id || item.inventory_out_id,
     ref_dt_id: item.id as number,
     product_id: productId as number,
     product_uuid: productUuid,
@@ -84,7 +84,7 @@ export const convertSalesInvoiceItemRefProduct = (
     product_code: item.code ?? item.item_code ?? item.product_code,
     unit_name: item.unit_name,
     
-    ref_num: item.sales_order_no || '',
+    ref_num: item.sales_order_no || item.inventory_out_no || '',
     
     sales_invoice_dt_boms: bomItems.length > 0 ? bomItems : (item.sales_invoice_dt_boms || []),
     
@@ -111,7 +111,7 @@ export function generateSalesInvoiceDt(
 
     const existingItem = checkMain.find(item => 
       item.ref_type === checkOpened && 
-      ((item.ref_id === (dt.sales_order_id || dt.ref_id) && 
+      ((item.ref_id === (dt.sales_order_id || dt.inventory_out_id || dt.ref_id) && 
       item.ref_dt_id === (dt.id || dt.ref_dt_id)) ||
       (item.ref_id === dt.ref_id && item.ref_dt_id === dt.ref_dt_id))
     );
@@ -120,7 +120,7 @@ export function generateSalesInvoiceDt(
       newRefItems.push({
         ...existingItem,
         ref_type: checkOpened,
-        ref_id: dt.sales_order_id || dt.ref_id,
+        ref_id: dt.sales_order_id || dt.inventory_out_id || dt.ref_id,
         ref_dt_id: dt.id || dt.ref_dt_id
       });
     } else {
@@ -131,11 +131,9 @@ export function generateSalesInvoiceDt(
   if (checkOpened === 'so') {
     updatedList = [...newRefItems];
   }
-  /* Uncomment when implementing inventory_out
-  else if (checkOpened === 'inventory_out') {
+  else if (checkOpened === 'inv_out') {
     updatedList = [...newRefItems];
   }
-  */
 
   return updatedList;
 }
@@ -160,12 +158,10 @@ export function updateSalesInvoiceRefsModalFromMain(
           (mainItem.ref_type == 'so' && 
            ((mainItem.ref_id == prodItem.sales_order_id && mainItem.ref_dt_id == prodItem.id) ||
            (mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)))
-          /* Uncomment when implementing inventory_out
           ||
-          (mainItem.ref_type == 'inventory_out' && 
-           ((mainItem.ref_id == prodItem.inventory_out_id && mainItem.ref_dt_id == prodItem.id) ||
+          (mainItem.ref_type == 'inv_out' && 
+           ((mainItem.ref_id == prodItem.inventory_out_id && mainItem.ref_dt_id == prodItem.inv_dt_id) ||
            (mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)))
-          */
         ) {
           found = true;
           
@@ -181,12 +177,10 @@ export function updateSalesInvoiceRefsModalFromMain(
             combined.sales_order_id = mainItem.ref_id;
             combined.id = mainItem.ref_dt_id;
           }
-          /* Uncomment when implementing inventory_out
-          else if (mainItem.ref_type === 'inventory_out') {
+          else if (mainItem.ref_type === 'inv_out') {
             combined.inventory_out_id = mainItem.ref_id;
             combined.id = mainItem.ref_dt_id;
           }
-          */
 
           updatedList.push(combined);
         }

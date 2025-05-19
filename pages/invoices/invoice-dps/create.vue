@@ -404,9 +404,25 @@ onBeforeMount(() => {
           </div>
 
           <div class="lg:col-span-6">
+            <d-text-input
+              v-model="form.title"
+              :label="`Title`"
+              :placeholder="`Title`"
+              :errors="errors.title"
+            />
+          </div>
+
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.invoice_date"
               label="Invoice Date"
+            ></d-date-picker-light>
+          </div>
+
+          <div class="lg:col-span-6">
+            <d-date-picker-light
+              v-model="form.due_date"
+              label="Due Date"
             ></d-date-picker-light>
           </div>
 

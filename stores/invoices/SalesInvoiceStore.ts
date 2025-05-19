@@ -42,7 +42,20 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         order_column: '',
         order_direction: 'desc',
         invoice_id: null
-      } as QIndexSalesOrdersType
+      } as QIndexSalesOrdersType,
+
+      qIndexInventoryOuts: {
+        page: 1,
+        per_page: 100,
+        inventory_out_ids: [],
+        customer_ids: [],
+        customer_id: null,
+        order_column: '',
+        order_direction: 'desc',
+        inventory_out_no: '',
+        global: '',
+        invoice_id: null
+      } as QIndexInventoryOutType
     },
     metaModal: {
       index: {
@@ -51,6 +64,11 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         meta: {} as Meta
       } as PaginationMeta,
       indexSalesOrders: {
+        data: [] as FormSalesInvoiceDtProductListType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexInventoryOuts: {
         data: [] as FormSalesInvoiceDtProductListType[],
         loading: false,
         meta: {} as Meta
@@ -71,6 +89,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
     itemsCheck: {
       checkMain: [] as SalesInvoiceDtType[],
       checkSalesOrders: [] as FormSalesInvoiceDtProductListType[],
+      checkInventoryOuts: [] as FormSalesInvoiceDtProductListType[],
     },
     isOpenModal: {
       salesOrders: false,
@@ -450,6 +469,9 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       if (this.isOpenModal.salesOrders) {
         this.itemsCheck.checkMain = generateSalesInvoiceDt(this.itemsCheck.checkSalesOrders, 'so', this.itemsCheck.checkMain)
         this.isOpenModal.salesOrders = false
+      } else if (this.isOpenModal.inventoryOuts) {
+        this.itemsCheck.checkMain = generateSalesInvoiceDt(this.itemsCheck.checkInventoryOuts, 'inv_out', this.itemsCheck.checkMain)
+        this.isOpenModal.inventoryOuts = false
       }
     },
 
@@ -480,6 +502,18 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         order_type_id: null,
         item_type: null,
         // invoice_id: currentInvoiceId
+      }
+
+      this.queryModal.qIndexInventoryOuts = {
+        page: 1,
+        per_page: 100,
+        inventory_out_ids: [],
+        customer_ids: [],
+        customer_id: null,
+        order_column: '',
+        order_direction: 'desc',
+        inventory_out_no: '',
+        global: '',
       }
     },
 
@@ -524,6 +558,10 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         if (item.key == "salesOrders") {
           item.count = this.itemsCheck.checkMain.filter(
             (item) => item.ref_type == "so"
+          ).length;
+        } else if (item.key == "inventoryOuts") {
+          item.count = this.itemsCheck.checkMain.filter(
+            (item) => item.ref_type == "inv_out"
           ).length;
         }
       });
@@ -680,93 +718,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
     closeAllModal() {
       this.isOpenModal.salesOrders = false;
+
+      this.isOpenModal.inventoryOuts = false;
     },
 
-    // onClickUpdateProductsModal() {
-    //   if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
-    //     const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
-
-    //     if (!this.form.customer_id && firstSelectedItem.customer_id) {
-    //       this.form.customer_id = firstSelectedItem.customer_id;
-
-    //       if (firstSelectedItem.customer_id) {
-    //         this.fetchCustomerDetails(firstSelectedItem.customer_id);
-    //       }
-    //     }
-
-    //     if (!this.form.currency_id && firstSelectedItem.currency_id) {
-    //       this.form.currency_id = firstSelectedItem.currency_id;
-    //       this.form.exchange_rate = firstSelectedItem.exchange_rate || 1;
-    //     }
-
-    //     let hasVat = false;
-    //     let hasPph23 = false;
-
-    //     const pph23Counts = new Map<number, number>();
-    //     let maxPph23Count = 0;
-    //     let mostCommonPph23Id: number | null = null;
-    //     let mostCommonPph23Percentage = 0;
-
-    //     this.itemsCheck.checkSalesOrders.forEach(item => {
-    //       if (item.is_vat === 1) {
-    //         hasVat = true;
-    //       }
-
-    //       if (item.is_pph23 === 1 && item.pph23_id) {
-    //         hasPph23 = true;
-
-    //         const currentCount = (pph23Counts.get(item.pph23_id) || 0) + 1;
-    //         pph23Counts.set(item.pph23_id, currentCount);
-
-    //         if (currentCount > maxPph23Count) {
-    //           maxPph23Count = currentCount;
-    //           mostCommonPph23Id = item.pph23_id;
-    //           mostCommonPph23Percentage = item.pph23_percentage || 0;
-    //         }
-    //       }
-    //     });
-
-    //     if (hasVat && !this.form.is_vat) {
-    //       this.form.is_vat = 1;
-    //       this.onClickSwitchVAT(true);
-    //     }
-
-    //     if (hasPph23 && !this.form.pph23_id && mostCommonPph23Id) {
-    //       this.form.pph23_id = mostCommonPph23Id;
-    //       this.form.pph23_percentage = mostCommonPph23Percentage;
-    //       this.form.is_pph23 = 1;
-    //     }
-
-    //     if ((!this.form.discount_amount || this.form.discount_amount === 0) && 
-    //     (!this.form.discount_percentage || this.form.discount_percentage === 0)) {
-
-    //       if (firstSelectedItem.head_disc_am && firstSelectedItem.head_disc_am > 0) {
-    //         this.form.discount_amount = firstSelectedItem.head_disc_am;
-    //         this.form.discount_percentage = 0;
-    //       } 
-    //       else if (firstSelectedItem.head_disc_perc && firstSelectedItem.head_disc_perc > 0) {
-    //         this.form.discount_percentage = firstSelectedItem.head_disc_perc;
-    //         this.form.discount_amount = 0;
-    //       }
-    //     }
-
-    //     if (!this.form.remark && firstSelectedItem.head_remark) {
-    //       this.form.remark = firstSelectedItem.head_remark;
-    //     }
-    //   }
-
-    //   const existingItems = [...this.itemsCheck.checkMain];
-
-    //   this.selectItemRefModal();
-
-    //   this.countSelectedReferences();
-    //   this.closeAllModal();
-    //   this.calculateTotalAmount();
-    // }, 
-
     onClickUpdateProductsModal() {
-      if (this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) {
-        const firstSelectedItem = this.itemsCheck.checkSalesOrders[0];
+      if ((this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) ||
+        (this.isOpenModal.inventoryOuts && this.itemsCheck.checkInventoryOuts.length > 0)) {
+
+        const firstSelectedItem = this.isOpenModal.salesOrders 
+          ? this.itemsCheck.checkSalesOrders[0] 
+          : this.itemsCheck.checkInventoryOuts[0];
 
         if (!this.form.customer_id && firstSelectedItem.customer_id) {
           this.form.customer_id = firstSelectedItem.customer_id;
@@ -868,6 +830,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
 
         this.countSelectedReferences();
         this.isOpenModal.salesOrders = true;
+      } else if (ref.key == "inventoryOuts") {
+        this.itemsCheck.checkInventoryOuts = updateSalesInvoiceRefsModalFromMain(
+          this.itemsCheck.checkMain,
+          "inv_out",
+          this.itemsCheck.checkInventoryOuts
+        );
+
+        this.queryModal.qIndexInventoryOuts.invoice_id = this.form.id;
+
+        this.countSelectedReferences();
+        this.isOpenModal.inventoryOuts = true;
       }
 
       await this.fetchModalFilter();
@@ -881,7 +854,11 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
 
-        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        if (this.form.id) {
+          this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        } else {
+          this.queryModal.qIndexSalesOrders.invoice_id = null;
+        }
 
         // if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
         //   const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');
@@ -902,6 +879,27 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         }
 
         await this.indexSalesOrder();
+      } else if (this.isOpenModal.inventoryOuts) {
+        if (!!this.queryModal.qIndexInventoryOuts.customer_id) {
+          this.queryModal.qIndexInventoryOuts.customer_ids = [this.queryModal.qIndexInventoryOuts.customer_id];
+        } else {
+          this.queryModal.qIndexInventoryOuts.customer_ids = [];
+        }
+
+        if (this.form.id) {
+          this.queryModal.qIndexInventoryOuts.invoice_id = this.form.id;
+        } else {
+          this.queryModal.qIndexInventoryOuts.invoice_id = null;
+        }
+
+        if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+          const invOutItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'inv_out');
+          if (invOutItems.length > 0) {
+            this.queryModal.qIndexInventoryOuts.specific_ids = invOutItems.map(item => item.ref_dt_id).join(',');
+          }
+        }
+
+        await this.indexInventoryOut();
       }
     },
 
@@ -916,6 +914,17 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         } else {
           this.queryModal.qIndexSalesOrders.order_column = "";
           this.queryModal.qIndexSalesOrders.order_direction = "desc";
+        }
+      } else if (this.isOpenModal.inventoryOuts) {
+        this.queryModal.qIndexInventoryOuts.page = options.page;
+        this.queryModal.qIndexInventoryOuts.per_page = options.itemsPerPage;
+
+        if (options.sortBy && options.sortBy.length > 0) {
+          this.queryModal.qIndexInventoryOuts.order_column = options.sortBy[0].key;
+          this.queryModal.qIndexInventoryOuts.order_direction = options.sortBy[0].order;
+        } else {
+          this.queryModal.qIndexInventoryOuts.order_column = "";
+          this.queryModal.qIndexInventoryOuts.order_direction = "desc";
         }
       }
 
@@ -985,7 +994,6 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         const discount = Number(item.discount || 0);
         item.total_amount = item.subtotal - discount;
 
-        // For sales invoice, we need to calculate total_balance
         item.total_balance = item.total_amount - (item.total_dp || 0);
       });
 
@@ -1199,6 +1207,90 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         console.error('Error getting applicable VAT:', error);
         return null;
       }
+    },
+
+    async indexInventoryOut() {
+      if (this.metaModal.indexInventoryOuts.loading) return
+      this.metaModal.indexInventoryOuts.loading = true
+
+      try {
+        if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
+          const invOutItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'inv_out');
+          if (invOutItems.length > 0) {
+            this.queryModal.qIndexInventoryOuts.specific_ids = invOutItems.map(item => item.ref_dt_id).join(',');
+          }
+        }
+
+        const response = await useMyFetch().post(
+          '/v1/sales-invoices/index-ref-inv-out-dt',
+          this.queryModal.qIndexInventoryOuts
+        )
+
+        if (this.isOpenModal.inventoryOuts) {
+          this.metaModal.indexInventoryOuts = response.data
+
+          this.metaModal.indexInventoryOuts.data.forEach((invOutItem: FormSalesInvoiceDtProductListType) => {
+            invOutItem.uid = randomId();
+          });
+
+          if (this.itemsCheck.checkMain.length > 0) {
+            const selectedItems: FormSalesInvoiceDtProductListType[] = [];
+
+            (this.metaModal.indexInventoryOuts.data as FormSalesInvoiceDtProductListType[]).forEach((resInvOut: FormSalesInvoiceDtProductListType, iResInvOut: number) => {
+              const existingItem = this.itemsCheck.checkMain.find(item =>
+                item.ref_type === 'inv_out' &&
+                ((item.ref_id === resInvOut.inventory_out_id && item.ref_dt_id === resInvOut.id) ||
+                  (item.ref_id === resInvOut.ref_id && item.ref_dt_id === resInvOut.ref_dt_id))
+              );
+
+              if (existingItem) {
+                const combined = {
+                  ...resInvOut,
+                  ref_type: 'inv_out',
+                  ref_id: resInvOut.inventory_out_id || resInvOut.ref_id,
+                  ref_dt_id: resInvOut.id || resInvOut.ref_dt_id,
+                  qty: existingItem.qty,
+                  is_vat: existingItem.is_vat,
+                  is_pph23: existingItem.is_pph23,
+                  vat_id: existingItem.vat_id,
+                  pph23_id: existingItem.pph23_id
+                };
+
+                selectedItems.push(combined);
+
+                this.metaModal.indexInventoryOuts.data[iResInvOut] = combined;
+              }
+            });
+
+            this.itemsCheck.checkInventoryOuts = selectedItems;
+          }
+
+          if (this.itemsCheck.checkInventoryOuts.length > 0) {
+            this.autocompleteInventoryOut(this.itemsCheck.checkInventoryOuts[0])
+          }
+        }
+
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Inventory Out Data', error.response?.data)
+      } finally {
+        this.metaModal.indexInventoryOuts.loading = false
+      }
+    },
+
+    autocompleteInventoryOut(data: FormSalesInvoiceDtProductListType) {
+      this.form.customer_id = data.customer_id;
+      this.headAutocomplete.so.currency_id = data.currency_id;
+      this.headAutocomplete.so.exchange_rate = data.exchange_rate;
+      this.headAutocomplete.so.vat_id = data.head_vat_id;
+      this.headAutocomplete.so.vat_percentage = data.head_vat_perc as number;
+      this.headAutocomplete.so.pph23_id = data.head_pph23_id;
+      this.headAutocomplete.so.pph23_percentage = data.head_pph23_perc as number;
+      this.headAutocomplete.so.discount_amount = data.head_disc_am as number;
+      this.headAutocomplete.so.discount_percentage = data.head_disc_perc as number;
+      this.headAutocomplete.so.remark = data.head_remark;
+      this.headAutocomplete.so.is_vat = data.is_vat as number;
+      this.headAutocomplete.so.is_pph23 = data.is_pph23 as number;
     },
 
     goToSalesInvoice(id: number) {

@@ -10,8 +10,10 @@ export type IndexSalesInvoiceType = {
   vat_id: number | null
   pph23_id: number | null
   branch_id: number | null
+  title: string
   invoice_no: string
   invoice_date: string | null
+  due_date: string | null
   exchange_rate: number | null
   remark: string | null
   rev_no: number | null
@@ -60,8 +62,10 @@ export type FormSalesInvoiceType = {
   pph23_id?: number | null
   branch_id?: number | null
   bank_id?: number | null
+  title: string
   invoice_no?: string
   invoice_date: string
+  due_date: string
   exchange_rate?: number | null
   remark?: string
   rev_no?: number | null
@@ -191,7 +195,7 @@ export type SalesInvoiceDtType = {
 
 export type SalesInvoiceDiscType = 'amount' | 'percentage' | null
 
-export type SalesInvoiceRefType = 'so' /* | 'inventory_out' */
+export type SalesInvoiceRefType = 'so' | 'inv_out'
 
 export type SalesInvoiceProductType = 'item' | 'product'
 
@@ -224,7 +228,6 @@ export type QIndexSalesOrdersType = {
   specific_ids?: string
 }
 
-/* 
 export type QIndexInventoryOutType = {
   page: number
   per_page: number
@@ -235,16 +238,18 @@ export type QIndexInventoryOutType = {
   order_direction?: string
   inventory_out_no?: string
   global?: string
+  specific_ids?: string
 }
-*/
 
 export type VatModeType = 'header' | 'detail' | null
 
 export type FormSalesInvoiceDtProductListType = ProductListType & {
   sales_order_id?: number | null,
+  uid?: string,
+  inventory_out_id?: number | null,
+  inv_dt_id?: number | null,
   id?: number | null,
   ref_type: SalesInvoiceRefType
-  sales_invoice_id?: number | null
   vat_id?: number
   pph23_id?: number
   vat_percentage?: number
@@ -275,17 +280,21 @@ export type FormSalesInvoiceDtProductListType = ProductListType & {
 
   sales_invoice_dt_boms?: SalesInvoiceDtBomType[] | null
 
-  sales_order_id?: number | null
   sales_order_no?: string
+  inventory_out_no?: string
   currency_id?: number | null
   exchange_rate?: number | null
   head_vat_id?: number | null
   head_vat_percentage?: number | null
+  head_vat_perc?: number | null
   head_pph23_id?: number | null
   head_pph23_percentage?: number | null
+  head_pph23_perc?: number | null
   head_discount_amount?: number | null
+  head_disc_am?: number | null
   head_discount_percentage?: number | null
-  head_remark?: string
+  head_disc_perc?: number | null
+  head_remark?: string | null
   head_is_vat?: number
   head_is_pph23?: number
 
@@ -294,6 +303,10 @@ export type FormSalesInvoiceDtProductListType = ProductListType & {
   product_name?: string
   product_code?: string
   unit_name?: string
+  
+  warehouse_name?: string
+  out_date?: string
+  due_at?: string
 }
 
 export type FormVatType = {

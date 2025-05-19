@@ -24,6 +24,13 @@ useHead({
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "Invoice No",
     key: "invoice_no",
     value: "invoice_no",
@@ -31,9 +38,9 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Buyer",
-    key: "customer_name",
-    value: "customer_name",
+    title: "Title",
+    key: "title",
+    value: "title",
     align: "start",
     sortable: true,
   },
@@ -41,6 +48,20 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     title: "Invoice Date",
     key: "invoice_date",
     value: "invoice_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Due Date",
+    key: "due_date",
+    value: "due_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Bank",
+    key: "bank_name",
+    value: "bank_name",
     align: "start",
     sortable: true,
   },
@@ -178,6 +199,10 @@ const filtersConfig = ref<FilterSelectableType[]>([
     title: "Invoice No",
     key: "invoice_no",
   },
+  {
+    title: "Title",
+    key: "title",
+  },
 ]);
 
 function getStatusColor(status: string): string {
@@ -249,6 +274,14 @@ onMounted(() => {
             :isLoading="metaModal.indexWidgets.loading"
           />
         </template>
+        <template #item.bank_name="{ item }">
+          <span v-if="item.bank_name && item.account_number && item.account_name">
+            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          </span>
+          <span v-else>
+            {{ item.bank_name || '-' }}
+          </span>
+        </template>
         <template #item.exchange_rate="{ item }">
           <d-num-layout :value="item.exchange_rate" />
         </template>
@@ -276,25 +309,21 @@ onMounted(() => {
             {{ item.status }}
           </v-chip>
         </template>
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-2">
-            <v-btn
-              v-if="item.status === 'UNPAID'"
-              size="small"
-              variant="text"
-              @click="changeStatus(item.id, 'PAID')"
-            >
-              Mark as Paid
-            </v-btn>
-            <v-btn
-              v-if="item.status === 'PAID'"
-              size="small"
-              variant="text"
-              @click="changeStatus(item.id, 'UNPAID')"
-            >
-              Mark as Unpaid
-            </v-btn>
-          </div>
+        <template #actions.delete="{ item }">
+          <template v-if="item.status !== 'UNPAID'">
+            <slot name="actions.delete" :item="item">
+              <d-button
+                icon="mdi-delete"
+                is-no-text
+                class="p-1 rounded-full ease-in-out transition-all dark:!bg-gray-500 cursor-not-allowed"
+                icon-class="text-gray-500 dark:text-gray-300"
+                rounded="xl"
+                size=""
+                cta="select"
+                icon-size="16"
+              ></d-button>
+            </slot>
+          </template>
         </template>
       </d-datatable>
     </d-index-layout>

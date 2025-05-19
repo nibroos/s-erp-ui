@@ -798,7 +798,11 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
           this.queryModal.qIndexSalesOrders.customer_ids = [];
         }
 
-        this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        if (this.form.id) {
+          this.queryModal.qIndexSalesOrders.invoice_id = this.form.id;
+        } else {
+          this.queryModal.qIndexSalesOrders.invoice_id = null;
+        }
 
         if (this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
           const soItems = this.itemsCheck.checkMain.filter(item => item.ref_type === 'so');

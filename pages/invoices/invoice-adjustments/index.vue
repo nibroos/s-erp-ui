@@ -23,13 +23,6 @@ useHead({
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
-    title: "Invoice No",
-    key: "invoice_no",
-    value: "invoice_no",
-    align: "start",
-    sortable: true,
-  },
-  {
     title: "Customer",
     key: "customer_name",
     value: "customer_name",
@@ -37,9 +30,37 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Title",
+    key: "title",
+    value: "title",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Adjustment Date",
+    key: "adjustment_date",
+    value: "adjustment_date",
+    align: "start",
+    sortable: true,
+  },
+  {
     title: "Payment Date",
     key: "payment_date",
     value: "payment_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Bank",
+    key: "bank_name",
+    value: "bank_name",
     align: "start",
     sortable: true,
   },
@@ -169,6 +190,10 @@ const filtersConfig = ref<FilterSelectableType[]>([
     title: "Invoice No",
     key: "invoice_no",
   },
+  {
+    title: "Title",
+    key: "title",
+  },
 ]);
 </script>
 
@@ -209,6 +234,14 @@ const filtersConfig = ref<FilterSelectableType[]>([
           }
         "
       >
+        <template #item.bank_name="{ item }">
+          <span v-if="item.bank_name && item.account_number && item.account_name">
+            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          </span>
+          <span v-else>
+            {{ item.bank_name || '-' }}
+          </span>
+        </template>
         <template #item.exchange_rate="{ item }">
           <d-num-layout :value="item.exchange_rate" />
         </template>

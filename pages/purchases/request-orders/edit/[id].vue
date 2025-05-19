@@ -349,6 +349,16 @@ onMounted(async () => {
   initialFormLayout();
 });
 
+watch(
+  () => form.value.status,
+  (newStatus, oldStatus) => {
+    if (formLayout.value.button?.save) {
+      formLayout.value.button.save.disabled = newStatus === 'APPROVED';
+    }
+  },
+  { immediate: true }
+);
+
 watchEffect(() => {
   topTitle.value = "Edit Request Order";
   formLayout.value.summary = customSummary.value;
@@ -421,6 +431,7 @@ watchEffect(() => {
               item-value="id"
               item-title="name"
               :clearable="false"
+              :disabled="form.status === 'APPROVED'"
             />
           </div>
 

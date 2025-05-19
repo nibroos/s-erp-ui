@@ -536,6 +536,16 @@ watch(
     }
   }
 );
+
+watch(
+  () => form.value.status,
+  (newStatus, oldStatus) => {
+    if (formLayout.value.button?.save) {
+      formLayout.value.button.save.disabled = newStatus === 'PAID';
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -634,9 +644,25 @@ watch(
           </div>
 
           <div class="lg:col-span-6">
+            <d-text-input
+              v-model="form.title"
+              :label="`Title`"
+              :placeholder="`Title`"
+              :errors="errors.title"
+            />
+          </div>
+
+          <div class="lg:col-span-6">
             <d-date-picker-light
               v-model="form.invoice_date"
               label="Invoice Date"
+            ></d-date-picker-light>
+          </div>
+
+          <div class="lg:col-span-6">
+            <d-date-picker-light
+              v-model="form.due_date"
+              label="Due Date"
             ></d-date-picker-light>
           </div>
 
@@ -648,6 +674,7 @@ watch(
               item-value="id"
               item-title="name"
               :clearable="false"
+              :disabled="form.status === 'PAID'"
             />
           </div>
 
