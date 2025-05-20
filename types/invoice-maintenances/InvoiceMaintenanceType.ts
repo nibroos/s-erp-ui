@@ -215,6 +215,19 @@ export type QInvoiceMaintenanceIndexType = {
   order_direction: string
 }
 
+export type QRepeatInvoiceMaintenanceIndexType = {
+  page: number
+  per_page: number
+  customer_ids: number[]
+  global: string
+  order_column: string
+  order_direction: string
+  start_date?: string
+  end_date?: string
+  status?: string
+  invoice_no?: string
+}
+
 export type QIndexReferencesType = {
   page: number
   per_page: number

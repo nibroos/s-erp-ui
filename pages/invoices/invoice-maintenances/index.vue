@@ -7,8 +7,11 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
+import { storeToRefs } from 'pinia';
 
-const { queryModal, metaModal } = useInvoiceMaintenanceStore();
+const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
+const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
+  storeToRefs(invoiceMaintenanceStore);
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -166,6 +169,83 @@ const fieldsConfig = ref<FieldSelectableType[]>([
   },
 ]);
 
+const headerRepeatInvoice = ref<FieldSelectableType[]>([
+  {
+    title: "",
+    key: "checkbox",
+    value: "checkbox",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Title",
+    key: "title",
+    value: "title",
+    align: "start",
+    sortable: true,
+    width: "300px",
+  },
+  {
+    title: "Invoice Date",
+    key: "invoice_date",
+    value: "invoice_date",
+    align: "start",
+    sortable: true,
+    width: "230px",
+  },
+  {
+    title: "Due Date",
+    key: "due_date",
+    value: "due_date",
+    align: "start",
+    sortable: true,
+    width: "230px",
+  },
+  {
+    title: "Remark",
+    key: "remark",
+    value: "remark",
+    align: "start",
+    sortable: true,
+    width: "350px",
+  },
+  {
+    title: "Grand Total",
+    key: "grand_total",
+    value: "grand_total",
+    align: "end",
+    sortable: true,
+  },
+  {
+    title: "Status",
+    key: "status",
+    value: "status",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Approved Status",
+    key: "approved_status",
+    value: "approved_status",
+    align: "start",
+    sortable: true,
+  },
+]);
+
 const filtersConfig = ref<FilterSelectableType[]>([
   {
     title: "Customer",
@@ -261,7 +341,6 @@ function getStatusColor(status: string): string {
 const approvalMode = ref(false);
 const selectedInvoices = ref<number[]>([]);
 const currentMode = ref("approve");
-const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
 
 const actionOptions = ref([
   {
@@ -372,6 +451,17 @@ async function proceedApproval() {
   }
 }
 
+function handleRepeatButtonClick() {
+  console.log('Repeat button clicked');
+  console.log('Before: isOpenModal.repeatInvoice =', invoiceMaintenanceStore.isOpenModal.repeatInvoice);
+  invoiceMaintenanceStore.openRepeatModal();
+  console.log('After: isOpenModal.repeatInvoice =', invoiceMaintenanceStore.isOpenModal.repeatInvoice);
+}
+
+const handleExportCsv = async () => {
+  await invoiceMaintenanceStore.exportToCsv();
+};
+
 onMounted(() => {
   useInvoiceMaintenanceStore().indexWidget();
 });
@@ -408,6 +498,7 @@ onMounted(() => {
           show: true,
           cta: '+ Create',
         }"
+        @click:csv="handleExportCsv"
         @click:find="useInvoiceMaintenanceStore().indexWidget()"
         @update:filters="
           (filters: QInvoiceMaintenanceIndexType) => {
@@ -423,60 +514,69 @@ onMounted(() => {
           />
         </template>
         <template #actions>
-          <div class="flex items-center">
-            <div class="w-[200px] actions-dropdown">
-              <d-autocomplete-client
-                v-model="selectedAction"
-                :items="actionOptions"
-                label="Actions"
-                placeholder="Select action"
-                item-title="title"
-                item-value="value"
-                :clearable="false"
-                class="!bg-[#695149] rounded"
-                aClass="!text-white"
-                @click:selected="handleActionSelected"
+          <div class="flex items-center gap-2">
+            <button 
+              @click="handleRepeatButtonClick"
+              class="px-4 py-2 bg-brown-700 text-white rounded mr-2 flex items-center hover:bg-brown-800 transition-colors duration-300"
               >
-                <template #selection="{ item }">
-                  <div class="flex items-center text-white">
-                    <span>{{ item.title }}</span>
-                  </div>
-                </template>
+              <i class="mdi mdi-repeat mr-1"></i> Repeat
+            </button>
 
-                <template #item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <template #prepend>
-                      <i :class="[item.raw.icon, item.raw.iconColor]"></i>
-                    </template>
-                    <v-list-item-title>{{ item.raw.title }}</v-list-item-title>
-                  </v-list-item>
-                </template>
-              </d-autocomplete-client>
-            </div>
+            <div class="flex items-center">
+              <div class="w-[200px] actions-dropdown">
+                <d-autocomplete-client
+                  v-model="selectedAction"
+                  :items="actionOptions"
+                  label="Actions"
+                  placeholder="Select action"
+                  item-title="title"
+                  item-value="value"
+                  :clearable="false"
+                  class="!bg-[#695149] rounded"
+                  aClass="!text-white"
+                  @click:selected="handleActionSelected"
+                >
+                  <template #selection="{ item }">
+                    <div class="flex items-center text-white">
+                      <span>{{ item.title }}</span>
+                    </div>
+                  </template>
 
-            <div v-if="approvalMode" class="flex ml-2">
-              <button
-                @click="proceedApproval"
-                class="px-4 py-1.5 bg-brown-700 text-white rounded mr-2 flex items-center border !border-[#70544b]"
-              >
-                <i class="mdi mdi-check mr-1"></i>
-                {{ currentMode === "approve" ? "Proceed" : "Proceed" }} ({{
-                  selectedInvoices.length
-                }})
-              </button>
-              <button
-                @click="resetSelection"
-                class="px-4 py-1.5 bg-[#6C757D] text-white rounded mr-2 flex items-center"
-              >
-                <i class="mdi mdi-refresh mr-1"></i> Reset
-              </button>
-              <button
-                @click="cancelApprovalMode"
-                class="px-4 py-1.5 bg-[#DC3545] !text-white rounded flex items-center"
-              >
-                <i class="mdi mdi-close mr-1"></i> Cancel
-              </button>
-            </div>
+                  <template #item="{ props, item }">
+                    <v-list-item v-bind="props">
+                      <template #prepend>
+                        <i :class="[item.raw.icon, item.raw.iconColor]"></i>
+                      </template>
+                      <v-list-item-title>{{ item.raw.title }}</v-list-item-title>
+                    </v-list-item>
+                  </template>
+                </d-autocomplete-client>
+              </div>
+
+              <div v-if="approvalMode" class="flex ml-2">
+                <button
+                  @click="proceedApproval"
+                  class="px-4 py-1.5 bg-brown-700 text-white rounded mr-2 flex items-center border !border-[#70544b]"
+                >
+                  <i class="mdi mdi-check mr-1"></i>
+                  {{ currentMode === "approve" ? "Proceed" : "Proceed" }} ({{
+                    selectedInvoices.length
+                  }})
+                </button>
+                <button
+                  @click="resetSelection"
+                  class="px-4 py-1.5 bg-[#6C757D] text-white rounded mr-2 flex items-center"
+                >
+                  <i class="mdi mdi-refresh mr-1"></i> Reset
+                </button>
+                <button
+                  @click="cancelApprovalMode"
+                  class="px-4 py-1.5 bg-[#DC3545] !text-white rounded flex items-center"
+                >
+                  <i class="mdi mdi-close mr-1"></i> Cancel
+                </button>
+              </div>
+          </div>
           </div>
         </template>
 
@@ -561,6 +661,285 @@ onMounted(() => {
         </template>
       </d-datatable>
     </d-index-layout>
+
+    <modals-final-modal
+      size="xl"
+      custom-class="overflow-y-auto"
+      label="Repeat Invoice Maintenance"
+      parent-class="!z-[1500]"
+      :is-open="isOpenModal.repeatInvoice"
+      @update:is-open="isOpenModal.repeatInvoice = $event"
+    >
+      <template #top>
+        <hr class="border-t border-gray-300 my-1 w-full">
+        <div class="flex items-center gap-2">
+          <d-button
+            icon="mdi-eye-off"
+            is-no-text
+            class="p-1.5 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
+            text-class="text-zinc-100 dark:text-primary1"
+            icon-class="text-zinc-100 dark:text-primary1"
+            rounded="xl"
+            size=""
+            cta="show/hide column"
+            icon-size="15"
+            ></d-button>
+          <p class="font-medium text-[17px] text-[#212529]">Filter Search</p>
+        </div>
+        <form
+          class="grid grid-cols-7 w-full flex-row items-center gap-2 mb-4"
+        >
+          <d-autocomplete
+            v-model="queryModal.qRepeatInvoice.customer_id"
+            :query="{
+              is_active: 1,
+            }"
+            api="/v1/customers/index-customer"
+            method-api="post"
+            page-end-prop="meta.next_page_url"
+            item-title="name"
+            item-value="id"
+            inner-search-key="global"
+            label="Customer"
+            placeholder="Select customer"
+          />
+
+          <d-text-input
+            v-model="queryModal.qRepeatInvoice.invoice_no"
+            label="Invoice No"
+            placeholder="Search by Invoice No"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-date-picker-light
+            v-model="queryModal.qRepeatInvoice.start_date"
+            label="Start Date"
+          ></d-date-picker-light>
+
+          <d-date-picker-light
+            v-model="queryModal.qRepeatInvoice.end_date"
+            label="End Date"
+          ></d-date-picker-light>
+
+          <d-autocomplete-client
+            v-model="queryModal.qRepeatInvoice.status"
+            :items="useStatics.MaintenanceInvoiceIndexStatus"
+            label="Status"
+            item-value="value"
+            item-title="title"
+          />
+
+          <d-text-input
+            v-model="queryModal.qRepeatInvoice.global"
+            label="Global Search"
+            placeholder="Search global"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <div class="flex items-center gap-2">
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="bg-brown-700 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-brown-800"
+                @click="invoiceMaintenanceStore.handleRepeatFilterChange()"
+              >
+                Search
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="bg-gray-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-gray-600"
+                @click="invoiceMaintenanceStore.clearRepeatFilters()"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="rounded-md mb-4">
+          <div class="flex items-center gap-2 mb-3">
+            <d-button
+              icon="mdi-eye-off"
+              is-no-text
+              class="p-1.5 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
+              text-class="text-zinc-100 dark:text-primary1"
+              icon-class="text-zinc-100 dark:text-primary1"
+              rounded="xl"
+              size=""
+              cta="show/hide column"
+              icon-size="15"
+              ></d-button>
+            <p class="font-medium text-[17px] text-[#212529]">Replace Invoice Maintenance Information</p>
+          </div>
+          <div class="grid grid-cols-6 gap-2">
+            <d-text-input
+              v-model="invoiceMaintenanceStore.repeatForm.title"
+              label="Title"
+              placeholder="Enter new title"
+            />
+            
+            <d-date-picker-light
+              v-model="invoiceMaintenanceStore.repeatForm.invoice_date"
+              label="Invoice Date"
+            ></d-date-picker-light>
+            
+            <d-date-picker-light
+              v-model="invoiceMaintenanceStore.repeatForm.due_date"
+              label="Due Date"
+            ></d-date-picker-light>
+            
+            <d-text-input
+              v-model="invoiceMaintenanceStore.repeatForm.remark"
+              label="Remark"
+              placeholder="Enter remark"
+            />
+            
+            <button
+              class="bg-brown-700 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-brown-800"
+              @click="invoiceMaintenanceStore.generateSelectedInvoices()"
+            >
+              Generate
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <v-data-table-server
+        v-model:page="queryModal.qRepeatInvoice.page"
+        v-model:items-per-page="queryModal.qRepeatInvoice.per_page"
+        :items="metaModal.repeatInvoice.data ?? []"
+        :headers="headerRepeatInvoice"
+        :items-length="metaModal.repeatInvoice.meta.total ?? 0"
+        :items-per-page-options="[10, 25, 50, 100]"
+        :loading="metaModal.repeatInvoice.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="id"
+        show-current-page
+        show-select
+        v-model="invoiceMaintenanceStore.selectedRepeatInvoices"
+        @update:options="(data:any) => invoiceMaintenanceStore.fetchRepeatDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.bank_name="{ item }">
+          <span v-if="item.bank_name && item.account_number && item.account_name">
+            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          </span>
+          <span v-else>
+            {{ item.bank_name || '-' }}
+          </span>
+        </template>
+
+        <template #item.exchange_rate="{ item }">
+          <d-num-layout :value="item.exchange_rate" />
+        </template>
+        <template #item.total_vat="{ item }">
+          <d-num-layout :value="item.total_vat" />
+        </template>
+        <template #item.total_pph23="{ item }">
+          <d-num-layout :value="item.total_pph23" />
+        </template>
+        <template #item.total_qty="{ item }">
+          <d-num-layout :value="item.total_qty" :precision="0" />
+        </template>
+        <template #item.total_amount_products="{ item }">
+          <d-num-layout :value="item.total_amount_products" />
+        </template>
+        <template #item.total_dp_products="{ item }">
+          <d-num-layout :value="item.total_dp_products" />
+        </template>
+        <template #item.total_balance_products="{ item }">
+          <d-num-layout :value="item.total_balance_products" />
+        </template>
+        <template #item.grand_total="{ item }">
+          <d-num-layout :value="item.grand_total" />
+        </template>
+        <template #item.status="{ item }">
+          <v-chip
+            :color="getStatusColor(item.status)"
+            size="small"
+            class="text-white"
+          >
+            {{ item.status }}
+          </v-chip>
+        </template>
+        <template #item.approved_status="{ item }">
+          <v-chip
+            :color="getStatusColor(item.approved_status)"
+            size="small"
+            class="text-white"
+          >
+            {{ item.approved_status }}
+          </v-chip>
+        </template>
+
+        <template #item.title="{ item }">
+          <d-text-input
+            v-model="item.title"
+            placeholder="Enter title"
+            density="compact"
+            hide-details
+            class="w-full"
+          />
+        </template>
+
+        <template #item.remark="{ item }">
+          <d-text-input
+            v-model="item.remark"
+            placeholder="Enter remark"
+            density="compact"
+            hide-details
+            class="w-full"
+          />
+        </template>
+
+        <template #item.invoice_date="{ item }">
+          <d-date-picker-light
+            v-model="item.invoice_date"
+            density="compact"
+            hide-details
+            class="w-full"
+          />
+        </template>
+
+        <template #item.due_date="{ item }">
+          <d-date-picker-light
+            v-model="item.due_date"
+            density="compact"
+            hide-details
+            class="w-full"
+          />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end items-center gap-2">
+          <button
+            class="flex items-center gap-2 rounded-md bg-gray-500 px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="invoiceMaintenanceStore.closeRepeatModal()"
+          >
+            <Icon name="material-symbols:cancel" size="20" />
+            Cancel
+          </button>
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="invoiceMaintenanceStore.repeatSelectedInvoices()"
+          >
+            <Icon name="material-symbols:repeat" size="20" />
+            Repeat Selected Invoice
+          </button>
+        </div>
+      </template>
+    </modals-final-modal>
   </div>
 </template>
 

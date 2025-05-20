@@ -1004,6 +1004,21 @@ watch(
             </v-data-table-virtual>
           </div>
         </div>
+
+        <div
+          v-else-if="
+            tabFormIndex == useStatics.formTabInvoiceMaintenance.remarks
+          "
+        >
+          <div class="lg:col-span-6 mt-1">
+            <d-rich-text
+              v-model="form.remark"
+              :label="`Remark`"
+              :placeholder="`Write the Remark...`"
+              class=""
+            />
+          </div>
+        </div>
       </template>
     </d-form-layout>
 

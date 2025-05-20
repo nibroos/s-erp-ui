@@ -232,11 +232,9 @@ function getStatusColor(status: string): string {
   }
 }
 
-async function changeStatus(id: number, status: string) {
-  const salesInvoiceStore = useSalesInvoiceStore();
-  await salesInvoiceStore.changeStatus(id, status);
-  await salesInvoiceStore.indexSalesInvoice();
-}
+const handleExportCsv = async () => {
+  await useSalesInvoiceStore().exportToCsv();
+};
 
 onMounted(() => {
   useSalesInvoiceStore().indexWidget();
@@ -274,6 +272,7 @@ onMounted(() => {
           show: true,
           cta: '+ Create',
         }"
+        @click:csv="handleExportCsv"
         @click:find="useSalesInvoiceStore().indexWidget()"
         @update:filters="
           (filters: QSalesInvoiceIndexType) => {

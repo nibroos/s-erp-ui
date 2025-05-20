@@ -116,34 +116,6 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       }
     },
 
-    // async show() {
-    //   if (!!this.loading.editPageLoading) return
-    //   this.loading.editPageLoading = true
-    //   try {
-    //     const response = await useMyFetch().post(
-    //       '/v1/invoice-adjustments/show-invoice-adjustment',
-    //       {
-    //         id: typeof this.form.id === 'string' ? parseInt(this.form.id) : this.form.id
-    //       }
-    //     )
-
-    //     this.form = response.data.data[0]
-
-    //     if (!this.form.email && this.form.customer_id) {
-    //       await this.fetchCustomerDetails(this.form.customer_id);
-    //     }
-
-    //     this.itemsCheck.checkMain = initCheckedInvoiceAdjustmentDt(this.form.adjustment_dts || []);
-
-    //     return response
-    //   } catch (error: any) {
-    //     console.log('Failed To Fetch Data', error.response.data)
-    //     useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice adjustment details!')
-    //   } finally {
-    //     this.loading.editPageLoading = false
-    //   }
-    // },
-
     async show() {
       if (!!this.loading.editPageLoading) return
       this.loading.editPageLoading = true
@@ -729,55 +701,6 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       this.calculateTotalAmount();
     },
 
-    // calculateTotalAmount() {
-    //   this.itemsCheck.checkMain.forEach((item: InvoiceAdjustmentDtType) => {
-    //     const calculatedAmount = item.adjustment_amount - item.admin_bank;
-    //     item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
-    //   });
-
-    //   this.form.total_invoice = this.itemsCheck.checkMain.reduce(
-    //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.invoice_amount,
-    //     0
-    //   );
-
-    //   this.form.total_adjustment = this.itemsCheck.checkMain.reduce(
-    //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.adjustment_amount,
-    //     0
-    //   );
-
-    //   const calculatedBalance = this.form.total_invoice - this.form.total_adjustment;
-    //   this.form.total_balance = calculatedBalance < 0 ? 0 : calculatedBalance;
-
-    //   this.form.total_admin_bank = this.itemsCheck.checkMain.reduce(
-    //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.admin_bank,
-    //     0
-    //   );
-
-    //   const calculatedGrandTotal = this.itemsCheck.checkMain.reduce(
-    //     (acc: number, item: InvoiceAdjustmentDtType) => acc + item.total_amount,
-    //     0
-    //   );
-    //   this.form.grand_total = calculatedGrandTotal < 0 ? 0 : calculatedGrandTotal;
-
-    //   if (this.formLayout.summary) {
-    //     this.formLayout.summary.total_invoice.value = this.form.total_invoice;
-    //     this.formLayout.summary.total_adjustment.value = this.form.total_adjustment;
-    //     this.formLayout.summary.total_balance.value = this.form.total_balance;
-    //     this.formLayout.summary.total_admin_bank.value = this.form.total_admin_bank;
-    //     this.formLayout.summary.grand_total.value = this.form.grand_total;
-    //   }
-
-    //   return {
-    //     summary: {
-    //       total_invoice: this.form.total_invoice,
-    //       total_adjustment: this.form.total_adjustment,
-    //       total_balance: this.form.total_balance,
-    //       total_admin_bank: this.form.total_admin_bank,
-    //       grand_total: this.form.grand_total,
-    //     },
-    //   };
-    // },
-
     calculateTotalAmount() {
       const selectedItems = this.itemsCheck.checkMain.filter(item => item.selected);
 
@@ -972,53 +895,6 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       this.calculateTotalAmount();
     },
 
-    // autoCalculateSelection() {
-    //   if (!this.form.payment_amount || this.form.payment_amount <= 0) {
-    //     useAlert.alertError('Please enter a valid payment amount first');
-    //     return;
-    //   }
-
-    //   const selectedItems = this.metaModal.indexInvoices.data.filter(item => item.selected);
-
-    //   if (selectedItems.length === 0) {
-    //     useAlert.alertError('No invoices selected for adjustment');
-    //     return;
-    //   }
-
-    //   this.metaModal.indexInvoices.data.forEach(item => {
-    //     if (!item.selected) {
-    //       item.adjustment_amount = 0;
-    //       item.total_amount = 0;
-    //     }
-    //   });
-
-    //   const sortedSelectedItems = selectedItems.sort((a, b) => {
-    //     const indexA = this.metaModal.indexInvoices.data.findIndex(item => 
-    //       item.invoice_uuid === a.invoice_uuid && item.ref_type === a.ref_type);
-    //     const indexB = this.metaModal.indexInvoices.data.findIndex(item => 
-    //       item.invoice_uuid === b.invoice_uuid && item.ref_type === b.ref_type);
-    //     return indexA - indexB;
-    //   });
-
-    //   let remainingAmount = this.form.payment_amount;
-    //   sortedSelectedItems.forEach(item => {
-    //     if (remainingAmount <= 0) {
-    //       item.adjustment_amount = 0;
-    //     } else if (remainingAmount >= item.balance_amount) {
-    //       item.adjustment_amount = item.balance_amount;
-    //       remainingAmount -= item.balance_amount;
-    //     } else {
-    //       item.adjustment_amount = remainingAmount;
-    //       remainingAmount = 0;
-    //     }
-
-    //     const calculatedAmount = (item.adjustment_amount || 0) - (item.admin_bank || 0);
-    //     item.total_amount = calculatedAmount < 0 ? 0 : calculatedAmount;
-    //   });
-
-    //   this.calculateTotalsFromSearchResults();
-    // },
-
     autoCalculateSelection() {
       if (!this.form.payment_amount || this.form.payment_amount <= 0) {
         useAlert.alertError('Please enter a valid payment amount first');
@@ -1168,59 +1044,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
         this.formLayout.summary.total_admin_bank.value = 0;
         this.formLayout.summary.grand_total.value = 0;
       }
-    },
-
-    // autoAdjustedAmountCalculate() {
-    //   if (!this.form.payment_amount || this.form.payment_amount <= 0) {
-    //     useAlert.alertError('Please enter a valid payment amount first');
-    //     return;
-    //   }
-
-    //   if (!this.metaModal.indexInvoices.data || this.metaModal.indexInvoices.data.length === 0) {
-    //     useAlert.alertError('No invoices available for adjustment');
-    //     return;
-    //   }
-
-    //   const adminBankValues = new Map();
-    //   this.metaModal.indexInvoices.data.forEach(item => {
-    //     if (item.admin_bank) {
-    //       adminBankValues.set(`${item.ref_type}-${item.ref_id}`, item.admin_bank);
-    //     }
-    //   });
-
-    //   this.metaModal.indexInvoices.data.forEach(item => {
-    //     item.selected = false;
-    //     item.adjustment_amount = 0;
-    //     item.total_amount = 0;
-    //   });
-
-    //   const { updatedInvoices } = autoCalculateAdjustments(
-    //     this.metaModal.indexInvoices.data,
-    //     this.form.payment_amount
-    //   );
-
-    //   updatedInvoices.forEach(invoice => {
-    //     const key = `${invoice.ref_type}-${invoice.ref_id}`;
-    //     if (adminBankValues.has(key)) {
-    //       invoice.admin_bank = adminBankValues.get(key);
-    //     }
-    //   });
-
-    //   this.metaModal.indexInvoices.data = updatedInvoices;
-
-    //   this.itemsCheck.checkMain = [];
-
-    //   updatedInvoices.forEach(invoice => {
-    //     if (invoice.selected) {
-    //       const adjustmentItem = convertInvoiceAdjustmentItemRef(invoice, invoice.ref_type);
-    //       adjustmentItem.adjustment_amount = invoice.adjustment_amount || 0;
-    //       adjustmentItem.admin_bank = invoice.admin_bank || 0;
-    //       this.itemsCheck.checkMain.push(adjustmentItem);
-    //     }
-    //   });
-
-    //   this.calculateTotalsFromSearchResults();
-    // },   
+    }, 
 
     autoAdjustedAmountCalculate() {
       if (!this.form.payment_amount || this.form.payment_amount <= 0) {
@@ -1351,6 +1175,50 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
       });
 
       this.calculateTotalAmount();
+    },
+
+    async exportToCsv() {
+      if (this.metaModal.index.loading) return;
+      this.metaModal.index.loading = true;
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-adjustments/csv-invoice-adjustment',
+          this.queryModal.qIndex,
+          {
+            responseType: 'blob'
+          }
+        );
+
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          const jsonData = await response.json();
+          useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
+        } else {
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          
+          const today = new Date();
+          const dateStr = today.toISOString().split('T')[0];
+          
+          a.download = `invoice_adjustment_${dateStr}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          // useAlert.alertSuccess('CSV file downloaded successfully');
+        }
+        
+        return response;
+      } catch (error: any) {
+        console.log('Failed To Export CSV', error);
+        useAlert.alertError('Failed to export CSV!');
+      } finally {
+        this.metaModal.index.loading = false;
+      }
     }
 
   },
