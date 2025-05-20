@@ -36,14 +36,24 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       qIndexSalesOrders: {
         page: 1,
         per_page: 100,
-        sales_order_ids: [],
+        parent_ids: [],
+        global: '',
+        order_column: 'invoice_date',
+        order_direction: 'desc'
+      } as QIndexSalesOrdersType,
+
+      qRepeatInvoice: {
+        page: 1,
+        per_page: 100,
         customer_ids: [],
-        customer_id: null,
+        start_date: '',
+        end_date: '',
+        status: '',
+        global: '',
+        invoice_no: '',
         order_column: '',
-        order_direction: 'desc',
-        specific_ids: '',
-        invoice_id: null
-      } as QIndexSalesOrdersType
+        order_direction: 'desc'
+      } as QRepeatInvoiceMaintenanceIndexType,
     },
     metaModal: {
       index: {
@@ -61,6 +71,11 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      repeatInvoice: {
+        data: [] as IndexInvoiceMaintenanceType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
     },
     loading: {
       formLoading: false,
@@ -73,8 +88,10 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       checkMain: [] as InvoiceMaintenanceDtType[],
       checkSalesOrders: [] as FormInvoiceMaintenanceDtProductListType[],
     },
+    selectedRepeatInvoices: [] as any[],
     isOpenModal: {
       salesOrders: false,
+      repeatInvoice: false,
     },
     optionRefBtnRef: [
       {
@@ -115,7 +132,7 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       title: "Basic Information",
       parentPath: "/invoices/invoice-maintenances",
       currentTab: 0,
-      tabs: ["Items", "Remark", "Attachments"],
+      tabs: ["Items", "Remark"],
       button: {
         clear: {
           show: true,
@@ -127,6 +144,17 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       bank_name: '',
       account_number: '',
       account_name: ''
+    },
+    repeatForm: {
+      title: '',
+      invoice_date: '',
+      due_date: '',
+      remark: ''
+    } as {
+      title: string,
+      invoice_date: string,
+      due_date: string,
+      remark: string
     },
   }),
 
@@ -1147,6 +1175,199 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         return null;
       }
     },
+
+    async indexRepeatInvoiceMaintenance() {
+      if (this.metaModal.repeatInvoice.loading) return
+      this.metaModal.repeatInvoice.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/index-invoice-maintenance',
+          this.queryModal.qRepeatInvoice
+        )
+
+        this.metaModal.repeatInvoice = response.data
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Repeat Invoice Data', error?.response?.data)
+        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice maintenances for repeat!')
+      } finally {
+        this.metaModal.repeatInvoice.loading = false
+      }
+    },
+
+    openRepeatModal() {
+      this.isOpenModal.repeatInvoice = true;
+      this.selectedRepeatInvoices = [];
+      this.repeatForm = {
+        title: '',
+        invoice_date: new Date().toISOString().split('T')[0],
+        due_date: '',
+        remark: ''
+      };
+      this.indexRepeatInvoiceMaintenance();
+    },
+
+    closeRepeatModal() {
+      this.isOpenModal.repeatInvoice = false;
+    },
+
+    fetchRepeatDataServerFetch(options: { [key: string]: any }) {
+      this.queryModal.qRepeatInvoice.page = options.page;
+      this.queryModal.qRepeatInvoice.per_page = options.itemsPerPage;
+
+      if (options.sortBy && options.sortBy.length > 0) {
+        this.queryModal.qRepeatInvoice.order_column = options.sortBy[0].key;
+        this.queryModal.qRepeatInvoice.order_direction = options.sortBy[0].order;
+      } else {
+        this.queryModal.qRepeatInvoice.order_column = "invoice_date";
+        this.queryModal.qRepeatInvoice.order_direction = "desc";
+      }
+
+      this.indexRepeatInvoiceMaintenance();
+    },
+
+    async handleRepeatFilterChange() {
+      this.queryModal.qRepeatInvoice.page = 1;
+      await this.indexRepeatInvoiceMaintenance();
+    },
+
+    clearRepeatFilters() {
+      this.queryModal.qRepeatInvoice = {
+        page: 1,
+        per_page: 100,
+        customer_ids: [],
+        global: '',
+        order_column: 'invoice_date',
+        order_direction: 'desc',
+        invoice_no: '',
+        start_date: '',
+        end_date: '',
+        status: null
+      };
+      this.indexRepeatInvoiceMaintenance();
+    },
+
+    generateSelectedInvoices() {
+      if (!this.selectedRepeatInvoices || this.selectedRepeatInvoices.length === 0) {
+        useAlert.alertError('Please select at least one invoice to update');
+        return;
+      }
+
+      const { title, invoice_date, due_date, remark } = this.repeatForm;
+
+      this.metaModal.repeatInvoice.data = this.metaModal.repeatInvoice.data.map(invoice => {
+        if (this.selectedRepeatInvoices.includes(invoice.id)) {
+          return {
+            ...invoice,
+            title: title || invoice.title,
+            invoice_date: invoice_date || invoice.invoice_date,
+            due_date: due_date || invoice.due_date,
+            remark: remark || invoice.remark
+          };
+        }
+        return invoice;
+      });
+    },
+
+    setSelectedRepeatInvoices(invoices: any[]) {
+      this.selectedRepeatInvoices = [...invoices];
+    },
+
+    async repeatSelectedInvoices() {
+      if (this.selectedRepeatInvoices.length === 0) {
+        useAlert.alertError('Please select at least one invoice to repeat');
+        return;
+      }
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Repeat Invoice Confirmation',
+        `Are you sure you want to repeat ${this.selectedRepeatInvoices.length} selected invoice(s)?`
+      );
+
+      if (!isConfirmed) return;
+
+      try {
+        const selectedInvoices = this.metaModal.repeatInvoice.data.filter(
+          invoice => this.selectedRepeatInvoices.includes(invoice.id)
+        );
+
+        const invoiceUpdates = selectedInvoices.map(invoice => ({
+          id: invoice.id,
+          title: invoice.title,
+          invoice_date: invoice.invoice_date,
+          due_date: invoice.due_date,
+          remark: invoice.remark
+        }));
+
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/repeat-invoice-maintenance',
+          {
+            invoices: invoiceUpdates,
+            default_title: this.repeatForm.title || null,
+            default_invoice_date: this.repeatForm.invoice_date || null,
+            default_due_date: this.repeatForm.due_date || null,
+            default_remark: this.repeatForm.remark || null
+          }
+        );
+
+        useAlert.alertSuccess(response.data.message || 'Invoices repeated successfully');
+        this.closeRepeatModal();
+        this.indexInvoiceMaintenance();
+
+        setTimeout(() => {
+          window.location.href = '/invoices/invoice-maintenances';
+        }, 1000);
+
+        return response;
+      } catch (error: any) {
+        console.log('Failed to repeat invoices', error?.response?.data);
+        useAlert.alertError(error?.response?.data?.message || 'Failed to repeat invoices');
+      }
+    },
+
+    async exportToCsv() {
+      if (this.metaModal.index.loading) return;
+      this.metaModal.index.loading = true;
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/csv-invoice-maintenance',
+          this.queryModal.qIndex,
+          {
+            responseType: 'blob'
+          }
+        );
+
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          const jsonData = await response.json();
+          useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
+        } else {
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const today = new Date();
+          const dateStr = today.toISOString().split('T')[0];
+          a.download = `invoice_maintenance_${dateStr}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          // useAlert.alertSuccess('CSV file downloaded successfully');
+        }
+        
+        return response;
+      } catch (error: any) {
+        console.log('Failed To Export CSV', error);
+        useAlert.alertError('Failed to export CSV!');
+      } finally {
+        this.metaModal.index.loading = false;
+      }
+    }
 
     // goToInvoiceMaintenance(id: number) {
     //   navigateTo(`/invoices/invoice-maintenances/edit/${id}`);

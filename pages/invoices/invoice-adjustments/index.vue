@@ -195,6 +195,10 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "title",
   },
 ]);
+
+const handleExportCsv = async () => {
+  await useInvoiceAdjustmentStore().exportToCsv();
+};
 </script>
 
 <template>
@@ -228,6 +232,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
           show: true,
           cta: '+ Create',
         }"
+        @click:csv="handleExportCsv"
         @update:filters="
           (filters: QInvoiceAdjustmentIndexType) => {
             queryModal.qIndex = filters;

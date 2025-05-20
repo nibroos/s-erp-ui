@@ -131,6 +131,7 @@ const emits = defineEmits([
   "click:delete",
   "click:pdf",
   "update:currentTab",
+  "click:csv",
 ]);
 
 const loadings = ref({
@@ -568,6 +569,10 @@ const onDoubleClick = async (event: any, row: any) => {
   navigateTo(`${props.editLink}/${row.item.id}`);
 };
 
+const exportToCsv = async () => {
+  emits("click:csv", filters.value);
+};
+
 const getDefaultTabSlotNameIndex = (): number => {
   if (!props.isDefaultTabSlotExists || !tabs.value) {
     return -1;
@@ -757,6 +762,7 @@ defineExpose({
         <d-submit-button
           @click:submit="filterData"
           @click:clear="clearFilters"
+          @click:csv="exportToCsv"
           class="col-span-4 md:col-span-full"
         >
           <template #append>

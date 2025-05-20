@@ -1293,6 +1293,48 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       this.headAutocomplete.so.is_pph23 = data.is_pph23 as number;
     },
 
+    async exportToCsv() {
+      if (this.metaModal.index.loading) return;
+      this.metaModal.index.loading = true;
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-invoices/csv-sales-invoice',
+          this.queryModal.qIndex,
+          {
+            responseType: 'blob'
+          }
+        );
+
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          const jsonData = await response.json();
+          useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
+        } else {
+          const blob = new Blob([response.data], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const today = new Date();
+          const dateStr = today.toISOString().split('T')[0];
+          a.download = `invoice_sales_${dateStr}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          // useAlert.alertSuccess('CSV file downloaded successfully');
+        }
+        
+        return response;
+      } catch (error: any) {
+        console.log('Failed To Export CSV', error);
+        useAlert.alertError('Failed to export CSV!');
+      } finally {
+        this.metaModal.index.loading = false;
+      }
+    },
+
     goToSalesInvoice(id: number) {
       navigateTo(`/invoices/invoice-sales/edit/${id}`);
     }
