@@ -7,7 +7,7 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
-import { storeToRefs } from 'pinia';
+import { storeToRefs } from "pinia";
 
 const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
 const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
@@ -355,6 +355,12 @@ const actionOptions = ref([
     icon: "mdi-cancel",
     iconColor: "text-red-500",
   },
+  {
+    title: "Send Email",
+    value: "email",
+    icon: "mdi-email",
+    iconColor: "text-blue-500",
+  },
 ]);
 
 const selectedAction = ref(null);
@@ -364,6 +370,8 @@ function handleActionSelected(action: any) {
     enterApprovalMode("approve");
   } else if (action?.value === "cancel") {
     enterApprovalMode("cancel");
+  } else if (action?.value === "email") {
+    enterApprovalMode("email");
   }
 }
 
@@ -390,7 +398,10 @@ function isInvoiceSelectable(item: any): boolean {
     return (
       item.approved_status === "APPROVED" && item.total_adjustment === null
     );
+  } else if (currentMode.value === "email") {
+    return item.approved_status === "APPROVED";
   }
+
   return false;
 }
 
@@ -401,7 +412,12 @@ async function proceedApproval() {
   }
 
   const actionText =
-    currentMode.value === "approve" ? "approve" : "cancel approval for";
+    // currentMode.value === "approve" ? "approve" : "cancel approval for";
+    currentMode.value === "approve"
+      ? "approve"
+      : currentMode.value === "cancel"
+      ? "cancel approval"
+      : "send email";
   const isConfirmed = await useAlert.showPopupConfirmation(
     "Invoice Maintenance Validation",
     `Are you sure to ${actionText} selected invoice maintenance? Please ensure all information is correct before proceed.`
@@ -416,8 +432,12 @@ async function proceedApproval() {
       response = await invoiceMaintenanceStore.approveInvoiceMaintenance(
         selectedInvoices.value
       );
-    } else {
+    } else if (currentMode.value === "cancel") {
       response = await invoiceMaintenanceStore.cancelApprovalInvoiceMaintenance(
+        selectedInvoices.value
+      );
+    } else if (currentMode.value === "email") {
+      response = await invoiceMaintenanceStore.sendEmailInvoicesMaintenance(
         selectedInvoices.value
       );
     }
@@ -427,13 +447,17 @@ async function proceedApproval() {
     const successMessage =
       currentMode.value === "approve"
         ? "Selected invoices have been approved successfully"
-        : "Approval has been cancelled for selected invoices";
+        : // : "Approval has been cancelled for selected invoices";
+        currentMode.value === "cancel"
+        ? "Approval has been cancelled for selected invoices"
+        : "Email has been sent for selected invoices";
 
     useAlert.alertSuccess(successMessage);
 
     await invoiceMaintenanceStore.indexInvoiceMaintenance();
 
-    window.location.href = "/invoices/invoice-maintenances";
+    await onClickFilter("invoiceMaintenance");
+    // window.location.href = "/invoices/invoice-maintenances";
   } catch (error) {
     console.error(
       `Error ${
@@ -452,10 +476,16 @@ async function proceedApproval() {
 }
 
 function handleRepeatButtonClick() {
-  console.log('Repeat button clicked');
-  console.log('Before: isOpenModal.repeatInvoice =', invoiceMaintenanceStore.isOpenModal.repeatInvoice);
+  console.log("Repeat button clicked");
+  console.log(
+    "Before: isOpenModal.repeatInvoice =",
+    invoiceMaintenanceStore.isOpenModal.repeatInvoice
+  );
   invoiceMaintenanceStore.openRepeatModal();
-  console.log('After: isOpenModal.repeatInvoice =', invoiceMaintenanceStore.isOpenModal.repeatInvoice);
+  console.log(
+    "After: isOpenModal.repeatInvoice =",
+    invoiceMaintenanceStore.isOpenModal.repeatInvoice
+  );
 }
 
 const handleExportCsv = async () => {
@@ -465,6 +495,18 @@ const handleExportCsv = async () => {
 onMounted(() => {
   useInvoiceMaintenanceStore().indexWidget();
 });
+
+const invoiceMaintenanceExposeRef = ref();
+// Trigger the openModal method
+const onClickFilter = async (type: "invoiceMaintenance") => {
+  if (invoiceMaintenanceExposeRef.value && type == "invoiceMaintenance") {
+    invoiceMaintenanceExposeRef.value.filterData();
+  } else {
+    console.error("method is not available on exposed Ref");
+  }
+
+  // await openModal(filteredModalForms.value);
+};
 </script>
 
 <template>
@@ -478,6 +520,7 @@ onMounted(() => {
       }"
     >
       <d-datatable
+        ref="invoiceMaintenanceExposeRef"
         api="/v1/invoice-maintenances/index-invoice-maintenance"
         detail-link="/invoices/invoice-maintenances"
         method-api="post"
@@ -490,6 +533,7 @@ onMounted(() => {
         no-title
         edit-link="/invoices/invoice-maintenances/edit"
         delete-api="/v1/invoice-maintenances/delete-invoice-maintenance"
+        pdf-api="/v1/invoice-maintenances/pdf-invoice-maintenance"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
@@ -515,10 +559,10 @@ onMounted(() => {
         </template>
         <template #actions>
           <div class="flex items-center gap-2">
-            <button 
+            <button
               @click="handleRepeatButtonClick"
               class="px-4 py-2 bg-brown-700 text-white rounded mr-2 flex items-center hover:bg-brown-800 transition-colors duration-300"
-              >
+            >
               <i class="mdi mdi-repeat mr-1"></i> Repeat
             </button>
 
@@ -547,7 +591,9 @@ onMounted(() => {
                       <template #prepend>
                         <i :class="[item.raw.icon, item.raw.iconColor]"></i>
                       </template>
-                      <v-list-item-title>{{ item.raw.title }}</v-list-item-title>
+                      <v-list-item-title>{{
+                        item.raw.title
+                      }}</v-list-item-title>
                     </v-list-item>
                   </template>
                 </d-autocomplete-client>
@@ -557,6 +603,7 @@ onMounted(() => {
                 <button
                   @click="proceedApproval"
                   class="px-4 py-1.5 bg-brown-700 text-white rounded mr-2 flex items-center border !border-[#70544b]"
+                  type="button"
                 >
                   <i class="mdi mdi-check mr-1"></i>
                   {{ currentMode === "approve" ? "Proceed" : "Proceed" }} ({{
@@ -576,7 +623,7 @@ onMounted(() => {
                   <i class="mdi mdi-close mr-1"></i> Cancel
                 </button>
               </div>
-          </div>
+            </div>
           </div>
         </template>
 
@@ -593,11 +640,14 @@ onMounted(() => {
         </template>
 
         <template #item.bank_name="{ item }">
-          <span v-if="item.bank_name && item.account_number && item.account_name">
-            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          <span
+            v-if="item.bank_name && item.account_number && item.account_name"
+          >
+            {{ item.bank_name }} - {{ item.account_number }} -
+            {{ item.account_name }}
           </span>
           <span v-else>
-            {{ item.bank_name || '-' }}
+            {{ item.bank_name || "-" }}
           </span>
         </template>
 
@@ -671,7 +721,7 @@ onMounted(() => {
       @update:is-open="isOpenModal.repeatInvoice = $event"
     >
       <template #top>
-        <hr class="border-t border-gray-300 my-1 w-full">
+        <hr class="border-t border-gray-300 my-1 w-full" />
         <div class="flex items-center gap-2">
           <d-button
             icon="mdi-eye-off"
@@ -683,12 +733,10 @@ onMounted(() => {
             size=""
             cta="show/hide column"
             icon-size="15"
-            ></d-button>
+          ></d-button>
           <p class="font-medium text-[17px] text-[#212529]">Filter Search</p>
         </div>
-        <form
-          class="grid grid-cols-7 w-full flex-row items-center gap-2 mb-4"
-        >
+        <form class="grid grid-cols-7 w-full flex-row items-center gap-2 mb-4">
           <d-autocomplete
             v-model="queryModal.qRepeatInvoice.customer_id"
             :query="{
@@ -770,8 +818,10 @@ onMounted(() => {
               size=""
               cta="show/hide column"
               icon-size="15"
-              ></d-button>
-            <p class="font-medium text-[17px] text-[#212529]">Replace Invoice Maintenance Information</p>
+            ></d-button>
+            <p class="font-medium text-[17px] text-[#212529]">
+              Replace Invoice Maintenance Information
+            </p>
           </div>
           <div class="grid grid-cols-6 gap-2">
             <d-text-input
@@ -779,23 +829,23 @@ onMounted(() => {
               label="Title"
               placeholder="Enter new title"
             />
-            
+
             <d-date-picker-light
               v-model="invoiceMaintenanceStore.repeatForm.invoice_date"
               label="Invoice Date"
             ></d-date-picker-light>
-            
+
             <d-date-picker-light
               v-model="invoiceMaintenanceStore.repeatForm.due_date"
               label="Due Date"
             ></d-date-picker-light>
-            
+
             <d-text-input
               v-model="invoiceMaintenanceStore.repeatForm.remark"
               label="Remark"
               placeholder="Enter remark"
             />
-            
+
             <button
               class="bg-brown-700 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-brown-800"
               @click="invoiceMaintenanceStore.generateSelectedInvoices()"
@@ -831,11 +881,14 @@ onMounted(() => {
         hover
       >
         <template #item.bank_name="{ item }">
-          <span v-if="item.bank_name && item.account_number && item.account_name">
-            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          <span
+            v-if="item.bank_name && item.account_number && item.account_name"
+          >
+            {{ item.bank_name }} - {{ item.account_number }} -
+            {{ item.account_name }}
           </span>
           <span v-else>
-            {{ item.bank_name || '-' }}
+            {{ item.bank_name || "-" }}
           </span>
         </template>
 

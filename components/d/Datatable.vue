@@ -1037,11 +1037,16 @@ defineExpose({
 
               <slot name="actions.pdf" :item="item" :index="index">
                 <d-button
-                  v-if="!props.noPdf"
+                  v-if="props.pdfApi"
                   @click="onClickPdf($event, { item, index })"
-                  icon="mdi-download"
+                  :icon="loadings.pdfLoading ? 'mdi-loading' : 'mdi-download'"
                   class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                  icon-class="text-cancel dark:text-primary1"
+                  :icon-class="
+                    classMerge(
+                      'text-cancel dark:text-primary1',
+                      loadings.pdfLoading ? 'animate-spin' : ''
+                    )
+                  "
                   text-class="text-cancel dark:text-primary1"
                   rounded="xl"
                   size=""

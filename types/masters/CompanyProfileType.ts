@@ -15,6 +15,7 @@ export type FormCompanyProfileType = {
   company_address?: string | null
   company_phone?: string | null
   company_email?: string | null
+  company_email_password?: string | null
   company_website?: string | null
   company_sign?: string | File | null
   company_logo?: string | File | null

@@ -29,13 +29,15 @@ const handleSubmit = async () => {
 const handleClickClear = async () => {
   const currentId = form.value.id;
 
-  form.value = JSON.parse(JSON.stringify(useInitials.formCompanyProfileCreateEdit));
+  form.value = JSON.parse(
+    JSON.stringify(useInitials.formCompanyProfileCreateEdit)
+  );
 
   form.value.id = currentId;
 
   errors.value = {};
-  logoPreview.value = '';
-  signaturePreview.value = '';
+  logoPreview.value = "";
+  signaturePreview.value = "";
 };
 
 const logoPreview = ref("");
@@ -184,7 +186,7 @@ onMounted(async () => {
               <v-icon size="small">mdi-content-save</v-icon>
               <span>{{ formLoading ? "Updating..." : "Update" }}</span>
             </button>
-  
+
             <button
               type="button"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-1"
@@ -197,9 +199,11 @@ onMounted(async () => {
         </div>
 
         <div class="mb-3">
-          <p class="text-[16.5px] font-medium text-[#6C757D]">Company Information</p>
+          <p class="text-[16.5px] font-medium text-[#6C757D]">
+            Company Information
+          </p>
         </div>
-  
+
         <!-- Form content -->
         <form
           :class="
@@ -258,7 +262,7 @@ onMounted(async () => {
                 {{ errors.company_logo }}
               </div>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col mt-3">
               <div class="flex items-start gap-4">
                 <div
@@ -274,7 +278,9 @@ onMounted(async () => {
                     v-else
                     class="flex flex-col items-center justify-center text-center"
                   >
-                    <v-icon size="large" color="#919EAB"> mdi-signature </v-icon>
+                    <v-icon size="large" color="#919EAB">
+                      mdi-signature
+                    </v-icon>
                     <div class="text-xs text-[#919EAB] mt-1">No Sign</div>
                   </div>
                 </div>
@@ -307,7 +313,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-  
+
           <div class="grid grid-cols-5 gap-4 w-4/5">
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
@@ -318,7 +324,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_owner_name"
@@ -328,7 +334,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_phone"
@@ -338,7 +344,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_email"
@@ -348,7 +354,18 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
+            <div class="sm:col-span-1 flex flex-col">
+              <d-text-input
+                v-model="form.company_email_password"
+                type="password"
+                :label="`Password`"
+                :placeholder="`Password`"
+                :errors="[errors.company_email_password]"
+              >
+              </d-text-input>
+            </div>
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_website"
@@ -358,7 +375,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_city"
@@ -368,7 +385,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_province"
@@ -378,7 +395,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_district"
@@ -388,7 +405,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_postal_code"
@@ -398,7 +415,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 flex flex-col">
               <d-text-input
                 v-model="form.company_address"
@@ -408,7 +425,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <div class="sm:col-span-1 col-span-2 flex flex-col">
               <d-text-input
                 v-model="form.company_remark"
@@ -418,8 +435,8 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
-            <div class="sm:col-span-3 col-span-3 flex flex-col">
+
+            <div class="sm:col-span-3 col-span-2 flex flex-col">
               <d-text-input
                 v-model="form.company_description"
                 :label="`Description`"
@@ -428,7 +445,7 @@ onMounted(async () => {
               >
               </d-text-input>
             </div>
-  
+
             <!-- <div class="sm:col-span-1">
             <d-switch-status v-model="form.company_status" :label="`Status`" />
           </div>
@@ -437,7 +454,7 @@ onMounted(async () => {
             <d-switch-status v-model="form.is_primary" :label="`Default`" />
           </div> -->
           </div>
-  
+
           <d-button type="submit" class="!hidden"></d-button>
         </form>
       </div>
