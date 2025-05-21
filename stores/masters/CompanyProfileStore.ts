@@ -22,6 +22,7 @@ const useCompanyProfileStore = defineStore('CompanyProfileStore', {
       company_address: '',
       company_phone: '',
       company_email: '',
+      company_email_password: '',
       company_website: '',
       company_sign: null,
       company_logo: null,

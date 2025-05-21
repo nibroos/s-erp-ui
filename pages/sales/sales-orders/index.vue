@@ -310,7 +310,6 @@ onMounted(() => {
         search-placeholder="Search anything related to Order.."
         is-quick-select
         no-title
-        :no-pdf="false"
         edit-link="/sales/sales-orders/edit"
         delete-api="/v1/sales-orders/delete-sales-order"
         pdf-api="/v1/sales-orders/pdf-sales-order"
