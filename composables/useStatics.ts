@@ -347,6 +347,12 @@ const priorityTypes = [
   { id: 'LOW', name: 'LOW' },
 ]
 
+const dashboardInvoiceType = [
+  { id: 'invoice_dp', name: 'INVOICE DP' },
+  { id: 'invoice_sales', name: 'INVOICE SALES' },
+  { id: 'invoice_maintenance', name: 'INVOICE MAINTENANCE' },
+]
+
 const formTabSalesOrder = {
   // payments: 0,
   items: 0,
@@ -597,6 +603,7 @@ const initialColorsStatus = [
     color: "text-[#00B8D9]",
     border: "border-[#00B8D9]",
     base: "[#00B8D9]",
+    hex: "#3085fe",
   },
   {
     name: "Order",
@@ -627,6 +634,7 @@ const initialColorsStatus = [
     color: "text-orange-700",
     border: "border-orange-700",
     base: "orange-700",
+    hex: "#dc3545",
     // --
   },
   {
@@ -673,6 +681,7 @@ const initialColorsStatus = [
     color: "text-emerald-700",
     border: "border-emerald-700",
     base: "emerald-700",
+    hex: "#36B37E",
     // --
   },
   {
@@ -682,6 +691,7 @@ const initialColorsStatus = [
     color: "text-rose-700",
     border: "border-rose-700",
     base: "rose-700",
+    hex: "#FF5630",
   },
   {
     name: "Canceled",
@@ -690,6 +700,7 @@ const initialColorsStatus = [
     color: "text-rose-700",
     border: "border-rose-700",
     base: "rose-700",
+    hex: "#cc9a06",
   },
   // holding
   {
@@ -925,4 +936,5 @@ export const useStatics = {
   priorityTypes,
   ticketIndexStatus,
   headerSentEmails,
+  dashboardInvoiceType,
 }

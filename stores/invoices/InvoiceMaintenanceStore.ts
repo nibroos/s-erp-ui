@@ -128,6 +128,8 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         discount_percentage: 0,
         remark: '' as string | null | undefined,
         is_pph23: 0 as number | null | undefined,
+        due_at: '' as string | null | undefined,
+        due_date: '' as string | null | undefined,
       }
     },
     formLayout: {
@@ -413,6 +415,10 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
     async indexSalesOrder() {
       if (this.metaModal.indexSalesOrders.loading) return
       this.metaModal.indexSalesOrders.loading = true
+
+      if (this.itemsCheck.checkSalesOrders.length > 0) {
+        this.queryModal.qIndexSalesOrders.customer_id = this.itemsCheck.checkSalesOrders[0].customer_id
+      }
 
       try {
         if (!this.queryModal.qIndexSalesOrders.specific_ids && this.itemsCheck.checkMain && this.itemsCheck.checkMain.length > 0) {
@@ -786,6 +792,9 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         if (!this.form.remark && firstSelectedItem.head_remark) {
           this.form.remark = firstSelectedItem.head_remark;
         }
+
+        this.form.due_date = firstSelectedItem.due_at;
+        this.form.bank_id = firstSelectedItem.payment_id;
       }
 
       const existingItems = [...this.itemsCheck.checkMain];
@@ -873,6 +882,8 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
 
     autocompleteSalesOrder(data: FormInvoiceMaintenanceDtProductListType) {
       this.form.customer_id = data.customer_id;
+      this.headAutocomplete.so.due_at = data.due_at;
+      this.headAutocomplete.so.due_date = data.due_at;
       this.headAutocomplete.so.currency_id = data.currency_id;
       this.headAutocomplete.so.exchange_rate = data.exchange_rate;
       this.headAutocomplete.so.vat_id = data.head_vat_id;
@@ -1417,177 +1428,6 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         this.loading.pdfLoading = false
       }
     },
-    openRepeatModal() {
-      this.isOpenModal.repeatInvoice = true;
-      this.selectedRepeatInvoices = [];
-      this.repeatForm = {
-        title: '',
-        invoice_date: new Date().toISOString().split('T')[0],
-        due_date: '',
-        remark: ''
-      };
-      this.indexRepeatInvoiceMaintenance();
-    },
-
-    closeRepeatModal() {
-      this.isOpenModal.repeatInvoice = false;
-    },
-
-    fetchRepeatDataServerFetch(options: { [key: string]: any }) {
-      this.queryModal.qRepeatInvoice.page = options.page;
-      this.queryModal.qRepeatInvoice.per_page = options.itemsPerPage;
-
-      if (options.sortBy && options.sortBy.length > 0) {
-        this.queryModal.qRepeatInvoice.order_column = options.sortBy[0].key;
-        this.queryModal.qRepeatInvoice.order_direction = options.sortBy[0].order;
-      } else {
-        this.queryModal.qRepeatInvoice.order_column = "invoice_date";
-        this.queryModal.qRepeatInvoice.order_direction = "desc";
-      }
-
-      this.indexRepeatInvoiceMaintenance();
-    },
-
-    async handleRepeatFilterChange() {
-      this.queryModal.qRepeatInvoice.page = 1;
-      await this.indexRepeatInvoiceMaintenance();
-    },
-
-    clearRepeatFilters() {
-      this.queryModal.qRepeatInvoice = {
-        page: 1,
-        per_page: 100,
-        customer_ids: [],
-        global: '',
-        order_column: 'invoice_date',
-        order_direction: 'desc',
-        invoice_no: '',
-        start_date: '',
-        end_date: '',
-        status: null
-      };
-      this.indexRepeatInvoiceMaintenance();
-    },
-
-    generateSelectedInvoices() {
-      if (!this.selectedRepeatInvoices || this.selectedRepeatInvoices.length === 0) {
-        useAlert.alertError('Please select at least one invoice to update');
-        return;
-      }
-
-      const { title, invoice_date, due_date, remark } = this.repeatForm;
-
-      this.metaModal.repeatInvoice.data = this.metaModal.repeatInvoice.data.map(invoice => {
-        if (this.selectedRepeatInvoices.includes(invoice.id)) {
-          return {
-            ...invoice,
-            title: title || invoice.title,
-            invoice_date: invoice_date || invoice.invoice_date,
-            due_date: due_date || invoice.due_date,
-            remark: remark || invoice.remark
-          };
-        }
-        return invoice;
-      });
-    },
-
-    setSelectedRepeatInvoices(invoices: any[]) {
-      this.selectedRepeatInvoices = [...invoices];
-    },
-
-    async repeatSelectedInvoices() {
-      if (this.selectedRepeatInvoices.length === 0) {
-        useAlert.alertError('Please select at least one invoice to repeat');
-        return;
-      }
-
-      const isConfirmed = await useAlert.showPopupConfirmation(
-        'Repeat Invoice Confirmation',
-        `Are you sure you want to repeat ${this.selectedRepeatInvoices.length} selected invoice(s)?`
-      );
-
-      if (!isConfirmed) return;
-
-      try {
-        const selectedInvoices = this.metaModal.repeatInvoice.data.filter(
-          invoice => this.selectedRepeatInvoices.includes(invoice.id)
-        );
-
-        const invoiceUpdates = selectedInvoices.map(invoice => ({
-          id: invoice.id,
-          title: invoice.title,
-          invoice_date: invoice.invoice_date,
-          due_date: invoice.due_date,
-          remark: invoice.remark
-        }));
-
-        const response = await useMyFetch().post(
-          '/v1/invoice-maintenances/repeat-invoice-maintenance',
-          {
-            invoices: invoiceUpdates,
-            default_title: this.repeatForm.title || null,
-            default_invoice_date: this.repeatForm.invoice_date || null,
-            default_due_date: this.repeatForm.due_date || null,
-            default_remark: this.repeatForm.remark || null
-          }
-        );
-
-        useAlert.alertSuccess(response.data.message || 'Invoices repeated successfully');
-        this.closeRepeatModal();
-        this.indexInvoiceMaintenance();
-
-        setTimeout(() => {
-          window.location.href = '/invoices/invoice-maintenances';
-        }, 1000);
-
-        return response;
-      } catch (error: any) {
-        console.log('Failed to repeat invoices', error?.response?.data);
-        useAlert.alertError(error?.response?.data?.message || 'Failed to repeat invoices');
-      }
-    },
-
-    async exportToCsv() {
-      if (this.metaModal.index.loading) return;
-      this.metaModal.index.loading = true;
-
-      try {
-        const response = await useMyFetch().post(
-          '/v1/invoice-maintenances/csv-invoice-maintenance',
-          this.queryModal.qIndex,
-          {
-            responseType: 'blob'
-          }
-        );
-
-        const contentType = response.headers.get('content-type');
-
-        if (contentType && contentType.includes('application/json')) {
-          const jsonData = await response.json();
-          useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
-        } else {
-          const blob = new Blob([response.data], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          const today = new Date();
-          const dateStr = today.toISOString().split('T')[0];
-          a.download = `invoice_maintenance_${dateStr}.csv`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-          // useAlert.alertSuccess('CSV file downloaded successfully');
-        }
-
-        return response;
-      } catch (error: any) {
-        console.log('Failed To Export CSV', error);
-        useAlert.alertError('Failed to export CSV!');
-      } finally {
-        this.metaModal.index.loading = false;
-      }
-    }
     // goToInvoiceMaintenance(id: number) {
     //   navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
     // }     

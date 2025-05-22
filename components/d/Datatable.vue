@@ -77,6 +77,8 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   deleteMethodApi: "post",
   pdfApi: "",
   pdfMethodApi: "post",
+  isCsv: false,
+  csvApi: "",
 
   selectStrategy: "single",
 
@@ -263,6 +265,8 @@ const filters = ref<Record<string, any>>({
   ...props.queryModal,
 });
 
+const oldPage = ref<number>(filters.value.page);
+
 const metaModal = ref<Pagination<any[]>>({
   data: [],
   loading: false,
@@ -297,13 +301,6 @@ const filterData = async () => {
     tabs.value.length > 0 &&
     tabIndex.value !== getDefaultTabSlotNameIndex()
   ) {
-    console.log(
-      "tabIndex",
-      tabIndex.value,
-      tabs.value,
-      getDefaultTabSlotNameIndex()
-    );
-
     return;
   }
 
@@ -315,6 +312,11 @@ const filterData = async () => {
   let apiUrl;
 
   if (props.methodApi == "post") {
+    filters.value = {
+      ...filters.value,
+      ...props.queryModal,
+    };
+
     apiUrl = `${api.value}`;
     response = await useMyFetch()
       .post(apiUrl, filters.value)
@@ -324,7 +326,15 @@ const filterData = async () => {
           any
         >[];
         if (props.isInfinateScroll) {
-          metaModal.value.data = [...metaModal.value.data, ...resData];
+          // Only concat if it's a new page
+          if (filters.value.page > oldPage.value) {
+            metaModal.value.data = [...metaModal.value.data, ...resData];
+          } else {
+            // Reset data if not a new page
+            metaModal.value.data = resData;
+          }
+          // Update oldPage after successful request
+          oldPage.value = filters.value.page;
         } else {
           metaModal.value.data = resData;
         }
@@ -582,7 +592,7 @@ const getDefaultTabSlotNameIndex = (): number => {
 };
 
 const onIntersect = (isIntersecting: boolean): void => {
-  if (isIntersecting && !metaModal.value.loading) {
+  if (isIntersecting && !metaModal.value.loading && !paginationDone.value) {
     filters.value.page++;
     useDebouncedRef(filterData(), 100);
   }
@@ -762,13 +772,27 @@ defineExpose({
         <d-submit-button
           @click:submit="filterData"
           @click:clear="clearFilters"
-          @click:csv="exportToCsv"
           class="col-span-4 md:col-span-full"
         >
           <template #append>
             <div
               class="flex gap-2 items-center w-full col-span-3 sm:col-span-6"
             >
+              <d-button
+                v-if="props.isCsv || !!props.csvApi"
+                :cta="'CSV'"
+                :class="
+                  classMerge(
+                    'dark:!bg-dark2 hover:bg-[#b8fcdc] !gap-6 dark:hover:!bg-dark1 text-sm transition-all ease-in-out !border-2 p-2 rounded-lg !border-solid !border-[#198754] dark:!border-[#198754] '
+                  )
+                "
+                :text-class="classMerge('text-[#198754] mx-auto')"
+                :icon-class="'text-[#198754] dark:text-[#198754]'"
+                type="button"
+                size="xl"
+                @click="exportToCsv()"
+                icon="mdi-file-table-outline"
+              />
               <nuxt-link
                 v-if="!!props.createOption.show"
                 :class="
@@ -790,7 +814,7 @@ defineExpose({
                 </div>
               </nuxt-link>
 
-              <div class="flex items-center gap-2">
+              <!-- <div class="flex items-center gap-2">
                 <d-button
                   @click="showHideFilter"
                   icon="mdi-filter-cog"
@@ -815,7 +839,7 @@ defineExpose({
                   cta="show/hide column"
                   icon-size="18"
                 ></d-button>
-              </div>
+              </div> -->
 
               <div class="absolute right-0">
                 <slot name="actions"></slot>

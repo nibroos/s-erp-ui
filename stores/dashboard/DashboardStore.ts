@@ -8,7 +8,7 @@ import type { QIndexSalesOrdersType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { IndexDashboardType } from '~/types/purchase-orders/DashboardType'
+import type { IndexDashboardType, QIndexDashboardDonut } from '~/types/purchase-orders/DashboardType'
 import type { QIndexType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { SoDtDiscType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
@@ -39,6 +39,34 @@ const useDashboardStore = defineStore('DashboardStore', {
         order_column: '',
         order_direction: 'desc'
       } as QIndexType,
+      qIndexInvoiceMaintenance: {
+        page: 1,
+        per_page: 100,
+        parent_ids: [],
+        global: '',
+        order_column: 'due_date',
+        order_direction: 'asc'
+      } as QIndexType,
+      qIndexDonut: {
+        page: 1,
+        per_page: 100,
+        global: '',
+        invoice_type: null,
+        start_at: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
+        end_at: new Date().toISOString().split('T')[0],
+        order_column: '',
+        order_direction: ''
+      } as QIndexDashboardDonut,
+      qIndexSalesOrderLine: {
+        page: 1,
+        per_page: 100,
+        global: '',
+        invoice_type: null,
+        start_at: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
+        end_at: new Date().toISOString().split('T')[0],
+        order_column: '',
+        order_direction: ''
+      } as QIndexDashboardDonut,
     },
     metaModal: {
       index: {
@@ -61,7 +89,22 @@ const useDashboardStore = defineStore('DashboardStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexInvoiceMaintenance: {
+        data: [] as IndexDashboardType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexWidgets: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexDonut: {
+        data: [] as WidgetSingleType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexSalesOrderLine: {
         data: [] as WidgetSingleType[],
         loading: false,
         meta: {} as Meta
@@ -77,6 +120,7 @@ const useDashboardStore = defineStore('DashboardStore', {
     },
     isOpenModal: {
       bestCustomer: false,
+      invoiceMaintenance: false,
     },
   }),
 
@@ -168,10 +212,102 @@ const useDashboardStore = defineStore('DashboardStore', {
       }
     },
 
+    async indexInvoiceMaintenance() {
+      if (this.metaModal.indexInvoiceMaintenance.loading) return
+      this.metaModal.indexInvoiceMaintenance.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/index-invoice-maintenance',
+          this.queryModal.qIndexInvoiceMaintenance
+        )
+
+        this.metaModal.indexInvoiceMaintenance = response.data
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error?.response?.data)
+        useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice maintenances!')
+      } finally {
+        this.metaModal.indexInvoiceMaintenance.loading = false
+      }
+    },
+
+    async indexWidgetDonut() {
+      if (this.metaModal.indexDonut.loading) return
+      this.metaModal.indexDonut.loading = true
+
+      let params = this.queryModal.qIndexDonut
+
+      try {
+        let apiUrl = '/v1/invoice-dps/widget-invoice-dp'
+        if (params.invoice_type == null) {
+          params.invoice_type = 'invoice_sales'
+          apiUrl = '/v1/sales-invoices/widget-sales-invoice'
+        } else if (params.invoice_type == 'invoice_dp') {
+          apiUrl = '/v1/invoice-dps/widget-invoice-dp'
+        } else if (params.invoice_type == 'invoice_sales') {
+          apiUrl = '/v1/sales-invoices/widget-sales-invoice'
+        } else if (params.invoice_type == 'invoice_maintenance') {
+          apiUrl = '/v1/invoice-maintenances/widget-invoice-maintenance'
+        }
+
+        const response = await useMyFetch().post(
+          apiUrl,
+          params
+        )
+
+        this.metaModal.indexDonut = response.data
+        let widgets = mapWidgets(response.data.data)
+        this.metaModal.indexDonut.data = widgets
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Widget Data', error.response?.data);
+      } finally {
+        this.metaModal.indexDonut.loading = false
+      }
+    },
+
+    async indexSalesOrderLine() {
+      if (this.metaModal.indexSalesOrderLine.loading) return
+      this.metaModal.indexSalesOrderLine.loading = true
+
+      let params = this.queryModal.qIndexSalesOrderLine
+
+      try {
+        let apiUrl = '/v1/sales-orders/widget-line-sales-order'
+
+        const response = await useMyFetch().post(
+          apiUrl,
+          params
+        )
+
+        this.metaModal.indexSalesOrderLine = response.data
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Widget Data', error.response?.data);
+      } finally {
+        this.metaModal.indexSalesOrderLine.loading = false
+      }
+    },
+
+    clearDonutFilter() {
+      this.queryModal.qIndexDonut.start_at = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]
+      this.queryModal.qIndexDonut.end_at = new Date().toISOString().split('T')[0]
+      this.queryModal.qIndexDonut.invoice_type = null
+    },
+
+    clearLineFilter() {
+      this.queryModal.qIndexDonut.start_at = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]
+      this.queryModal.qIndexDonut.end_at = new Date().toISOString().split('T')[0]
+    },
+
   },
   persist: [
     {
-      paths: [],
+      paths: ['queryModal'],
       storage: localStorage
     }
   ]
