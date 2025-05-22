@@ -437,6 +437,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   summary: customSummary.value,
 } as FormLayoutType);
@@ -563,6 +566,7 @@ watch(
       @click:save="handleSubmit()"
       @click:clear="salesInvoiceStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="salesInvoiceStore.onClickPDF()"
     >
       <template #title-append>
         <d-select-table

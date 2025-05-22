@@ -69,6 +69,7 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -778,7 +779,31 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
       const randomId = Math.floor(100000 + Math.random() * 900000);
 
       return `RO-${dateStr}-${randomId}`;
-    }
+    },
+
+    async onClickPDF() {
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/request-orders/pdf-request-order',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+        useAlert.alertError(error?.response?.data?.message || 'Failed to generate PDF!')
+      } finally {
+        this.loading.pdfLoading = false
+      }
+    },
   },
   persist: [
     {

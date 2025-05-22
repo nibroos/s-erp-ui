@@ -210,8 +210,8 @@ const QuoIndexStatus = [
     color: 'orange',
   },
   {
-    value: 'CANCELED',
-    title: 'Canceled',
+    value: 'CANCELLED',
+    title: 'Cancelled',
     color: 'red',
   },
 ]
@@ -231,7 +231,7 @@ const formStatusQuotation = [
   { id: 'WAITING', name: 'WAITING' },
   { id: 'APPROVED', name: 'APPROVED' },
   { id: 'PENDING', name: 'PENDING' },
-  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
 const formApprovedQuotation = [
@@ -267,8 +267,8 @@ const SoIndexStatus = [
     color: 'purple',
   },
   {
-    value: 'CANCELED',
-    title: 'Canceled',
+    value: 'CANCELLED',
+    title: 'Cancelled',
     color: 'red',
   },
   {
@@ -329,7 +329,7 @@ const formStatusSalesOrder = [
   // { id: 'DELIVERY', name: 'DELIVERY' },
   // { id: 'SCHEDULE', name: 'SCHEDULE' },
   { id: 'INVOICE', name: 'INVOICE' },
-  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
   { id: 'HOLDING', name: 'HOLDING' },
   { id: 'FINISH', name: 'FINISH' },
 ]
@@ -386,8 +386,8 @@ const POIndexStatus = [
     color: 'orange',
   },
   {
-    value: 'CANCELED',
-    title: 'Canceled',
+    value: 'CANCELLED',
+    title: 'Cancelled',
     color: 'red',
   },
 ]
@@ -396,7 +396,7 @@ const formStatusPurchaseOrder = [
   { id: 'PROCESS', name: 'PROCESS' },
   { id: 'FINISH', name: 'FINISH' },
   { id: 'PARTIAL', name: 'PARTIAL' },
-  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
 const POIndexDateType = [
@@ -442,8 +442,8 @@ const invIndexStatus = [
     color: 'purple',
   },
   {
-    value: 'CANCELED',
-    title: 'Canceled',
+    value: 'CANCELLED',
+    title: 'Cancelled',
     color: 'red',
   },
   {
@@ -494,7 +494,7 @@ const invOutdexDateType = [
 const formStatusInventory = [
   { id: 'DELIVERY', name: 'DELIVERY' },
   { id: 'INVOICE', name: 'INVOICE' },
-  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
   { id: 'FINISH', name: 'FINISH' },
 ]
 
@@ -694,7 +694,7 @@ const initialColorsStatus = [
     hex: "#FF5630",
   },
   {
-    name: "Canceled",
+    name: "Cancelled",
     code: "bg-rose-100 text-rose-700 border !border-rose-700",
     icon: "material-symbols:cancel",
     color: "text-rose-700",
@@ -865,8 +865,8 @@ const RequestOrderIndexStatus = [
     color: 'blue',
   },
   {
-    value: 'CANCELED',
-    title: 'Canceled',
+    value: 'CANCELLED',
+    title: 'Cancelled',
     color: 'grey',
   },
 ]
@@ -874,7 +874,7 @@ const RequestOrderIndexStatus = [
 const formStatusRequestOrder = [
   { id: 'PENDING', name: 'PENDING' },
   // { id: 'APPROVED', name: 'APPROVED' },
-  { id: 'CANCELED', name: 'CANCELED' },
+  { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
 const formTabRequestOrder = {

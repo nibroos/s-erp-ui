@@ -83,6 +83,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       formLoading: false,
       editPageLoading: false,
       widgetLoading: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -1318,7 +1319,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           a.href = url;
           const today = new Date();
           const dateStr = today.toISOString().split('T')[0];
-          a.download = `invoice_sales_${dateStr}.csv`;
+          a.download = `invoice-sales_${dateStr}.csv`;
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -1332,6 +1333,31 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         useAlert.alertError('Failed to export CSV!');
       } finally {
         this.metaModal.index.loading = false;
+      }
+    },
+
+    async onClickPDF() {
+      this.form.sales_invoice_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-invoices/pdf-sales-invoice',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
       }
     },
 

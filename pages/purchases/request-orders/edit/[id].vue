@@ -244,15 +244,15 @@ const filtersTextSalesOrders = ref([
 
 const customSummary = computed(() => {
   return {
-    total_order_product_qty: {
-      label: "Total Order Product Qty",
-      value: form.value.grand_total_order_product_qty || 0,
-      format: {
-        precision: 2,
-      },
-    },
+    // total_order_product_qty: {
+    //   label: "Total Order Product Qty",
+    //   value: form.value.grand_total_order_product_qty || 0,
+    //   format: {
+    //     precision: 2,
+    //   },
+    // },
     total_order_item_qty: {
-      label: "Total Order Item Qty",
+      label: "Total Order Qty",
       value: form.value.grand_total_order_item_qty || 0,
       format: {
         precision: 2,
@@ -297,6 +297,9 @@ const formLayout = ref({
       text: "Update",
     },
     clear: {
+      show: true,
+    },
+    pdf: {
       show: true,
     },
   },
@@ -372,6 +375,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="requestOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="requestOrderStore.onClickPDF()"
     >
       <template #header>
         <form

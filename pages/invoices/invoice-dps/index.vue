@@ -250,6 +250,7 @@ onMounted(() => {
         no-title
         edit-link="/invoices/invoice-dps/edit"
         delete-api="/v1/invoice-dps/delete-invoice-dp"
+        pdf-api="/v1/invoice-dps/pdf-invoice-dp"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"

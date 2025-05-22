@@ -224,6 +224,7 @@ export type QIndexSalesOrdersType = {
   product_name?: string
   global?: string
   specific_ids?: string
+  invoice_id?: number | null
 }
 
 export type VatModeType = 'header' | 'detail' | null

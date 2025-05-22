@@ -427,6 +427,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   summary: customSummary.value,
 } as FormLayoutType);
@@ -541,11 +544,13 @@ watch(
   () => form.value.status,
   (newStatus, oldStatus) => {
     if (formLayout.value.button?.save) {
-      formLayout.value.button.save.disabled = newStatus === 'PAID';
+      formLayout.value.button.save.disabled = 
+        (newStatus === 'PAID');
     }
   },
   { immediate: true }
 );
+
 </script>
 
 <template>
@@ -555,6 +560,7 @@ watch(
       @click:save="handleSubmit()"
       @click:clear="invoiceDpStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="invoiceDpStore.onClickPDF()"
     >
       <template #title-append>
         <d-select-table
