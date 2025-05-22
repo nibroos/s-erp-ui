@@ -96,6 +96,7 @@ export type SelectTableType = {
   noAction?: boolean
   noDelete?: boolean
   noPdf?: boolean
+  isCsv?: boolean
   noFilter?: boolean
   show?: boolean
   sortable?: boolean
@@ -131,6 +132,7 @@ export type SelectTableType = {
   deleteMethodApi?: 'post' | 'delete'
   pdfApi?: string
   pdfMethodApi?: 'post'
+  csvApi?: string
 
   selectStrategy?: 'single' | 'page' | 'all' | undefined
 

@@ -115,7 +115,7 @@ const handlePermission = async (
   //   }
   // };
 
-  let previousRoute = route.query.back?.toString() || '/dashboard'
+  let previousRoute = route.query.back?.toString() || '/dashboard/overview'
 
   const hasHistory = () => {
     return window.history.length > 2

@@ -315,6 +315,11 @@ export type FormInvoiceMaintenanceDtProductListType = ProductListType & {
   product_name?: string
   product_code?: string
   unit_name?: string
+  due_at?: string
+  due_date?: string
+  customer_id?: number | null
+  bank_id?: number | null
+  payment_id?: number | null
 }
 
 export type FormVatType = {

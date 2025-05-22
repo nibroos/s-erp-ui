@@ -15,8 +15,15 @@ const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
 
 const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
-const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
-  storeToRefs(invoiceMaintenanceStore);
+const {
+  tabFormIndex,
+  form,
+  errors,
+  isOpenModal,
+  queryModal,
+  metaModal,
+  itemsCheck,
+} = storeToRefs(invoiceMaintenanceStore);
 
 const route = useRoute();
 const id = route.params.id;
@@ -104,6 +111,8 @@ const headersSalesOrder = ref([
   { title: "Buyer PO No", key: "po_buyer_no", sortable: true },
   { title: "Customer", key: "customer_name", sortable: true },
   { title: "Order Date", key: "order_date", sortable: true },
+  { title: "Agreement Date", key: "agree_at", sortable: true },
+  { title: "Due Date", key: "due_at", sortable: true },
   { title: "Shipping Date", key: "shipping_date", sortable: true },
   { title: "Item Type", key: "item_type", sortable: true },
   { title: "Unit", key: "unit_name", sortable: true },
@@ -567,6 +576,18 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => itemsCheck.value.checkSalesOrders,
+  (newItems) => {
+    if (newItems.length === 1) {
+      invoiceMaintenanceStore.indexSalesOrder();
+    } else if (newItems.length === 0) {
+      invoiceMaintenanceStore.removeSalesOrder();
+    }
+  },
+  { deep: true }
 );
 </script>
 

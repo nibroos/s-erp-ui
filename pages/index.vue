@@ -13,7 +13,7 @@ definePageMeta({
 });
 
 onMounted(() => {
-  navigateTo("dashboard");
+  navigateTo("/dashboard/overview");
 });
 </script>
 

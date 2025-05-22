@@ -412,7 +412,11 @@ onMounted(async () => {
             DASHBOARD
           </v-list-item-title>
 
-          <v-list-item class="!text-primary1" to="/dashboard" rounded="lg">
+          <v-list-item
+            class="!text-primary1"
+            to="/dashboard/overview"
+            rounded="lg"
+          >
             <template #prepend>
               <v-icon>mdi-view-dashboard-outline</v-icon>
             </template>

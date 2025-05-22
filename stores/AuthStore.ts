@@ -65,7 +65,7 @@ const useAuthStore = defineStore('AuthStore', {
 
         // redirect
         // navigateTo('/')
-        navigateTo(useLayoutsStore().lastVisitedRoute || '/dashboard')
+        navigateTo(useLayoutsStore().lastVisitedRoute || '/dashboard/overview')
 
         useAlert.alertSuccess('Login successfully.')
 
@@ -91,7 +91,7 @@ const useAuthStore = defineStore('AuthStore', {
         localStorage.setItem('_token', this.authUser.optional?.token || '')
         localStorage.setItem('expired', this.authUser.optional?.expired_at || '')
         // redirect
-        navigateTo('/dashboard')
+        navigateTo('/dashboard/overview')
 
         useAlert.alertSuccess('Register successfully.')
 

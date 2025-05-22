@@ -272,6 +272,7 @@ onMounted(() => {
           show: true,
           cta: '+ Create',
         }"
+        is-csv
         @click:csv="handleExportCsv"
         @click:find="useSalesInvoiceStore().indexWidget()"
         @update:filters="
@@ -288,11 +289,14 @@ onMounted(() => {
           />
         </template>
         <template #item.bank_name="{ item }">
-          <span v-if="item.bank_name && item.account_number && item.account_name">
-            {{ item.bank_name }} - {{ item.account_number }} - {{ item.account_name }}
+          <span
+            v-if="item.bank_name && item.account_number && item.account_name"
+          >
+            {{ item.bank_name }} - {{ item.account_number }} -
+            {{ item.account_name }}
           </span>
           <span v-else>
-            {{ item.bank_name || '-' }}
+            {{ item.bank_name || "-" }}
           </span>
         </template>
         <template #item.exchange_rate="{ item }">

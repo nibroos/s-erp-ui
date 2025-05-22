@@ -542,6 +542,7 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
           show: true,
           cta: '+ Create',
         }"
+        is-csv
         @click:csv="handleExportCsv"
         @click:find="useInvoiceMaintenanceStore().indexWidget()"
         @update:filters="
