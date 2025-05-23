@@ -66,6 +66,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       formLoading: false,
       editPageLoading: false,
       widgetLoading: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -115,7 +116,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       title: "Basic Information",
       parentPath: "/invoices/invoice-dps",
       currentTab: 0,
-      tabs: ["Items", "Remark", "Attachments"],
+      tabs: ["Items", "Remark"],
       button: {
         clear: {
           show: true,
@@ -1181,7 +1182,32 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
 
     goToInvoiceDp(id: number) {
       navigateTo(`/invoices/invoice-dps/edit/${id}`);
-    }
+    },
+
+    async onClickPDF() {
+      this.form.invoice_dp_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-dps/pdf-invoice-dp',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
+    },
 
   },
   persist: [

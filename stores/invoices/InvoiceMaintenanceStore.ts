@@ -1229,6 +1229,85 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       }
     },
 
+    async repeatSelectedInvoices() {
+      if (this.selectedRepeatInvoices.length === 0) {
+        useAlert.alertError('Please select at least one invoice to repeat');
+        return;
+      }
+
+      const isConfirmed = await useAlert.showPopupConfirmation(
+        'Repeat Invoice Confirmation',
+        `Are you sure you want to repeat ${this.selectedRepeatInvoices.length} selected invoice(s)?`
+      );
+
+      if (!isConfirmed) return;
+
+      try {
+        const selectedInvoices = this.metaModal.repeatInvoice.data.filter(
+          invoice => this.selectedRepeatInvoices.includes(invoice.id)
+        );
+
+        const invoiceUpdates = selectedInvoices.map(invoice => ({
+          id: invoice.id,
+          title: invoice.title,
+          invoice_date: invoice.invoice_date,
+          due_date: invoice.due_date,
+          remark: invoice.remark
+        }));
+
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/repeat-invoice-maintenance',
+          {
+            invoices: invoiceUpdates,
+            default_title: this.repeatForm.title || null,
+            default_invoice_date: this.repeatForm.invoice_date || null,
+            default_due_date: this.repeatForm.due_date || null,
+            default_remark: this.repeatForm.remark || null
+          }
+        );
+
+        useAlert.alertSuccess(response.data.message || 'Invoices repeated successfully');
+        this.closeRepeatModal();
+        this.indexInvoiceMaintenance();
+
+        setTimeout(() => {
+          window.location.href = '/invoices/invoice-maintenances';
+        }, 1000);
+
+        return response;
+      } catch (error: any) {
+        console.log('Failed to repeat invoices', error?.response?.data);
+        useAlert.alertError(error?.response?.data?.message || 'Failed to repeat invoices');
+      }
+    },
+
+    async onClickPDF() {
+      this.form.invoice_maintenance_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-maintenances/pdf-invoice-maintenance',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        console.log('response', response.data);
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
+    },
     openRepeatModal() {
       this.isOpenModal.repeatInvoice = true;
       this.selectedRepeatInvoices = [];
@@ -1307,58 +1386,6 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       this.selectedRepeatInvoices = [...invoices];
     },
 
-    async repeatSelectedInvoices() {
-      if (this.selectedRepeatInvoices.length === 0) {
-        useAlert.alertError('Please select at least one invoice to repeat');
-        return;
-      }
-
-      const isConfirmed = await useAlert.showPopupConfirmation(
-        'Repeat Invoice Confirmation',
-        `Are you sure you want to repeat ${this.selectedRepeatInvoices.length} selected invoice(s)?`
-      );
-
-      if (!isConfirmed) return;
-
-      try {
-        const selectedInvoices = this.metaModal.repeatInvoice.data.filter(
-          invoice => this.selectedRepeatInvoices.includes(invoice.id)
-        );
-
-        const invoiceUpdates = selectedInvoices.map(invoice => ({
-          id: invoice.id,
-          title: invoice.title,
-          invoice_date: invoice.invoice_date,
-          due_date: invoice.due_date,
-          remark: invoice.remark
-        }));
-
-        const response = await useMyFetch().post(
-          '/v1/invoice-maintenances/repeat-invoice-maintenance',
-          {
-            invoices: invoiceUpdates,
-            default_title: this.repeatForm.title || null,
-            default_invoice_date: this.repeatForm.invoice_date || null,
-            default_due_date: this.repeatForm.due_date || null,
-            default_remark: this.repeatForm.remark || null
-          }
-        );
-
-        useAlert.alertSuccess(response.data.message || 'Invoices repeated successfully');
-        this.closeRepeatModal();
-        this.indexInvoiceMaintenance();
-
-        setTimeout(() => {
-          window.location.href = '/invoices/invoice-maintenances';
-        }, 1000);
-
-        return response;
-      } catch (error: any) {
-        console.log('Failed to repeat invoices', error?.response?.data);
-        useAlert.alertError(error?.response?.data?.message || 'Failed to repeat invoices');
-      }
-    },
-
     async exportToCsv() {
       if (this.metaModal.index.loading) return;
       this.metaModal.index.loading = true;
@@ -1399,35 +1426,7 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       } finally {
         this.metaModal.index.loading = false;
       }
-    },
-
-    async onClickPDF() {
-      this.form.invoice_maintenance_dts = this.itemsCheck.checkMain
-
-      if (!!this.loading.pdfLoading) return
-      this.loading.pdfLoading = true
-      try {
-        const response = await useMyFetch().post(
-          '/v1/invoice-maintenances/pdf-invoice-maintenance',
-          {
-            ...this.form,
-            company: AuthStore().company
-          }
-        )
-
-        console.log('response', response.data);
-
-        const { data } = response.data
-        window.open(data.link, '_blank')
-
-
-        return response
-      } catch (error: any) {
-        console.log('Failed To Fetch Data', error.response.data);
-      } finally {
-        this.loading.pdfLoading = false
-      }
-    },
+    }
     // goToInvoiceMaintenance(id: number) {
     //   navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
     // }     

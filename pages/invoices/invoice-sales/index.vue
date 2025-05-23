@@ -264,6 +264,7 @@ onMounted(() => {
         no-title
         edit-link="/invoices/invoice-sales/edit"
         delete-api="/v1/sales-invoices/delete-sales-invoice"
+        pdf-api="/v1/sales-invoices/pdf-sales-invoice"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"

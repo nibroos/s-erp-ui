@@ -389,71 +389,7 @@ const useInvoiceAdjustmentStore = defineStore('InvoiceAdjustmentStore', {
 
       return isValid;
     },
-
-    // async searchReferenceInvoices() {
-    //   if (!this.validateSearchReference()) {
-    //     return;
-    //   }
-
-    //   if (this.loading.searchInvoicesLoading) return
-    //   this.loading.searchInvoicesLoading = true
-
-    //   try {
-    //     const response = await useMyFetch().post(
-    //       '/v1/invoice-adjustments/index-reference-invoices',
-    //       {
-    //         ref_type: this.form.reference,
-    //         ref_start_date: this.form.ref_start_date,
-    //         ref_end_date: this.form.ref_end_date,
-    //         customer_id: this.queryModal.qIndexInvoices.customer_id
-    //       }
-    //     )
-
-    //     this.metaModal.indexInvoices = response.data
-
-    //     if (response.data && response.data.data && response.data.data.length > 0) {
-    //       const invoiceWithBank = response.data.data.find(invoice => invoice.bank_id !== null);
-
-    //       if (invoiceWithBank) {
-    //         this.form.bank_id = invoiceWithBank.bank_id;
-
-    //         try {
-    //           const bankResponse = await useMyFetch().post(
-    //             '/v1/company-profiles/show-bank-information',
-    //             { id: invoiceWithBank.bank_id }
-    //           );
-
-    //           if (bankResponse.data && bankResponse.data.data && bankResponse.data.data.length > 0) {
-    //             const bankData = bankResponse.data.data[0];
-    //             this.autocompleteBankInfo(bankData);
-    //           }
-    //         } catch (error) {
-    //           console.log('Failed to fetch bank details', error);
-    //         }
-
-    //         this.form.remark = invoiceWithBank.remark || '';
-    //       } else {
-    //         this.form.bank_id = null;
-    //         this.selectedBankDetails = {
-    //           company_name: '',
-    //           bank_name: '',
-    //           account_number: '',
-    //           account_name: ''
-    //         };
-
-    //         this.form.remark = response.data.data[0].remark || '';
-    //       }
-    //     }
-
-    //     return response.data
-    //   } catch (error: any) {
-    //     console.log('Failed To Fetch Reference Invoices Data', error.response?.data)
-    //     useAlert.alertError(error?.response?.data?.message || 'Failed to fetch reference invoices!')
-    //   } finally {
-    //     this.loading.searchInvoicesLoading = false
-    //   }
-    // },
-
+    
     async searchReferenceInvoices() {
       if (!this.validateSearchReference()) {
         return;

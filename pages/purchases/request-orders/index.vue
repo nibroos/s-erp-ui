@@ -162,6 +162,7 @@ onMounted(() => {
         no-title
         edit-link="/purchases/request-orders/edit"
         delete-api="/v1/request-orders/delete-request-order"
+        pdf-api="/v1/request-orders/pdf-request-order"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"

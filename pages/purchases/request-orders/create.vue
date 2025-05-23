@@ -304,6 +304,39 @@ const filtersTextSalesOrders = ref([
   },
 ]);
 
+const customSummary = computed(() => {
+  return {
+    // total_order_product_qty: {
+    //   label: "Total Order Product Qty",
+    //   value: form.value.grand_total_order_product_qty || 0,
+    //   format: {
+    //     precision: 2,
+    //   },
+    // },
+    total_order_item_qty: {
+      label: "Total Order Qty",
+      value: form.value.grand_total_order_item_qty || 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_wh_qty: {
+      label: "Total WH Qty",
+      value: form.value.grand_total_wh_qty || 0,
+      format: {
+        precision: 2,
+      },
+    },
+    total_req_qty: {
+      label: "Total Request Qty",
+      value: form.value.grand_total_req_qty || 0,
+      format: {
+        precision: 2,
+      },
+    },
+  };
+});
+
 const formLayout = ref({
   title: "Basic Information",
   parentPath: "/purchases/request-orders",
@@ -314,7 +347,7 @@ const formLayout = ref({
       show: true,
     },
   },
-  summary: formLayoutStore.value.summary,
+  summary: customSummary.value,
 } as FormLayoutType);
 
 const initialFormLayout = () => {
@@ -325,6 +358,7 @@ const initialFormLayout = () => {
       show: true,
     },
   };
+  formLayout.value.summary = customSummary.value;
 };
 
 const handleSubmit = async () => {
@@ -371,6 +405,7 @@ onMounted(async () => {
 
 watchEffect(() => {
   topTitle.value = "Request Orders";
+  formLayout.value.summary = customSummary.value;
 });
 </script>
 
@@ -669,7 +704,10 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="requestOrderStore.onClickUpdateProductsModal()"
+            @click="() => {
+              requestOrderStore.onClickUpdateProductsModal();
+              calculateTotalAmountLocal();
+            }"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Products ({{ itemsCheck.checkProducts.length }})
@@ -824,7 +862,10 @@ watchEffect(() => {
         <div class="flex h-max w-full justify-end items-center gap-2">
           <button
             class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
-            @click="requestOrderStore.onClickUpdateProductsModal()"
+            @click="() => {
+              requestOrderStore.onClickUpdateProductsModal();
+              calculateTotalAmountLocal();
+            }"
           >
             <Icon name="material-symbols:save-rounded" size="20" />
             Add Selected Sales Order ({{ itemsCheck.checkSo.length }})
