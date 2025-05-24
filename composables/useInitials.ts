@@ -98,6 +98,8 @@ const formCustomerCreateEdit = {
   remark: '',
   pic: null,
   status: 1,
+  pic_emails: [],
+  services: [],
 } as FormCustomerType
 
 const formCurrencyCreateEdit = {
@@ -144,6 +146,20 @@ const formIOTypeCreateEdit = {
   description: '',
   remark: '',
   status: 1,
+}
+
+const formMasterCreateEdit = {
+  id: null,
+  name: '',
+  code: '',
+  type: '',
+  io_type: '',
+  description: '',
+  remark: '',
+  status: 1,
+  multiplier: 0,
+  divider: 0,
+  num: 0,
 }
 
 const formWarehouseCreateEdit = {
@@ -1213,6 +1229,7 @@ type UseInitialsType = {
   formInventoryCreateEdit: typeof formInventoryCreateEdit;
   formIOTypeCreateEdit: typeof formIOTypeCreateEdit;
   formWarehouseCreateEdit: typeof formWarehouseCreateEdit;
+  formMasterCreateEdit: typeof formMasterCreateEdit;
   formAccountSettingEdit: typeof formAccountSettingEdit;
   formPurchaseOrderCreateEdit: typeof formPurchaseOrderCreateEdit;
   formTaskCreateEdit: typeof formTaskCreateEdit;
@@ -1271,4 +1288,5 @@ export const useInitials: UseInitialsType = {
   qIndexStockClosings,
   qIndexInvStatus,
   formTicketCreateEdit,
+  formMasterCreateEdit,
 }

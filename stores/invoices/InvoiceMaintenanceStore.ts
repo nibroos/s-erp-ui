@@ -416,8 +416,8 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       if (this.metaModal.indexSalesOrders.loading) return
       this.metaModal.indexSalesOrders.loading = true
 
-      if (this.itemsCheck.checkSalesOrders.length > 0) {
-        this.queryModal.qIndexSalesOrders.customer_id = this.itemsCheck.checkSalesOrders[0].customer_id
+      if (this.form.customer_id) {
+        this.queryModal.qIndexSalesOrders.customer_id = this.form.customer_id
       }
 
       try {

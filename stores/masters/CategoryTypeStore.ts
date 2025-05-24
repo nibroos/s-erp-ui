@@ -3,7 +3,7 @@ import { useMyFetch } from '~/composables/useMyFetch'
 import type { Meta, Pagination, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
 import type { FormMasterType } from '~/types/masters/MasterType'
 
-const useCustomerTypeStore = defineStore('CustomerTypeStore', {
+const useCategoryTypeStore = defineStore('CategoryTypeStore', {
   state: () => ({
     form: {
       id: null,
@@ -36,25 +36,10 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
   }),
 
   actions: {
-    async indexCustomerType() {
-      if (this.metaModal.index.loading) return
-      this.metaModal.index.loading = true
-
-      try {
-        useAlert.alertSuccess('Login successfully.')
-
-        // return response
-      } catch (error: any) {
-        useAlert.alertError(error?.response?.data?.message || 'Login Failed!')
-
-      } finally {
-        this.metaModal.index.loading = false
-      }
-    },
     async show() {
       try {
         const response = await useMyFetch().post(
-          '/v1/customer-types/show-customer-type',
+          '/v1/category-types/show-category-type',
           this.form
         )
         this.form = response.data.data[0]
@@ -81,7 +66,7 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
 
       try {
         const response = await useMyFetch().post(
-          '/v1/customer-types/create-customer-type',
+          '/v1/category-types/create-category-type',
           this.form
         )
         this.form = JSON.parse(
@@ -90,7 +75,7 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
 
         useAlert.hideAlert()
         useAlert.alertSuccess(response.data.message)
-        navigateTo(`/masters/customizations/customer-types/edit/${response.data.data[0].id}`)
+        navigateTo(`/masters/customizations/category-types/edit/${response.data.data[0].id}`)
 
         return response
       } catch (error: any) {
@@ -132,7 +117,7 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
         let id = this.form.id
 
         const response = await useMyFetch().post(
-          '/v1/customer-types/update-customer-type',
+          '/v1/category-types/update-category-type',
           this.form
         )
         this.form = JSON.parse(
@@ -171,7 +156,7 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/customer-types/delete-customer-type',
+          '/v1/category-types/delete-category-type',
           this.form
         )
         this.form = response.data.data[0]
@@ -187,7 +172,7 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
       this.form.id = id
       try {
         const response = await useMyFetch().post(
-          '/v1/customer-types/restore-customer-type',
+          '/v1/category-types/restore-category-type',
           this.form
         )
         this.form = response.data.data[0]
@@ -207,4 +192,4 @@ const useCustomerTypeStore = defineStore('CustomerTypeStore', {
   ]
 })
 
-export default useCustomerTypeStore
+export default useCategoryTypeStore
