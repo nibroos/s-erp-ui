@@ -583,11 +583,18 @@ watch(
   (newItems) => {
     if (newItems.length === 1) {
       invoiceMaintenanceStore.indexSalesOrder();
-    } else if (newItems.length === 0) {
-      invoiceMaintenanceStore.removeSalesOrder();
     }
   },
   { deep: true }
+);
+
+watch(
+  () => isOpenModal.value.salesOrders,
+  (newValue) => {
+    if (newValue) {
+      invoiceMaintenanceStore.indexSalesOrder();
+    }
+  }
 );
 </script>
 

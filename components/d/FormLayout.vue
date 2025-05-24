@@ -63,7 +63,7 @@ const defaultProps: TProps = {
     },
     tabs: [],
     currentTab: "",
-    summary: null,
+    summary: {},
     triggerLayout: false,
     contentClass: "",
     divHeightOverflowLimit: 300,
@@ -74,6 +74,7 @@ const defaultProps: TProps = {
       isActive: false,
     },
     isAction: true,
+    totalContent: 0,
   },
 };
 
@@ -286,47 +287,6 @@ watchEffect(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", updateHeight);
 });
-
-const isFloatingSummary = ref(true);
-const isMinimizedSummary = ref(false);
-const isSummaryLocked = ref(false);
-
-const toggleSummaryLock = () => {
-  if (!mergedConfig.value.summary) return;
-
-  isSummaryLocked.value = !isSummaryLocked.value;
-};
-
-// Modify existing toggleMinimizeSummary
-const toggleMinimizeSummary = (event?: MouseEvent) => {
-  if (!mergedConfig.value.summary) return;
-
-  if (event) {
-    event.stopPropagation(); // Prevent click from bubbling to document
-  }
-  isMinimizedSummary.value = !isMinimizedSummary.value;
-};
-
-const handleClickOutside = (event: MouseEvent) => {
-  if (!mergedConfig.value.summary) return;
-
-  const summaryElement = document.querySelector(".floating-summary");
-  if (
-    !isSummaryLocked.value &&
-    summaryElement &&
-    !summaryElement.contains(event.target as Node)
-  ) {
-    isMinimizedSummary.value = true;
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
 </script>
 
 <template>
@@ -343,10 +303,6 @@ onBeforeUnmount(() => {
     >
       <div class="flex flex-row items-center justify-between">
         <div class="flex w-max items-center gap-3 whitespace-nowrap">
-          <h1 class="text-lg font-medium text-zinc-500 dark:text-primary1">
-            {{ mergedConfig?.title }}
-          </h1>
-
           <d-button
             @click="showHideHeader"
             icon="mdi-eye-off"
@@ -359,6 +315,11 @@ onBeforeUnmount(() => {
             cta="show/hide column"
             icon-size="18"
           ></d-button>
+
+          <h1 class="text-lg font-medium text-zinc-500 dark:text-primary1">
+            {{ mergedConfig?.title }}
+          </h1>
+
           <slot name="title-append" />
         </div>
 
@@ -392,12 +353,9 @@ onBeforeUnmount(() => {
             :cta="mergedConfig?.button?.save?.cta ?? 'Save Change'"
             :class="
               classMerge(
-                'rounded-lg !border border-solid transition-all ease-in-out',
-                mergedConfig.button?.save?.disabled 
-                  ? '!bg-zinc-300 !border-zinc-300 cursor-not-allowed hover:!bg-zinc-300 hover:!border-zinc-300'
-                  : '!border-sc text-white hover:!bg-scLightest',
+                'rounded-lg !border border-solid !border-sc text-white transition-all ease-in-out hover:!bg-scLightest',
                 `${
-                  mergedConfig.mode == 'create' && !mergedConfig.button?.save?.disabled
+                  mergedConfig.mode == 'create'
                     ? '!bg-sc hover:!bg-scDarker3'
                     : ''
                 }`,
@@ -406,12 +364,9 @@ onBeforeUnmount(() => {
             "
             :text-class="
               classMerge(
-                'mx-auto',
-                mergedConfig.button?.save?.disabled
-                  ? 'text-zinc-500'
-                  : 'text-sc',
+                'text-sc mx-auto',
                 mergedConfig.button?.save?.textClass ?? '',
-                `${mergedConfig.mode == 'create' && !mergedConfig.button?.save?.disabled ? '!text-white' : ''}`
+                `${mergedConfig.mode == 'create' ? '!text-white' : ''}`
               )
             "
             :loading="props.config.button?.save?.loading"
@@ -419,7 +374,6 @@ onBeforeUnmount(() => {
             :is-loading-default="mergedConfig.button?.save?.isLoadingDefault"
             :no-icon="true"
             :disabled-class="mergedConfig.button.save?.disabledClass"
-            :disabled="mergedConfig.button.save?.disabled"
             type="submit"
             @click="handleClickSave"
             @click:loading="emits('click:save:loading', $event)"
@@ -544,88 +498,15 @@ onBeforeUnmount(() => {
         <slot name="header" v-if="slots.header" />
       </div>
 
-      <div class="relative">
-        <div
-          v-if="isFloatingSummary && !!props.config.summary"
-          class="floating-summary fixed right-4 bottom-4 z-[1400] w-[25rem] rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:!bg-zinc-800 md:w-[20rem] text-sm"
-          :class="isMinimizedSummary ? 'h-12 overflow-hidden' : ''"
-          @click.stop
-        >
-          <d-bt
-            :icon="isSummaryLocked ? 'mdi-lock' : 'mdi-lock-open'"
-            class="absolute right-2 top-2 p-1 z-10 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600"
-            text-class="!text-dark3 dark:text-primary1"
-            icon-class="!text-dark3 dark:text-primary1"
-            @click="toggleSummaryLock"
-            :title="isSummaryLocked ? 'Unlock summary' : 'Lock summary'"
-            is-no-text
-            rounded="xl"
-            size=""
-            icon-size="18"
-            v-if="!isMinimizedSummary"
-          />
-          <div
-            class="flex gap-2 items-center h-full justify-center bg-primary1 dark:bg-dark3 hover:bg-zinc-200 dark:hover:bg-dark2 rounded-lg ease-in-out transition-all cursor-pointer"
-            @click="toggleMinimizeSummary"
-          >
-            <div
-              v-if="isMinimizedSummary && !!props.config.summary"
-              class="flex items-center justify-between w-full px-2"
-            >
-              <div class="flex items-center gap-2">
-                <v-icon
-                  icon="mdi-chevron-down"
-                  class="transition-transform !text-dark3 dark:!text-primary1"
-                  :class="isMinimizedSummary ? 'rotate-180' : 'rotate-0'"
-                />
-                <!-- last key summary (grand_total or anything) -->
-                <div class="text-sm font-bold text-dark3 dark:text-primary1">
-                  {{
-                    props.config.summary[
-                      Object.keys(props.config.summary).slice(-1)[0]
-                    ].label
-                  }}
-                </div>
-              </div>
-              <div class="text-sm font-bold text-dark3 dark:text-primary1">
-                <d-num-layout
-                  :value="
-                    props.config.summary[
-                      Object.keys(props.config.summary).slice(-1)[0]
-                    ].value
-                  "
-                  :min-precision="2"
-                  :max-precision="2"
-                />
-              </div>
-            </div>
-            <d-bt
-              v-else
-              :icon="'mdi-chevron-down'"
-              :class="
-                classMerge(
-                  'w-full h-full flex gap-2 py-2 px-4 dark:bg-transparent rounded-lg ease-in-out transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600',
-                  isMinimizedSummary ? 'rotate-180' : 'rotate-0'
-                )
-              "
-              text-class="!text-dark3 dark:!text-primary1"
-              icon-class="!text-dark3 dark:!text-primary1"
-              rounded="xl"
-              size=""
-              cta="Summary Details"
-              icon-size="18"
-            >
-            </d-bt>
-          </div>
-          <div class="px-4 pb-4">
-            <d-summary-layout
-              v-if="!slots.summary"
-              :config="props.config.summary"
-            />
-            <slot name="summary" v-else />
-          </div>
-        </div>
-      </div>
+      <slot name="summary" />
+      <!-- {{ mergedConfig.summary }} -->
+      <d-summary-layout
+        v-if="
+        !!props.config.summary && Object.keys(props.config.summary as object).length > 0 &&
+        !slots.summary
+      "
+        :config="props.config.summary"
+      />
     </div>
     <div
       v-if="!!slots.content"
@@ -648,13 +529,13 @@ onBeforeUnmount(() => {
         "
       >
         <slot name="content" />
-        <slot></slot>
         <div
           class="resize-handle bg-grey1 opacity-40 hover:opacity-100 ease-in-out transition-all duration-500"
           @mousedown.prevent="initResize"
         ></div>
       </div>
     </div>
+    <slot></slot>
     <slot name="bottom" v-if="slots.bottom" />
   </div>
 
@@ -671,26 +552,5 @@ onBeforeUnmount(() => {
   position: absolute;
   bottom: 0;
   left: 0;
-}
-
-.fixed {
-  transition: all 0.3s ease;
-}
-
-.h-12 {
-  transition: height 0.3s ease;
-}
-
-.floating-summary {
-  transition: all 0.3s ease;
-}
-
-.floating-summary:hover .lock-button {
-  opacity: 1;
-}
-
-.lock-button {
-  opacity: 0;
-  transition: opacity 0.2s ease;
 }
 </style>

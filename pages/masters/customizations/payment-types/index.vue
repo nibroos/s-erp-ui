@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
-import useCustomerTypeStore from "~/stores/masters/CustomerTypeStore";
+import usePurchaseTypeStore from "~/stores/masters/PurchaseTypeStore";
 import type {
   FieldSelectableType,
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useCustomerTypeStore();
+const { queryModal } = usePurchaseTypeStore();
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -17,7 +17,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Customer Types",
+  title: "Purchase Types",
 });
 
 const fieldsConfig = ref<FieldSelectableType[]>([
@@ -65,40 +65,53 @@ const filtersConfig = ref<FilterSelectableType[]>([
     key: "remark",
   },
 ]);
+
+const parentLink = ref("");
+const getParentLink = (link: string) => {
+  parentLink.value = link;
+};
 </script>
 
 <template>
-  <lazy-layout-topmenu :top-menu="topMenuMasterTab">
+  <div class="flex flex-col gap-2">
+    <l-top-menu :top-menu="topMenuMasterTab" :parent_link="parentLink">
+    </l-top-menu>
+    <l-top-menu
+      :top-menu="topMenuCustomizationTab"
+      parent_link=""
+      @update:parent-link="getParentLink"
+    >
+    </l-top-menu>
+
     <d-index-layout
       :config="{
         permission: {
           isActive: true,
-          name: ['r_ms', 'superadmin'],
+          name: ['r_ms'],
         },
       }"
     >
       <d-datatable
-        api="/v1/customer-types/index-customer-type"
-        detail-link="/masters/customer-types"
+        api="/v1/payment-types/index-payment-type"
+        edit-link="/masters/customizations/payment-types/edit"
+        delete-api="/v1/payment-types/delete-payment-type"
         method-api="post"
-        detail-method-api="post"
         items-prop="data"
         total-prop="meta.total"
-        label="Master CustomerType"
+        label="Purchase Types"
         class="col-span-2 lg:col-span-1"
-        search-placeholder="Search anything related to customer types.."
-        is-quick-select
+        search-placeholder="Search anything related to purchase types.."
         no-title
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qListIndex"
         :create-option="{
-          link: '/masters/customizations/customer-types/create',
+          link: '/masters/customizations/payment-types/create',
           show: true,
           cta: '+ Create',
         }"
         @update:filters="
-          (filters) => {
+          (filters: typeof queryModal.qListIndex) => {
             queryModal.qListIndex = filters;
           }
         "
@@ -108,5 +121,5 @@ const filtersConfig = ref<FilterSelectableType[]>([
         </template>
       </d-datatable>
     </d-index-layout>
-  </lazy-layout-topmenu>
+  </div>
 </template>

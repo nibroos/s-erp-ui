@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   isDisplayMultipleKey: false,
   displaySingleMultipleKeys: () => [],
   displayMultipleSeparator: "-",
-  maxLengthDisplay: 20,
+  maxLengthDisplay: 50,
   isQuickSelect: false,
   isResetWhenClose: false,
   isResetWhenOpen: false,
@@ -675,6 +675,19 @@ watch(showModal, async (newVal) => {
   }
 });
 
+watch(
+  () => showModal.value,
+  async (newVal, oldVal) => {
+    if (newVal !== oldVal && !!newVal) {
+      await Promise.all([
+        filterData(),
+        // filterData(),
+        fetchSingle(props.modelValue, null),
+      ]);
+    }
+  }
+);
+
 onMounted(async () => {
   selectedFull.value = null;
   selectedText.value = "";
@@ -686,6 +699,8 @@ onMounted(async () => {
       // filterData(),
       fetchSingle(props.modelValue, null),
     ]);
+
+    itemsCheck.value = [...(props.modelValue ? [props.modelValue] : [])];
   }
 
   generateFiltersObj();

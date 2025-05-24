@@ -104,7 +104,7 @@ export const topMenuCustomizationTab = [
   {
     title: "VAT",
     number: 'vats',
-    icon: "mdi-book-account-outline",
+    icon: "mdi-tag-plus-outline",
     parent_link: "/masters/customizations",
     link: "/masters/customizations/vats",
     link2: "/masters/customizations/vats/create",
@@ -113,7 +113,7 @@ export const topMenuCustomizationTab = [
   {
     title: "PPH23",
     number: 'pph23s',
-    icon: "mdi-book-account-outline",
+    icon: "mdi-account-alert",
     parent_link: "/masters/customizations",
     link: "/masters/customizations/pph23s",
     link2: "/masters/customizations/pph23s/create",
@@ -149,7 +149,7 @@ export const topMenuCustomizationTab = [
   {
     title: "Payment Method",
     number: 'payment-methods',
-    icon: "mdi-bookshelf",
+    icon: "mdi-credit-card-outline",
     parent_link: "/masters/customizations",
     link: "/masters/customizations/payment-methods",
     link2: "/masters/customizations/payment-methods/create",
@@ -189,6 +189,24 @@ export const topMenuCustomizationTab = [
     parent_link: "/masters/customizations",
     link: "/masters/customizations/tasks",
     link2: "/masters/customizations/tasks/create",
+    permissions: ["r_ms"],
+  },
+  {
+    title: "Category Type",
+    number: 'category-types',
+    icon: "mdi-format-list-bulleted-type",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/category-types",
+    link2: "/masters/customizations/category-types/create",
+    permissions: ["r_ms"],
+  },
+  {
+    title: "Payment Type",
+    number: 'payment-types',
+    icon: "mdi-credit-card-outline",
+    parent_link: "/masters/customizations",
+    link: "/masters/customizations/payment-types",
+    link2: "/masters/customizations/payment-types/create",
     permissions: ["r_ms"],
   },
 ]
@@ -450,6 +468,29 @@ const invIndexStatus = [
     value: 'FINISH',
     title: 'Finish',
     color: 'cyan',
+  },
+]
+
+const crmIndexDateType = [
+  {
+    value: 'contract_date',
+    title: 'Contract Date',
+  },
+  {
+    value: 'due_at',
+    title: 'Contract Due Date',
+  },
+  {
+    value: 'agree_at',
+    title: 'Agreement Date',
+  },
+  {
+    value: 'installation_at',
+    title: 'Installation Date',
+  },
+  {
+    value: 'warranty_at',
+    title: 'Warranty Date',
   },
 ]
 
@@ -937,4 +978,5 @@ export const useStatics = {
   ticketIndexStatus,
   headerSentEmails,
   dashboardInvoiceType,
+  crmIndexDateType,
 }

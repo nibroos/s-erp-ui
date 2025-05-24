@@ -31,4 +31,38 @@ export type FormCustomerType = {
   remark?: string
   pic?: string | null
   status?: number
+
+  owner_name?: string
+  owner_phone?: string
+  owner_email?: string
+  category_type_id?: number
+  contract_date?: string
+  is_contract?: number
+  pic_name?: string
+  pic_phone?: string
+  pic_emails?: CustomerPICEmailType[]
+
+  customer_contracts?: FormCustomerContractsType[]
+}
+
+export type FormCustomerContractsType = {
+  id?: number | null | undefined
+  product_id?: number
+  item_name?: string
+  item_code?: string
+  agree_at?: string
+  due_at?: string
+  price?: number
+  payment_type_id?: number
+
+  qty?: number
+  installation_at?: string
+  warranty_at?: string
+  remark?: string
+}
+
+export type CustomerPICEmailType = {
+  id?: number | null | undefined
+  name?: string
+  is_main?: number
 }
