@@ -702,6 +702,15 @@ const initialColorsStatus = [
     base: "rose-700",
     hex: "#cc9a06",
   },
+  {
+    name: "Canceled",
+    code: "bg-rose-100 text-rose-700 border !border-rose-700",
+    icon: "material-symbols:cancel",
+    color: "text-rose-700",
+    border: "border-rose-700",
+    base: "rose-700",
+    hex: "#cc9a06",
+  },
   // holding
   {
     name: "Holding",

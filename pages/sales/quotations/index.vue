@@ -290,6 +290,7 @@ onMounted(() => {
         no-title
         edit-link="/sales/quotations/edit"
         delete-api="/v1/quotations/delete-quotation"
+        pdf-api="/v1/quotations/pdf-quotation"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
