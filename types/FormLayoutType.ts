@@ -23,6 +23,7 @@ export type FormLayoutType = {
   isOverflow?: boolean
   permission?: PermissionType
   isAction?: boolean
+  totalContent?: number
 }
 
 type TButtonConfig = {
