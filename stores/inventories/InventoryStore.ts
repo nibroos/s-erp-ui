@@ -206,6 +206,7 @@ const useInventoryStore = defineStore('InventoryStore', {
       editPageLoading: false,
       createClosing: false,
       createOrUpdateAdjustment: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     tabIndex: {
@@ -1612,6 +1613,31 @@ const useInventoryStore = defineStore('InventoryStore', {
       }
 
       return response
+    },
+
+    async onClickPDF() {
+      this.form.inv_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/pdf-inventory',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
     },
   },
   persist: [

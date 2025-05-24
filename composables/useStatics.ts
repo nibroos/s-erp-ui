@@ -342,6 +342,28 @@ const SoIndexDateType = [
   },
 ]
 
+const invDpIndexDateType = [
+  {
+    value: 'invoice_date',
+    title: 'Invoice Date',
+  },
+  {
+    value: 'due_date',
+    title: 'Due Date',
+  },
+]
+
+const invAdjIndexDateType = [
+  {
+    value: 'payment_date',
+    title: 'Payment Date',
+  },
+  {
+    value: 'adjustment_date',
+    title: 'Adjustment Date',
+  },
+]
+
 const formStatusSalesOrder = [
   { id: 'PROCESS', name: 'PROCESS' },
   // { id: 'DELIVERY', name: 'DELIVERY' },
@@ -952,6 +974,8 @@ export const useStatics = {
   formApprovedQuotation,
   SoIndexStatus,
   SoIndexDateType,
+  invDpIndexDateType,
+  invAdjIndexDateType,
   invIndexStatus,
   invIndexDateType,
   formTabProduct,

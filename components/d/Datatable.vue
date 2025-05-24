@@ -690,6 +690,7 @@ defineExpose({
             v-if="filter.type === 'text'"
             v-model="filters[filter.key]"
             :label="filter.title"
+            :initial-value="filter.others?.initialValue"
           />
           <d-date-picker-light
             v-else-if="filter.type === 'date'"
@@ -697,6 +698,7 @@ defineExpose({
             :label="filter.title"
             :fallback-date="filter.others?.fallbackDate"
             :clearable="filter.others?.clearable"
+            :initial-value="filter.others?.initialValue"
           />
           <d-autocomplete
             v-else-if="filter.type === 'autocomplete'"
@@ -715,6 +717,7 @@ defineExpose({
             :multiple="filter.others?.multiple"
             :return-object="filter.others?.returnObject"
             :item-color="filter.others?.itemColor"
+            :initial-value="filter.others?.initialValue"
           />
           <d-autocomplete-client
             v-else-if="filter.type === 'autocomplete-client'"
@@ -732,6 +735,7 @@ defineExpose({
               filter.others?.displayMultipleKeys ?? ['id', 'name']
             "
             :max-length-display="filter.others?.maxLengthDisplay ?? 70"
+            :initial-value="filter.others?.initialValue"
           />
 
           <d-select-table
@@ -752,6 +756,7 @@ defineExpose({
             :fields="filter.others?.fields"
             :filters="filter.others?.filters"
             :inner-search-key="filter.others?.innerSearchKey"
+            :initial-value="filter.others?.initialValue"
           />
         </div>
 

@@ -841,6 +841,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   // permission: {
   //   name: ["c_ms"],
@@ -985,6 +988,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="inventoryStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="inventoryStore.onClickPDF()"
     >
       <template #header>
         <form

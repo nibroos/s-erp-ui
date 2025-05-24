@@ -154,6 +154,15 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
+    title: "Date Type",
+    key: "date_type",
+    type: "autocomplete-client",
+    others: {
+      items: useStatics.invAdjIndexDateType,
+      initialValue: "adjustment_date",
+    },
+  },
+  {
     title: "Start Date",
     key: "start_date",
     type: "date",

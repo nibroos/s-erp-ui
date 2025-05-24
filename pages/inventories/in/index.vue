@@ -296,6 +296,7 @@ onMounted(() => {
         no-title
         edit-link="/inventories/in/edit"
         delete-api="/v1/inventories/delete-inventory"
+        pdf-api="/v1/inventories/pdf-inventory"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndexIn"

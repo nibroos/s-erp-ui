@@ -973,7 +973,10 @@ const useQuotationStore = defineStore('QuotationStore', {
       try {
         const response = await useMyFetch().post(
           '/v1/quotations/pdf-quotation',
-          this.form
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
         )
 
         console.log('response', response.data);

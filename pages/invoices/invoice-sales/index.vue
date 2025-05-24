@@ -169,6 +169,15 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
+    title: "Date Type",
+    key: "date_type",
+    type: "autocomplete-client",
+    others: {
+      items: useStatics.invDpIndexDateType,
+      initialValue: "invoice_date",
+    },
+  },
+  {
     title: "Start Date",
     key: "start_date",
     type: "date",

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useCurrencyInput } from "vue-currency-input";
 import type { VAutocomplete } from "vuetify/components";
-import { defineExpose, onMounted, ref, watch, watchEffect } from "vue";
 import { classMerge } from "#imports";
 import type { SnackbarType } from "~/types/components/FormType";
 
