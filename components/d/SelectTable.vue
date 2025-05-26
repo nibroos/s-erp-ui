@@ -138,6 +138,7 @@ const emits = defineEmits([
   "submit:edit",
   "submit:view",
   "submit:",
+  "click:selected-detail",
 ]);
 
 const initHeadersModal = () => {
@@ -356,7 +357,7 @@ const fetchSingle = async (id: number, oldId: number | null) => {
     if (props.multiple && !props.returnObject) {
       payload = { ids: itemsCheck.value };
     } else {
-      payload = { ids: [id] };
+      payload = { ids: [id], id: id };
     }
 
     apiUrl = `${props.detailApi}`;
@@ -376,6 +377,7 @@ const fetchSingle = async (id: number, oldId: number | null) => {
             selectedText.value = "";
           }
           emits("click:selected", showMetaModal.value.single, oldId);
+          emits("click:selected-detail", showMetaModal.value.single, oldId);
 
           if (!!props.isDisplayMultipleKey) {
             selectedText.value = props.displaySingleMultipleKeys
@@ -738,6 +740,9 @@ defineExpose({
               !!selectedText
                 ? '!border-zinc-300 dark:!border-zinc-500 p-2.5 rounded-l-md'
                 : '!border-zinc-200 dark:!border-zinc-500 rounded-md p-1.5',
+              props.disabled
+                ? '!bg-zinc-200 dark:!bg-dark1 !text-zinc-400'
+                : '',
               props.btnClass
             )
           "
@@ -745,7 +750,6 @@ defineExpose({
             classMerge(
               'text-sm dark:text-primary1  font-normal dark:!text-primary1',
               !!selectedText ? '!text-dark3' : '!text-zinc-400',
-              props.disabled ? 'line-through' : '',
               props.textClass
             )
           "
@@ -770,6 +774,7 @@ defineExpose({
           :class="
             classMerge(
               'text-none m-0 rounded-r-md flex items-center justify-center border-y-1.5 border-r-1.5 border-solid py-0',
+              props.disabled ? 'bg-zinc-200 dark:bg-dark1 text-zinc-400' : '',
               !!selectedText
                 ? 'border-zinc-300 dark:border-zinc-500'
                 : 'border-zinc-200 dark:border-zinc-500'

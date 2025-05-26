@@ -118,6 +118,8 @@ export type InvDtType = {
   remark?: string
   qty_in?: number
   qty_out?: number
+  qty_out_on_in?: number
+  qty_init?: number
   qty: number
   price_sell: number
   price_buy: number

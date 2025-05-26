@@ -1343,6 +1343,7 @@ watchEffect(() => {
             </template>
             <template #item.qty="{ item }">
               <d-num-v-format
+                v-if="item.qty_out_on_in == 0"
                 v-model="item.qty"
                 :precision="{
                   min: 3,
@@ -1353,6 +1354,7 @@ watchEffect(() => {
                 class="w-full"
                 @update:modelValue="calculateTotalAmountLocal"
               />
+              <d-num-layout v-else :value="item.qty" />
             </template>
 
             <template #item.subtotal_buy="{ item }">
@@ -1367,6 +1369,7 @@ watchEffect(() => {
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
                 <d-bt
+                  v-if="item.qty_out_on_in == 0"
                   @click="
                     () => {
                       inventoryStore.onClickDeleteSelected(item, index);

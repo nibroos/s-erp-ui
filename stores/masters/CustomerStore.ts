@@ -157,6 +157,7 @@ const useCustomerStore = defineStore('CustomerStore', {
         return
       }
 
+      this.form.is_crm = 0;
       try {
         const response = await useMyFetch().post(
           '/v1/customers/create-customer',

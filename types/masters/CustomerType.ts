@@ -41,6 +41,7 @@ export type FormCustomerType = {
   pic_name?: string
   pic_phone?: string
   pic_emails?: CustomerPICEmailType[]
+  is_crm?: number
 
   customer_contracts?: FormCustomerContractsType[]
 }

@@ -187,9 +187,13 @@ const filtersConfig = ref<FilterSelectableType[]>([
       :filters="filtersConfig"
       :query-modal="queryModal.qListIndex"
       :create-option="{
-        link: '/masters/customers/create',
+        link: '/crm/customers/create',
         show: true,
         cta: '+ Create',
+      }"
+      :query="{
+        is_active: 1,
+        is_crm: 1,
       }"
       @update:filters="
         (filters) => {

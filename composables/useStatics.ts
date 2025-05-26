@@ -533,6 +533,10 @@ const invIndexDateType = [
     value: 'invoice_at',
     title: 'Invoice Date',
   },
+  {
+    value: 'expired_at',
+    title: 'Expired Date',
+  },
 ]
 
 const invOutdexDateType = [
@@ -551,6 +555,10 @@ const invOutdexDateType = [
   {
     value: 'invoice_at',
     title: 'Invoice Date',
+  },
+  {
+    value: 'expired_at',
+    title: 'Expired Date',
   },
 ]
 

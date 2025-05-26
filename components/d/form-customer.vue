@@ -197,7 +197,7 @@ const formLayout = ref({
     create: {
       show: false,
       // cta: "Create New",
-      path: "/masters/customers/create",
+      path: "/crm/customers/create",
     },
     save: {
       show: true,
@@ -221,7 +221,7 @@ const initialFormLayout = () => {
     create: {
       show: true,
       cta: "Create New",
-      path: "/masters/customers/create",
+      path: "/crm/customers/create",
     },
     cancel: {
       show: false,
@@ -267,9 +267,9 @@ const handleSubmit = async () => {
 
   //   return;
   // }
+  form.value.is_crm = 1;
 
-  if (!!props.id) {
-    form.value.id = Number(props.id);
+  try {
     await customerStore.update().then((res) => {
       isOpen.value = false;
       emits("submit:form", res);
@@ -277,16 +277,11 @@ const handleSubmit = async () => {
       // if (props.type === "page") {
       //   navigateTo(`/crm/customers`);
       // }
-    });
-  } else {
-    await customerStore.store().then((res) => {
-      isOpen.value = false;
-      emits("submit:form", res);
 
-      // if (props.type === "page") {
-      //   navigateTo(`/crm/customers`);
-      // }
+      navigateTo(`/crm/customers`);
     });
+  } catch (error) {
+    console.error("Validation error:", error);
   }
 };
 
@@ -340,6 +335,23 @@ const addNewRow = (type: "software" | "hardware") => {
       name: "",
       is_main: 0,
     });
+  }
+};
+
+const onClickSelectedCustomer = (item: any) => {
+  console.log("onClickSelected", item);
+  if (!props.id) {
+    console.log("onClickSelected B", item);
+    form.value = {
+      ...item,
+    };
+
+    itemsCheck.value.checkMainSoftwareProducts = item.customer_contracts.filter(
+      (item: any) => item.item_group_name.toLowerCase() == "software"
+    );
+    itemsCheck.value.checkMainHardwareProducts = item.customer_contracts.filter(
+      (item: any) => item.item_group_name.toLowerCase() == "hardware"
+    );
   }
 };
 
@@ -441,7 +453,7 @@ onMounted(async () => {
             <div class="sm:col-span-1">
               <d-select-table
                 api="/v1/customers/index-customer"
-                detail-api="/v1/customers/index-customer"
+                detail-api="/v1/customers/show-customer"
                 method-api="post"
                 detail-method-api="post"
                 mapping-detail="data[0]"
@@ -449,6 +461,7 @@ onMounted(async () => {
                 label="Customer"
                 v-model="form.id"
                 :query="{
+                  is_crm: 0,
                   is_active: 1,
                 }"
                 class="col-span-2 lg:col-span-1"
@@ -458,6 +471,12 @@ onMounted(async () => {
                 max-length-display="50"
                 :fields="useStatics.headersCustomer"
                 :filters="useStatics.filtersCustomer"
+                :disabled="!!props.id"
+                @click:selected-detail="
+                  (item: any) => {
+                    onClickSelectedCustomer(item);
+                  }
+                "
               />
             </div>
             <div class="sm:col-span-1 col-span-2">

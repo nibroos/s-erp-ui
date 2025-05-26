@@ -262,6 +262,7 @@ const openModal = (event: boolean) => {
 
 const filters = ref<Record<string, any>>({
   page: 1,
+  ...props.query,
   ...props.queryModal,
 });
 
@@ -314,6 +315,7 @@ const filterData = async () => {
   if (props.methodApi == "post") {
     filters.value = {
       ...filters.value,
+      ...props.query,
       ...props.queryModal,
     };
 
@@ -631,6 +633,7 @@ watch(
 onMounted(async () => {
   filters.value = {
     ...filters.value,
+    ...props.query,
     ...props.queryModal,
   };
 
