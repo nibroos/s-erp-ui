@@ -79,23 +79,43 @@ const handleSubmit = async () => {
 
   if (!!props.id) {
     form.value.id = Number(props.id);
-    await ticketStore.updateModal().then((res) => {
-      isOpen.value = false;
-      emits("submit:form", res);
 
-      if (props.type === "page") {
-        navigateTo(`/crm/tickets`);
+    try {
+      const res = await ticketStore.updateModal();
+      // .then((res) => {
+      console.log("res1", res);
+
+      if (res?.status > 200 && res?.status < 300) {
+        isOpen.value = false;
+        emits("submit:form", res);
+
+        if (props.type === "page") {
+          navigateTo(`/crm/tickets`);
+        }
       }
-    });
+      // });
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      // Handle error appropriately, e.g., show a notification
+    }
   } else {
-    await ticketStore.storeModal().then((res) => {
-      isOpen.value = false;
-      emits("submit:form", res);
+    try {
+      const res = await ticketStore.storeModal();
+      // .then((res) => {
+      console.log("res2", res);
+      if (res?.status > 200 && res?.status < 300) {
+        isOpen.value = false;
+        emits("submit:form", res);
 
-      if (props.type === "page") {
-        navigateTo(`/crm/tickets`);
+        if (props.type === "page") {
+          navigateTo(`/crm/tickets`);
+        }
       }
-    });
+      // });
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      // Handle error appropriately, e.g., show a notification
+    }
   }
 };
 
@@ -330,7 +350,7 @@ onMounted(async () => {
     form.value.id = Number(props.id);
     formLayout.value.mode = "edit";
     formLayout.value.button.create = {
-      path: "/supports/tickets/create",
+      path: "/crm/tickets/create",
       show: true,
     };
 
