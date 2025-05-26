@@ -376,6 +376,23 @@ watchEffect(() => {
       @click:clear="ticketStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
     >
+      <template #prepend-action>
+        <d-bt
+          v-if="!!props.id"
+          :cta="'Send Email'"
+          :class="
+            classMerge(
+              'h-[2.5rem] px-3 flex gap-3 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3 w-max'
+            )
+          "
+          :text-class="classMerge('text-white mx-auto !font-bold')"
+          icon="mdi-email"
+          icon-class="text-white"
+          type="button"
+          @click="ticketStore.sendSolutionEmail()"
+        />
+        <d-ticket-solution-email-button v-if="!!props.id" />
+      </template>
       <template #title-append>
         <d-select-table
           api="/v1/tickets/index-ticket"
@@ -495,209 +512,141 @@ watchEffect(() => {
               is-static
             />
           </div>
-          <div class="lg:col-span-7 col-span-7">
+          <div class="lg:col-span-7 col-span-7 flex gap-2">
             <d-rich-text
               v-model="form.issue_desc"
               :label="`Issue Description`"
               :placeholder="`Write the issue description...`"
               class=""
             />
-          </div>
-          <div
-            class="grid grid-cols-3 md:grid-cols-1 lg:col-span-7 col-span-7 gap-2"
-          >
-            <div class="lg:col-span-6">
-              <v-file-upload
-                v-model="form.issue_files"
-                clearable
-                density="compact"
-                variant="compact"
-                multiple
-              >
-                <template v-slot:item="{ props: itemProps }">
-                  <v-file-upload-item v-bind="itemProps" lines="one" nav>
-                    <template v-slot:prepend>
-                      <v-avatar size="32" rounded></v-avatar>
-                    </template>
-
-                    <template v-slot:clear="{ props: clearProps }">
-                      <v-btn
-                        class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
-                        v-bind="clearProps"
-                      ></v-btn>
-                    </template>
-                  </v-file-upload-item>
-                </template>
-              </v-file-upload>
-            </div>
-            <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
-              <!-- attached files -->
-              <div class="flex flex-col gap-2 dark:text-primary1">
-                <span class="text-sm font-medium dark:text-primary1"
-                  >Uploaded Files</span
+            <div class="w-1/2 sm:w-full flex gap-2">
+              <div class="w-1/2 sm:w-full">
+                <v-file-upload
+                  v-model="form.issue_files"
+                  clearable
+                  density="compact"
+                  variant="compact"
+                  multiple
                 >
-                <div>
-                  <div
-                    v-if="
-                      !form.issue_attachments ||
-                      form.issue_attachments.length == 0
-                    "
+                  <template v-slot:item="{ props: itemProps }">
+                    <v-file-upload-item v-bind="itemProps" lines="one" nav>
+                      <template v-slot:prepend>
+                        <v-avatar size="32" rounded></v-avatar>
+                      </template>
+
+                      <template v-slot:clear="{ props: clearProps }">
+                        <v-btn
+                          class="!text-cancel hover:!text-cancel2 !transition-all !ease-in-out"
+                          v-bind="clearProps"
+                        ></v-btn>
+                      </template>
+                    </v-file-upload-item>
+                  </template>
+                </v-file-upload>
+              </div>
+              <div class="flex flex-col gap-2 w-1/2 sm:w-full">
+                <!-- attached files -->
+                <div class="flex flex-col gap-2 dark:text-primary1">
+                  <span class="text-sm font-medium dark:text-primary1"
+                    >Uploaded Files</span
                   >
-                    <span
-                      class="text-sm font-normal text-grey3 dark:text-primary1"
-                      >No files attached</span
-                    >
-                  </div>
-                  <div
-                    v-else
-                    class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-                  >
+                  <div>
                     <div
-                      v-for="(file, index) in form.issue_attachments"
-                      :key="index"
-                      class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                      v-if="
+                        !form.issue_attachments ||
+                        form.issue_attachments.length == 0
+                      "
                     >
-                      <div class="flex gap-2">
-                        <lazy-d-img
-                          v-if="file.file_type.includes('image')"
-                          :aspect-ratio="1"
-                          :alt="file.file_name"
-                          :src="file.file_url"
-                          width="50"
-                          class="border border-solid border-grey3 cursor-pointer"
-                          @click="
-                            ticketStore.openModalIssueAttachmentImg(true, file)
-                          "
-                        ></lazy-d-img>
+                      <span
+                        class="text-sm font-normal text-grey3 dark:text-primary1"
+                        >No files attached</span
+                      >
+                    </div>
+                    <div
+                      v-else
+                      class="grid grid-cols-2 md:grid-cols-1 gap-2 content-start"
+                    >
+                      <div
+                        v-for="(file, index) in form.issue_attachments"
+                        :key="index"
+                        class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey1 dark:hover:bg-dark2 rounded-lg"
+                      >
+                        <div class="flex gap-2">
+                          <lazy-d-img
+                            v-if="file.file_type.includes('image')"
+                            :aspect-ratio="1"
+                            :alt="file.file_name"
+                            :src="file.file_url"
+                            width="50"
+                            class="border border-solid border-grey3 cursor-pointer"
+                            @click="
+                              ticketStore.openModalIssueAttachmentImg(
+                                true,
+                                file
+                              )
+                            "
+                          ></lazy-d-img>
 
-                        <div v-if="!file.file_type.includes('image')">
-                          <v-icon
-                            icon="mdi-file-document-outline"
-                            class="text-sc dark:text-primary1"
-                            size="50"
-                          />
-                        </div>
+                          <div v-if="!file.file_type.includes('image')">
+                            <v-icon
+                              icon="mdi-file-document-outline"
+                              class="text-sc dark:text-primary1"
+                              size="50"
+                            />
+                          </div>
 
-                        <div class="flex flex-col justify-center">
-                          <input
-                            v-model="file.file_name"
-                            class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
-                          />
-                          <div class="text-xs dark:text-grey1">
-                            {{ shortenBytes(file.file_size) }}
+                          <div class="flex flex-col justify-center">
+                            <input
+                              v-model="file.file_name"
+                              class="w-full text-sm font-medium bg-transparent focus:outline-none focus:ring-1 focus:ring-sc rounded px-1"
+                            />
+                            <div class="text-xs dark:text-grey1">
+                              {{ shortenBytes(file.file_size) }}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div class="flex gap-2">
-                        <d-bt
-                          v-if="file.file_type.includes('image')"
-                          icon="mdi-information-outline"
-                          is-no-text
-                          class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                          icon-class="text-sc dark:text-primary1"
-                          rounded="xl"
-                          cta="full view"
-                          icon-size="16"
-                          :loading="loading.imageDownloadLoading"
-                          @click="ticketStore.handleViewFullPageFile(file)"
-                        ></d-bt>
-                        <d-bt
-                          icon="mdi-download"
-                          is-no-text
-                          class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                          icon-class="text-sc dark:text-primary1"
-                          rounded="xl"
-                          cta="download"
-                          icon-size="16"
-                          :loading="loading.imageDownloadLoading"
-                          @click="ticketStore.handleDownloadFile(file)"
-                        ></d-bt>
-                        <d-bt
-                          @click="
-                            ticketStore.handleExistingIssueFile(file, index)
-                          "
-                          icon="mdi-delete"
-                          is-no-text
-                          class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                          icon-class="text-cancel dark:text-primary1"
-                          rounded="xl"
-                          cta="delete"
-                          icon-size="16"
-                        ></d-bt>
+                        <div class="flex gap-2">
+                          <d-bt
+                            v-if="file.file_type.includes('image')"
+                            icon="mdi-information-outline"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="full view"
+                            icon-size="16"
+                            :loading="loading.imageDownloadLoading"
+                            @click="ticketStore.handleViewFullPageFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            icon="mdi-download"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
+                            icon-class="text-sc dark:text-primary1"
+                            rounded="xl"
+                            cta="download"
+                            icon-size="16"
+                            :loading="loading.imageDownloadLoading"
+                            @click="ticketStore.handleDownloadFile(file)"
+                          ></d-bt>
+                          <d-bt
+                            @click="
+                              ticketStore.handleExistingIssueFile(file, index)
+                            "
+                            icon="mdi-delete"
+                            is-no-text
+                            class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                            icon-class="text-cancel dark:text-primary1"
+                            rounded="xl"
+                            cta="delete"
+                            icon-size="16"
+                          ></d-bt>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <!-- <div class="flex flex-col gap-2">
-              <div>
-                <span class="text-sm font-medium dark:text-primary1"
-                  >New Files</span
-                >
-              </div>
-              <div class="">
-                <div v-if="!form.files">
-                  <span
-                    class="text-sm font-normal text-grey3 dark:text-primary1"
-                    >No files attached</span
-                  >
-                </div>
-                <div
-                  v-else
-                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-                >
-                  <div
-                    v-for="(file, index) in form.files"
-                    :key="index"
-                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
-                  >
-                    <div class="flex gap-2">
-                      <v-img
-                        :aspect-ratio="1"
-                        :src="file.url"
-                        :alt="file.name"
-                        width="50"
-                        cover
-                        class="border border-solid border-grey3"
-                      ></v-img>
-
-                      <div class="flex flex-col justify-center">
-                        <span class="text-sm dark:text-primary1">{{
-                          file.name
-                        }}</span>
-                        <span class="text-xs dark:text-grey1">{{
-                          shortenBytes(file.size)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <d-bt
-                        icon="mdi-download"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                        icon-class="text-sc dark:text-primary1"
-                        rounded="xl"
-                        cta="download"
-                        icon-size="16"
-                      ></d-bt>
-                      <d-bt
-                        @click="ticketStore.handleDeleteFile(file, index)"
-                        icon="mdi-delete"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                        icon-class="text-cancel dark:text-primary1"
-                        rounded="xl"
-                        cta="delete"
-                        icon-size="16"
-                        :is-notif="true"
-                        :notif-text="`${file.name} deleted`"
-                      ></d-bt>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> -->
             </div>
           </div>
           <d-bt type="submit" class="!hidden"></d-bt>
@@ -706,28 +655,16 @@ watchEffect(() => {
       <template #content>
         <div
           v-if="tabFormIndex == useStatics.formTabTicket.solution"
-          class="grid grid-cols-3 sm:grid-cols-1 gap-3"
+          class="lg:col-span-7 col-span-7 flex gap-2"
         >
-          <div class="lg:col-span-7 col-span-3">
-            <d-rich-text
-              v-model="form.issue_solution"
-              :label="``"
-              :placeholder="`Solution Information`"
-              class=""
-            />
-            <!-- <d-rich-text-e
-              v-model="form.issue_solution"
-              :label="`Solution Information`"
-              :placeholder="`Solution Information`"
-              class=""
-              :auto-grow="false"
-              :rows="3"
-            /> -->
-          </div>
-          <div
-            class="grid grid-cols-3 md:grid-cols-1 lg:col-span-7 col-span-7 gap-3"
-          >
-            <div class="lg:col-span-6">
+          <d-rich-text
+            v-model="form.issue_solution"
+            :label="``"
+            :placeholder="`Solution Information`"
+            class=""
+          />
+          <div class="w-1/2 sm:w-full flex gap-2">
+            <div class="w-1/2 sm:w-full">
               <v-file-upload
                 v-model="form.solution_files"
                 clearable
@@ -751,7 +688,7 @@ watchEffect(() => {
                 </template>
               </v-file-upload>
             </div>
-            <div class="md:col-span-1 col-span-2 flex flex-col gap-2">
+            <div class="flex flex-col gap-2 w-1/2 sm:w-full">
               <!-- attached files -->
               <div class="flex flex-col gap-2 dark:text-primary1">
                 <div class="flex gap-2 items-center">
@@ -873,109 +810,6 @@ watchEffect(() => {
                   </div>
                 </div>
               </div>
-
-              <!-- <div class="flex flex-col gap-2">
-              <div>
-                <span class="text-sm font-medium dark:text-primary1"
-                  >New Files</span
-                >
-              </div>
-              <div class="">
-                <div v-if="!form.files">
-                  <span
-                    class="text-sm font-normal text-grey3 dark:text-primary1"
-                    >No files attached</span
-                  >
-                </div>
-                <div
-                  v-else
-                  class="grid grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-2 content-start"
-                >
-                  <div
-                    v-for="(file, index) in form.files"
-                    :key="index"
-                    class="flex justify-between items-center gap-2 p-2 border border-solid border-grey2 hover:bg-grey2 dark:hover:bg-dark2 rounded-lg"
-                  >
-                    <div class="flex gap-2">
-                      <v-img
-                        :aspect-ratio="1"
-                        :src="file.url"
-                        :alt="file.name"
-                        width="50"
-                        cover
-                        class="border border-solid border-grey3"
-                      ></v-img>
-
-                      <div class="flex flex-col justify-center">
-                        <span class="text-sm dark:text-primary1">{{
-                          file.name
-                        }}</span>
-                        <span class="text-xs dark:text-grey1">{{
-                          shortenBytes(file.size)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <d-bt
-                        icon="mdi-download"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-scLightest rounded-full ease-in-out transition-all hover:dark:!bg-scDarker2 dark:!bg-sc"
-                        icon-class="text-sc dark:text-primary1"
-                        rounded="xl"
-                        cta="download"
-                        icon-size="16"
-                      ></d-bt>
-                      <d-bt
-                        @click="ticketStore.handleDeleteFile(file, index)"
-                        icon="mdi-delete"
-                        is-no-text
-                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                        icon-class="text-cancel dark:text-primary1"
-                        rounded="xl"
-                        cta="delete"
-                        icon-size="16"
-                        :is-notif="true"
-                        :notif-text="`${file.name} deleted`"
-                      ></d-bt>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> -->
-            </div>
-
-            <div class="flex gap-2 items-center">
-              <d-bt
-                v-if="!!props.id"
-                :cta="'Send Email'"
-                :class="
-                  classMerge(
-                    'h-[2.5rem] px-3 flex gap-3 rounded-lg !bg-sc transition-all ease-in-out hover:!bg-scDarker3 w-max'
-                  )
-                "
-                :text-class="classMerge('text-white mx-auto !font-bold')"
-                icon="mdi-email"
-                icon-class="text-white"
-                type="button"
-                @click="ticketStore.sendSolutionEmail()"
-              />
-              <!-- <d-bt
-                v-if="!!props.id"
-                :cta="'View Email'"
-                :class="
-                  classMerge(
-                    'h-[2.5rem] px-3 flex gap-3 rounded-lg !bg-primary1 border !border-solid !border-sc transition-all ease-in-out hover:!bg-scLightest w-max dark:!bg-dark1  dark:hover:!bg-dark2'
-                  )
-                "
-                :text-class="
-                  classMerge('text-sc dark:text-primary1 mx-auto !font-bold')
-                "
-                icon="mdi-eye"
-                icon-class="text-sc dark:text-primary1"
-                type="button"
-                @click="isOpenModal.email_view = true"
-              /> -->
-              <d-ticket-solution-email-button v-if="!!props.id" />
             </div>
           </div>
         </div>
