@@ -173,7 +173,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
     <d-datatable
       api="/v1/customers/index-customer"
       edit-link="/crm/customers/edit"
-      delete-api="/v1/customers/delete-customer"
+      delete-api="/v1/customers/delete-crm-customer"
       method-api="post"
       detail-method-api="post"
       items-prop="data"
