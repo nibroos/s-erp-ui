@@ -144,7 +144,7 @@ watch(
 </script>
 
 <template>
-  <div :class="classMerge('z-[999999]', props.class)">
+  <div :class="classMerge(props.class)">
     <!-- <label for="editor" class="text-sm font-medium text-grey3">
       {{ props.label }}
     </label> -->
