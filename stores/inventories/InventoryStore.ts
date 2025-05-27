@@ -382,7 +382,8 @@ const useInventoryStore = defineStore('InventoryStore', {
     formClosing: {
       isOpen: false,
       end_closing_at: new Date().toISOString().split('T')[0],
-      password: ''
+      password: '',
+      is_finalized: 1 as number,
     },
     loadingCsv: {
       closing: false,

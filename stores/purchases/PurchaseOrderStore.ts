@@ -8,7 +8,7 @@ import type { QIndexSalesOrdersType } from '~/types/inventories/InventoryType'
 import type { FormCurrencyType } from '~/types/masters/CurrencyType'
 import type { FormPph23Type } from '~/types/masters/Pph23Type'
 import type { FormVatType } from '~/types/masters/VatType'
-import type { FormPoDtProductListType, FormPurchaseOrderType, IndexPurchaseOrderType, PoDtDiscType, PoDtRefType, PoDtType, QIndexProductsType, QIndexType } from '~/types/purchase-orders/PurchaseOrderType'
+import type { FormPoDtProductListType, FormPurchaseOrderType, IndexPurchaseOrderType, PoDtDiscType, PoDtRefType, PoDtType, QIndexProductsType, QIndexRoType, QIndexType } from '~/types/purchase-orders/PurchaseOrderType'
 import type { SoDtDiscType, WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
 const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
@@ -59,10 +59,21 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } as QIndexSalesOrdersType,
       qIndexRo: {
         page: 1,
-        per_page: 100,
-        order_column: 'created_at',
+        per_page: 1000,
+        item_group_ids: [],
+        item_sub_group_ids: [],
+        sales_order_ids: [],
+        customer_id: null,
+        code: '',
+        name: '',
+        sku: '',
+        factory_code: '',
+        global: '',
+        start_date: '',
+        end_date: '',
+        order_column: 'request_date',
         order_direction: 'desc'
-      } as QIndexType
+      } as QIndexRoType
     },
     metaModal: {
       index: {
@@ -610,7 +621,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       }
     },
 
-    async indexRequisitionOrder() {
+    async indexRequestOrder() {
       if (this.metaModal.index.loading) return
       this.metaModal.index.loading = true
 
@@ -1048,7 +1059,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       } else if (this.isOpenModal.so) {
         await this.indexSalesOrder();
       } else if (this.isOpenModal.ro) {
-        await this.indexRequisitionOrder();
+        await this.indexRequestOrder();
       }
     },
 

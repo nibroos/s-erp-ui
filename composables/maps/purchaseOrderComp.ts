@@ -28,6 +28,7 @@ export function convertPoItemRefProduct(
     vat_id: item.vat_id,
     ref_so_dt_id: item.ref_so_dt_id,
     ref_so_dt_bom_id: item.ref_so_dt_bom_id,
+    ref_ro_dt_id: item.ref_ro_dt_id,
     // ref_product_id: item.ref_product_id ?? item.product_id,
     pph23_id: item.pph23_id,
     ref_id: item.ref_id as number,
@@ -130,6 +131,9 @@ export function updatePoRefsModalFromMain(
           (mainItem.ref_type == 'so' && (
             (!!mainItem.ref_so_dt_id && !!prodItem.ref_so_dt_id && mainItem.ref_so_dt_id == prodItem.ref_so_dt_id) ||
             (!!mainItem.ref_so_dt_bom_id && !!prodItem.ref_so_dt_bom_id && mainItem.ref_so_dt_bom_id == prodItem.ref_so_dt_bom_id)
+          )) ||
+          (mainItem.ref_type == 'ro' && (
+            (!!mainItem.ref_ro_dt_id && !!prodItem.ref_ro_dt_id && mainItem.ref_ro_dt_id == prodItem.ref_ro_dt_id)
           ))
           // (mainItem.ref_type == 'ro' && mainItem.ref_id == prodItem.ref_id)
         ) {

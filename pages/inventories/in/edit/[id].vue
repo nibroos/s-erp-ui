@@ -117,93 +117,6 @@ const headers = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersCustomer = ref<FieldSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-    value: "name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
-    key: "code",
-    value: "code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Phone",
-    key: "phone",
-    value: "phone",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Email",
-    key: "email",
-    value: "email",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Address",
-    key: "address",
-    value: "address",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_name",
-    value: "customer_type_name",
-    align: "start",
-    sortable: true,
-  },
-]);
-
-const filtersCustomer = ref<FilterSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-  },
-  {
-    title: "Code",
-    key: "code",
-  },
-  {
-    title: "Phone",
-    key: "phone",
-  },
-  {
-    title: "Email",
-    key: "email",
-  },
-  {
-    title: "Address",
-    key: "address",
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_ids",
-    type: "autocomplete",
-    display: "name",
-    others: {
-      methodApi: "post",
-      query: {
-        is_active: 1,
-      },
-      api: "/v1/customer-types/index-customer-type",
-      singleApi: "/v1/customer-types/index-customer-type",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Customer Type",
-      innerSearchKey: "global",
-    },
-  },
-]);
-
 const headersModalProducts = ref<FieldSelectableType[]>([
   { title: "", key: "expand", width: 20, sortable: false },
   {
@@ -299,271 +212,7 @@ const headersModalProducts = ref<FieldSelectableType[]>([
   },
 ]);
 
-const headersModalSalesOrders = ref<FieldSelectableType[]>([
-  { title: "", key: "expand", width: 20, sortable: false },
-  {
-    title: "Purchase Order No",
-    key: "ref_num",
-    value: "ref_num",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Order Date",
-    key: "order_at",
-    value: "order_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Customer",
-    key: "customer_name",
-    value: "customer_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Group",
-    key: "item_group_name",
-    value: "item_group_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Sub Group",
-    key: "item_sub_group_name",
-    value: "item_sub_group_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Item Code",
-    key: "item_code",
-    value: "item_code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Item Name",
-    key: "item_name",
-    value: "item_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "SKU",
-    key: "item_sku",
-    value: "item_sku",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Unit",
-    key: "unit_name",
-    value: "unit_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "IN Qty",
-    key: "qty_in",
-    value: "qty_in",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Ref Qty",
-    key: "ref_qty",
-    value: "ref_qty",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Balance",
-    key: "balance",
-    value: "balance",
-    align: "end",
-    sortable: true,
-  },
-  // {
-  //   title: "Price",
-  //   key: "price_sell",
-  //   value: "price_sell",
-  //   align: "end",
-  //   sortable: true,
-  // },
-  // {
-  //   title: "Subtotal",
-  //   key: "subtotal_sell",
-  //   value: "subtotal_sell",
-  //   align: "end",
-  //   sortable: true,
-  // },
-  {
-    title: "Remark",
-    key: "remark",
-    value: "remark",
-    align: "start",
-    sortable: true,
-  },
-]);
-
-const headersModalInventory = ref<FieldSelectableType[]>([
-  { title: "", key: "expand", width: 20, sortable: false },
-  {
-    title: "IN Date",
-    key: "ingoing_at",
-    value: "ingoing_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Surat Jalan No",
-    key: "surat_jalan_no",
-    value: "surat_jalan_no",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "DO No",
-    key: "do_no",
-    value: "do_no",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Invoice No",
-    key: "invoice_no",
-    value: "invoice_no",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "DO Date",
-    key: "do_at",
-    value: "do_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Invoice Date",
-    key: "invoice_at",
-    value: "invoice_at",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Supplier",
-    key: "customer_name",
-    value: "customer_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Group",
-    key: "item_group_name",
-    value: "item_group_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Sub Group",
-    key: "item_sub_group_name",
-    value: "item_sub_group_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Code",
-    key: "item_code",
-    value: "item_code",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Name",
-    key: "item_name",
-    value: "item_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "SKU",
-    key: "item_sku",
-    value: "item_sku",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "Unit",
-    key: "unit_name",
-    value: "unit_name",
-    align: "start",
-    sortable: true,
-  },
-  {
-    title: "IN Qty",
-    key: "out_qty",
-    value: "out_qty",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Qty",
-    key: "qty",
-    value: "qty",
-    align: "end",
-    sortable: true,
-  },
-  {
-    title: "Remark",
-    key: "remark",
-    value: "remark",
-    align: "start",
-    sortable: true,
-  },
-]);
-
 const filtersOptionsProducts = ref([
-  {
-    title: "Group",
-    key: "item_group_ids",
-    type: "autocomplete",
-    methodApi: "post",
-    query: {
-      is_active: 1,
-    },
-    api: "/v1/item-groups/index-item-group",
-    singleApi: "/v1/item-groups/index-item-group",
-    pageEndProp: "meta.next_page_url",
-    innerSearchKey: "global",
-    multiple: true,
-    returnObject: false,
-    itemColor: "brown-lighten-2",
-    itemValue: "id",
-    itemTitle: "name",
-  },
-  {
-    title: "Sub Group",
-    key: "item_sub_group_ids",
-    type: "autocomplete",
-    methodApi: "post",
-    query: {
-      is_active: 1,
-    },
-    api: "/v1/item-sub-groups/index-item-sub-group",
-    singleApi: "/v1/item-sub-groups/index-item-sub-group",
-    pageEndProp: "meta.next_page_url",
-    innerSearchKey: "global",
-    multiple: true,
-    returnObject: false,
-    itemColor: "brown-lighten-2",
-    itemValue: "id",
-    itemTitle: "name",
-  },
-]);
-
-const filtersOptionsSalesOrders = ref([
   {
     title: "Group",
     key: "item_group_ids",
@@ -626,17 +275,6 @@ const filtersTextProducts = ref([
   {
     title: "TPB Code",
     key: "tpb_code",
-  },
-  {
-    title: "Global",
-    key: "global",
-  },
-]);
-
-const filtersTextSalesOrders = ref([
-  {
-    title: "Purchase Order No",
-    key: "po_no",
   },
   {
     title: "Global",
@@ -823,6 +461,8 @@ const filtersDateInventories = ref([
   },
 ]);
 
+const isDisableUpdate = ref(false);
+
 const formLayout = ref({
   title: "Basic Information",
   parentPath: "/inventories/in",
@@ -859,16 +499,55 @@ const initialFormLayout = () => {
     create: {
       path: "/inventories/in/create",
     },
-    save: {
-      show: true,
-      loading: false,
-      type: "submit",
-    },
+    // save: {
+    //   show: true,
+    //   loading: false,
+    //   type: "submit",
+    // },
     clear: {
       show: true,
     },
   };
 };
+
+watch(
+  () => form.value.qty_out_on_in,
+  (newVal) => {
+    if (newVal > 0) {
+      isDisableUpdate.value = true;
+      if (formLayout.value.button.save) {
+        console.log(
+          "formLayout.value.button.save1",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save.show = false;
+      } else {
+        console.log(
+          "formLayout.value.button.save2",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save = {
+          show: false,
+          loading: false,
+        };
+      }
+    } else {
+      isDisableUpdate.value = false;
+      if (formLayout.value.button.save) {
+        console.log(
+          "formLayout.value.button.save3",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save.show = true;
+      }
+      console.log(
+        "formLayout.value.button.save4",
+        formLayout.value.button.save
+      );
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const handleSubmit = async () => {
   // const validatedForm = formSchema.safeParse(form.value);
@@ -886,6 +565,10 @@ const handleSubmit = async () => {
 
   form.value.inv_dts = itemsCheck.value.checkMain;
   form.value.io_type = "INVENTORY_IN";
+
+  if (isDisableUpdate.value) {
+    return;
+  }
 
   await inventoryStore.update();
 };

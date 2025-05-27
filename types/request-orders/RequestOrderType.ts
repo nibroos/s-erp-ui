@@ -24,7 +24,7 @@ export type IndexRequestOrderType = {
   created_at: string | null
   updated_at: string | null
   deleted_at: string | null
-  
+
   branch_name: string | null
   warehouse_name: string | null
 }
@@ -44,11 +44,13 @@ export type FormRequestOrderType = {
   grand_total_wh_qty: number
   grand_total_req_qty: number
   request_order_dts: RoDtType[]
-  
+
   branch_name?: string
   warehouse_name?: string
-  
+
   summary?: Record<string, SummaryPartType>
+
+  qty_po: number
 }
 
 export type RoDtType = {
@@ -73,7 +75,7 @@ export type RoDtType = {
   order_item_qty: number
   wh_qty: number
   req_qty: number
-  
+
   code?: string
   name?: string
   item_code?: string
@@ -137,14 +139,14 @@ export type QIndexRefSoType = {
   page: number
   per_page: number
   global?: string
-  request_order_id?: string
+  request_order_id?: string | null
   sales_order_no?: string
   po_buyer_no?: string
   remark?: string
-  customer_id?: number
-  order_type_id?: number
-  branch_id?: number
-  warehouse_id?: number
+  customer_id?: number | null
+  order_type_id?: number | null
+  branch_id?: number | null
+  warehouse_id?: number | null
   status?: string
   date_type?: string
   start_date?: string
@@ -177,7 +179,7 @@ export type FormRoDtProductListType = ProductListType & RoDtsType & {
   ref_type: RoDtRefType
   product_type?: RoDtProductType
   request_order_id?: number | null
-  
+
   item_id?: number
   item_name?: string
   item_code?: string
@@ -226,7 +228,7 @@ export type RefSoForRoType = {
   wh_qty?: number
   req_qty?: number
   request_status?: string
-  
+
   customer_id?: number
   order_type_id?: number
   head_remark?: string

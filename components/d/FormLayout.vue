@@ -166,6 +166,19 @@ function deepMerge(target: any, source: any) {
   return target;
 }
 
+// const mergedConfig = ref<FormLayoutType>(
+//   deepMerge(defaultProps.config, props.config)
+// );
+
+// watch(
+//   () => props.config,
+//   (newValue, oldValue) => {
+//     if (newValue !== oldValue) {
+//       mergedConfig.value = deepMerge(defaultProps.config, newValue);
+//     }
+//   },
+//   { deep: true, immediate: true }
+// );
 const mergedConfig: ComputedRef<FormLayoutType> = computed(() =>
   deepMerge(defaultProps.config, props.config)
 );

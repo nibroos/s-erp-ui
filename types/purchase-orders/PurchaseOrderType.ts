@@ -113,6 +113,7 @@ export type PoDtType = {
   pph23_id?: number | null
   ref_id: number
   ref_so_dt_id: number | string | null
+  ref_ro_dt_id: number | string | null
   ref_so_dt_bom_id: number | string | null
   ref_product_id: number | string | null
   ref_product_bom_id: number | string | null
@@ -164,6 +165,7 @@ export type PoDtsType = {
   ref_id: number
   ref_so_dt_id: number | string | null
   ref_so_dt_bom_id: number | string | null
+  ref_ro_dt_id: number | string | null
   ref_product_id: number | string | null
   ref_product_bom_id: number | string | null
   product_id: number
@@ -205,6 +207,28 @@ export type QIndexType = {
   page: number
   per_page: number
   parent_ids: number[]
+  global: string
+  order_column: string
+  order_direction: string
+}
+
+export type QIndexRoType = {
+  page: number
+  per_page: number
+  customer_id?: number | null
+  product_id?: number | null
+  item_id?: number | null
+  product_ids?: number[] | null
+  item_ids?: number[] | null
+  item_group_ids?: number[] | null
+  item_sub_group_ids?: number[] | null
+  product_bom_ids?: number[] | null
+  code?: string
+  name?: string
+  sku?: string
+  factory_code?: string
+  start_date?: string
+  end_date?: string
   global: string
   order_column: string
   order_direction: string

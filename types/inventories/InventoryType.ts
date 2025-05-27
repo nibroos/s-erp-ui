@@ -82,6 +82,7 @@ export type FormInventoryType = {
   do_at: string
   ingoing_at: string
   invoice_at: string
+  qty_out_on_in: number
   inv_dts: InvDtType[]
 
   summary?: Record<string, SummaryPartType>

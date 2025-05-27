@@ -481,6 +481,12 @@ const onClickFind = async (filters: QInvIndexType) => {
             :type="showHide ? 'text' : 'password'"
             @click:append-inner="toggleShowHide"
           ></v-text-field>
+          <d-switch-status
+            v-model="formClosing.is_finalized"
+            :label="`Finalized`"
+            :true-value="1"
+            :false-value="0"
+          />
           <div
             v-if="formClosing.end_closing_at && formClosing.password"
             class="flex flex-col"

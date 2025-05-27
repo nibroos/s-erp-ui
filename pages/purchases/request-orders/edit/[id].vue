@@ -242,6 +242,8 @@ const filtersTextSalesOrders = ref([
   },
 ]);
 
+const isDisableUpdate = ref(false);
+
 const customSummary = computed(() => {
   return {
     // total_order_product_qty: {
@@ -313,6 +315,10 @@ const initialFormLayout = () => {
 };
 
 const handleSubmit = async () => {
+  if (isDisableUpdate.value) {
+    return;
+  }
+
   form.value.request_order_dts = itemsCheck.value.checkMain;
   await requestOrderStore.update();
 };
@@ -328,12 +334,51 @@ const calculateTotalAmountLocal = () => {
 };
 
 const formatDate = (dateString: string) => {
-  if (!dateString) return '-';
-  if (dateString.includes('T')) {
-    return dateString.split('T')[0];
+  if (!dateString) return "-";
+  if (dateString.includes("T")) {
+    return dateString.split("T")[0];
   }
   return dateString;
 };
+
+watch(
+  () => form.value.qty_po,
+  (newVal) => {
+    if (newVal > 0) {
+      isDisableUpdate.value = true;
+      if (formLayout.value.button.save) {
+        console.log(
+          "formLayout.value.button.save1",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save.show = false;
+      } else {
+        console.log(
+          "formLayout.value.button.save2",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save = {
+          show: false,
+          loading: false,
+        };
+      }
+    } else {
+      isDisableUpdate.value = false;
+      if (formLayout.value.button.save) {
+        console.log(
+          "formLayout.value.button.save3",
+          formLayout.value.button.save
+        );
+        formLayout.value.button.save.show = true;
+      }
+      console.log(
+        "formLayout.value.button.save4",
+        formLayout.value.button.save
+      );
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 watch(
   () => isOpenModal.value.products,
@@ -356,7 +401,7 @@ watch(
   () => form.value.status,
   (newStatus, oldStatus) => {
     if (formLayout.value.button?.save) {
-      formLayout.value.button.save.disabled = newStatus === 'APPROVED';
+      formLayout.value.button.save.disabled = newStatus === "APPROVED";
     }
   },
   { immediate: true }
@@ -497,7 +542,7 @@ watchEffect(() => {
             </template>
             <template #item.req_qty="{ item }">
               <d-num-v-format
-                                v-model="item.req_qty"
+                v-model="item.req_qty"
                 :precision="{
                   min: 3,
                   max: 3,
@@ -521,16 +566,16 @@ watchEffect(() => {
               <d-num-layout :value="item.wh_qty ?? 0" />
             </template>
             <template #item.code="{ item }">
-              <span>{{ item.code || '-' }}</span>
+              <span>{{ item.code || "-" }}</span>
             </template>
             <template #item.product_name="{ item }">
-              <span>{{ item.product_name || '-' }}</span>
+              <span>{{ item.product_name || "-" }}</span>
             </template>
             <template #item.item_name="{ item }">
-              <span>{{ item.item_name || '-' }}</span>
+              <span>{{ item.item_name || "-" }}</span>
             </template>
             <template #item.remark="{ item }">
-              <span>{{ item.remark || '-' }}</span>
+              <span>{{ item.remark || "-" }}</span>
             </template>
             <template #item.action="{ item, index }">
               <div class="action-button flex gap-2">
@@ -568,7 +613,7 @@ watchEffect(() => {
         </div>
       </template>
     </d-form-layout>
-    
+
     <!-- Products Modal -->
     <modals-final-modal
       :is-open="isOpenModal.products"
@@ -647,16 +692,16 @@ watchEffect(() => {
           <d-num-layout :value="item.req_qty" />
         </template>
         <template #item.code="{ item }">
-          <span>{{ item.code || '-' }}</span>
+          <span>{{ item.code || "-" }}</span>
         </template>
         <template #item.product_name="{ item }">
-          <span>{{ item.product_name || '-' }}</span>
+          <span>{{ item.product_name || "-" }}</span>
         </template>
         <template #item.item_name="{ item }">
-          <span>{{ item.item_name || '-' }}</span>
+          <span>{{ item.item_name || "-" }}</span>
         </template>
         <template #item.remark="{ item }">
-          <span>{{ item.remark || '-' }}</span>
+          <span>{{ item.remark || "-" }}</span>
         </template>
       </v-data-table-server>
 
@@ -770,19 +815,19 @@ watchEffect(() => {
           <d-num-layout :value="item.req_qty" />
         </template>
         <template #item.code="{ item }">
-          <span>{{ item.code || '-' }}</span>
+          <span>{{ item.code || "-" }}</span>
         </template>
         <template #item.product_name="{ item }">
-          <span>{{ item.product_name || '-' }}</span>
+          <span>{{ item.product_name || "-" }}</span>
         </template>
         <template #item.item_name="{ item }">
-          <span>{{ item.item_name || '-' }}</span>
+          <span>{{ item.item_name || "-" }}</span>
         </template>
         <template #item.remark="{ item }">
-          <span>{{ item.remark || '-' }}</span>
+          <span>{{ item.remark || "-" }}</span>
         </template>
         <template #item.order_date="{ item }">
-          <span>{{ item.order_date ? formatDate(item.order_date) : '-' }}</span>
+          <span>{{ item.order_date ? formatDate(item.order_date) : "-" }}</span>
         </template>
       </v-data-table-server>
 

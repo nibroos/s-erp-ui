@@ -1282,9 +1282,142 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.ro = $event"
     >
-      <div class="text-center py-10 text-gray-500">
-        Request Order reference functionality will be implemented later
-      </div>
+      <template #top>
+        <form
+          class="grid grid-cols-5 w-full flex-row items-center gap-2"
+          @submit.prevent="purchaseOrderStore.fetchModalFilter()"
+        >
+          <d-date-picker-light
+            v-for="filter in filtersDateInventories"
+            :key="filter.key"
+            v-model="queryModal.qIndexRo[filter.key as ModalIndexRefFilterDateType]"
+            :label="filter.title"
+          />
+          <d-select-table
+            api="/v1/customers/index-customer"
+            detail-api="/v1/customers/index-customer"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Customer"
+            v-model="queryModal.qIndexRo.customer_id"
+            :query="{
+              is_active: 1,
+            }"
+            class=""
+            is-quick-select
+            @click:selected="
+              (data) => purchaseOrderStore.autocompleteCustomer(data)
+            "
+            modal-custom-class="!w-4/5"
+            :fields="useStatics.headersCustomer"
+            :filters="useStatics.filtersCustomer"
+          />
+          <d-select-table
+            api="/v1/products/index-product"
+            detail-api="/v1/products/index-product"
+            method-api="post"
+            detail-method-api="post"
+            mapping-detail="data[0]"
+            total-prop="meta.total"
+            label="Product"
+            v-model="queryModal.qIndexRo.product_id"
+            class=""
+            is-quick-select
+            modal-custom-class="!w-4/5"
+            :fields="useInitials.productFieldsFilterConfig.fields"
+            :filters="useInitials.productFieldsFilterConfig.filters"
+          />
+          <d-autocomplete
+            v-for="filter in filtersOptionsSalesOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexRo[filter.key as ModalIndexSalesOrderFilterAutoCompleteType]"
+            :api="filter.api"
+            :single-api="filter.singleApi"
+            :method-api="filter.methodApi"
+            inner-search-key="global"
+            :page-end-prop="filter.pageEndProp"
+            :label="filter.title"
+            :item-value="filter.itemValue"
+            :item-title="filter.itemTitle"
+            multiple
+            :placeholder="`Type ${filter.title} ...`"
+          ></d-autocomplete>
+
+          <d-text-input
+            v-for="filter in filtersTextSalesOrders"
+            :key="filter.key"
+            v-model="queryModal.qIndexRo[filter.key as ModalIndexSalesOrderFilterTextType]"
+            :label="filter.title"
+            :placeholder="filter.title"
+            append-inner-icon="mdi-magnify"
+          />
+
+          <d-submit-button
+            @click:submit="purchaseOrderStore.fetchModalFilter()"
+            @click:clear="purchaseOrderStore.handleClearQuery()"
+            class="grid-cols-1"
+          />
+        </form>
+      </template>
+
+      <v-data-table-server
+        v-model="itemsCheck.checkRo"
+        v-model:page="queryModal.qIndexRo.page"
+        :items="metaModal.indexRo.data ?? []"
+        :headers="headersModalSalesOrders"
+        :items-per-page="queryModal.qIndexRo.per_page"
+        :items-length="metaModal.indexRo.meta.total ?? 0"
+        :items-per-page-options="useInitials.perPageOptions"
+        :loading="metaModal.indexRo.loading"
+        density="compact"
+        :header-props="{
+          class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+        }"
+        :row-props="{
+          class: 'cursor-pointer',
+        }"
+        item-value="quo_dt_id"
+        show-current-page
+        return-object
+        multiple
+        show-select
+        @update:options="(data:any) => purchaseOrderStore.fetchDataServerFetch(data)"
+        fixed-header
+        height="450"
+        hover
+      >
+        <template #item.item_type="{ item }">
+          <span class="capitalize"
+            >{{ item.item_type ?? defineItemTypePurchaseOrder(item as FormPoDtProductListType) }}
+          </span>
+        </template>
+        <template #item.ref_qty="{ item }">
+          <d-num-layout :value="item.ref_qty" />
+        </template>
+        <template #item.qty_po="{ item }">
+          <d-num-layout :value="item.qty_po" />
+        </template>
+        <template #item.balance="{ item }">
+          <d-num-layout :value="item.balance" />
+        </template>
+        <template #item.status="{ item }">
+          <d-active-status :value="item.status" />
+        </template>
+      </v-data-table-server>
+
+      <template #footer>
+        <div class="flex h-max w-full justify-end items-center gap-2">
+          <button
+            class="flex items-center gap-2 rounded-md bg-sc px-3 py-2 text-[15px] font-bold text-white shadow-md hover:shadow-xl"
+            @click="purchaseOrderStore.onClickUpdateProductsModal()"
+          >
+            <Icon name="material-symbols:save-rounded" size="20" />
+            Add Selected Request Order ({{ itemsCheck.checkRo.length }})
+          </button>
+        </div>
+      </template>
     </modals-final-modal>
   </div>
 </template>

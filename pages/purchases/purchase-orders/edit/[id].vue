@@ -1163,19 +1163,6 @@ watchEffect(() => {
       parent-class="!z-[1500]"
       @update:is-open="isOpenModal.so = $event"
     >
-      <div class="text-center py-10 text-gray-500">
-        Sales Order reference functionality will be implemented later
-      </div>
-    </modals-final-modal>
-
-    <modals-final-modal
-      :is-open="isOpenModal.so"
-      size="xl"
-      custom-class="overflow-y-auto"
-      label="List of Sales Orders"
-      parent-class="!z-[1500]"
-      @update:is-open="isOpenModal.so = $event"
-    >
       <template #header-end>
         <d-form-product @submit:form="purchaseOrderStore.fetchModalFilter()" />
       </template>

@@ -550,7 +550,7 @@ const filtersDateInventories = ref([
 
 const formLayout = ref({
   title: "Basic Information",
-  parentPath: "/inventories/out",
+  parentPath: "/inventories/in",
   currentTab: tabFormIndex.value,
   tabs: ["Items", "Remark"],
   button: {
