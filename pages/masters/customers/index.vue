@@ -135,7 +135,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         no-title
         :fields="fieldsConfig"
         :filters="filtersConfig"
-        :query-modal="queryModal.qListIndex"
+        :query-modal="queryModal.qListMasterIndex"
         :create-option="{
           link: '/masters/customers/create',
           show: true,
@@ -143,7 +143,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
         }"
         @update:filters="
           (filters) => {
-            queryModal.qListIndex = filters;
+            queryModal.qListMasterIndex = filters;
           }
         "
       >

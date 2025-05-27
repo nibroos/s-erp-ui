@@ -16,6 +16,13 @@ const useCustomerStore = defineStore('CustomerStore', {
         order_column: 'name',
         order_direction: 'desc'
       } as Record<string, any>,
+      qListMasterIndex: {
+        page: 1,
+        per_page: 100,
+        global: '',
+        order_column: 'name',
+        order_direction: 'desc'
+      } as Record<string, any>,
       qIndexHardwareProducts: {
         page: 1,
         per_page: 100,
