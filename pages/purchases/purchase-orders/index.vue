@@ -255,6 +255,7 @@ onMounted(() => {
         no-title
         edit-link="/purchases/purchase-orders/edit"
         delete-api="/v1/purchase-orders/delete-purchase-order"
+        pdf-api="/v1/purchase-orders/pdf-purchase-order"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"

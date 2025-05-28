@@ -68,6 +68,7 @@ export type FormPurchaseOrderType = {
   shipping_term_id?: number | null
   pph23_id?: number | null
   branch_id?: number | null
+  payment_id?: number | null
   is_vat?: number
   is_pph23?: number
   po_no?: string
@@ -134,6 +135,7 @@ export type PoDtType = {
   discount_percentage_num?: number
   discount_percentage_amount: number
   discount_final: number
+  sub_discount: number
   discount_type?: PoDtDiscType | null
   is_vat?: number
   is_pph23?: number

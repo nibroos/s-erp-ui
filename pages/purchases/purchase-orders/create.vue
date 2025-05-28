@@ -500,6 +500,9 @@ const formLayout = ref({
     clear: {
       show: true,
     },
+    pdf: {
+      show: true,
+    },
   },
   summary: formLayoutStore.value.summary,
 } as FormLayoutType);
@@ -509,6 +512,9 @@ const initialFormLayout = () => {
   formLayout.value.mode = "create";
   formLayout.value.button = {
     clear: {
+      show: true,
+    },
+    pdf: {
       show: true,
     },
   };
@@ -562,6 +568,7 @@ watchEffect(() => {
       @click:save="handleSubmit()"
       @click:clear="purchaseOrderStore.handleClickClear()"
       @update:current-tab="tabFormIndex = $event"
+      @click:pdf="purchaseOrderStore.onClickPDF()"
     >
       <template #header>
         <form
@@ -718,6 +725,27 @@ watchEffect(() => {
               "
             >
             </d-autocomplete>
+          </div>
+          <div class="sm:col-span-1">
+            <d-autocomplete
+              v-model="form.payment_id"
+              api="/v1/company-profiles/index-bank-information"
+              single-api="/v1/company-profiles/index-bank-information"
+              page-end-prop="meta.next_page_url"
+              item-title="name"
+              item-value="id"
+              method-api="post"
+              inner-search-key="global"
+              label="Bank"
+              :display-multiple-keys="[
+                'company_name',
+                'name',
+                'account_number',
+              ]"
+              :display-multiple-format="(item: any) => `${item.company_name} - ${item.name} (${item.account_number})`"
+              is-display-multiple-key
+              :errors="errors.payment_id"
+            ></d-autocomplete>
           </div>
           <div class="lg:col-span-6 flex gap-2">
             <d-switch-status

@@ -105,6 +105,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
     loading: {
       formLoading: false,
       editPageLoading: false,
+      pdfLoading: false,
     },
     tabFormIndex: 0,
     errors: {} as Record<string, any>,
@@ -1160,6 +1161,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         item.discount_final = discFinal
         item.discount_percentage_num = discPercNum;
         item.discount_percentage_amount = discPercAm;
+        item.sub_discount = discPercAm + discAmount
         if (discPercentage) {
         }
 
@@ -1381,7 +1383,35 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       const randomId = Math.floor(100000 + Math.random() * 900000);
 
       return `PO-${dateStr}-${randomId}`;
-    }
+    },
+
+    async onClickPDF() {
+      this.form.po_dts = this.itemsCheck.checkMain
+
+      if (!!this.loading.pdfLoading) return
+      this.loading.pdfLoading = true
+      try {
+        const response = await useMyFetch().post(
+          '/v1/purchase-orders/pdf-purchase-order',
+          {
+            ...this.form,
+            company: AuthStore().company
+          }
+        )
+
+        console.log('response', response.data);
+
+        const { data } = response.data
+        window.open(data.link, '_blank')
+
+
+        return response
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response.data);
+      } finally {
+        this.loading.pdfLoading = false
+      }
+    },
   },
   persist: [
     {
