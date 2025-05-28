@@ -853,6 +853,7 @@ const useQuotationStore = defineStore('QuotationStore', {
 
         item.disc_perc_num = 0;
         item.disc_perc_am = 0;
+        item.sub_discount = discAmount + discPercAm;
         item.disc_final = discFinal
         if (discPercentage) {
           item.disc_perc_num = discPercNum;

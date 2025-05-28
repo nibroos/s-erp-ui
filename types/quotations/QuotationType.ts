@@ -137,6 +137,7 @@ export type QuoDtType = {
   disc_perc?: number
   disc_perc_num?: number
   disc_perc_am: number
+  sub_discount: number
   disc_final: number
   disc_type?: QuoDtDiscType | null
   // head_disc_am?: number | null

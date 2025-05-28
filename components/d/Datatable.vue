@@ -80,7 +80,7 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   isCsv: false,
   csvApi: "",
 
-  selectStrategy: "single",
+  selectStrategy: "all",
 
   itemsProp: "data",
   mappingDetail: "data",
@@ -94,6 +94,19 @@ const props = withDefaults(defineProps<SelectTableType>(), {
   isDefaultTabSlotExists: true,
   defaultTabName: "",
   isRowNum: true,
+  isCustomHeader: false,
+  metaModal: () => ({
+    data: [],
+    loading: false,
+    meta: {
+      total: 0,
+      current_page: 1,
+      last_page: 1,
+      from: 1,
+      to: 1,
+      per_page: 100,
+    },
+  }),
   defaultClearFilter: () => ({
     page: 1,
     per_page: 100,
@@ -134,6 +147,7 @@ const emits = defineEmits([
   "click:pdf",
   "update:currentTab",
   "click:csv",
+  "update:afterFetch",
 ]);
 
 const loadings = ref({
@@ -250,7 +264,7 @@ let paginationDone = ref<boolean>(false);
 let showModal = ref<boolean>(props.showModal);
 let multiple = ref<boolean>(props.multiple);
 let selectStrategy = ref<"single" | "page" | "all" | undefined>(
-  props.multiple ? "all" : "single"
+  props.selectStrategy
 );
 let icon = ref<string>(props.icon);
 
@@ -268,18 +282,15 @@ const filters = ref<Record<string, any>>({
 
 const oldPage = ref<number>(filters.value.page);
 
-const metaModal = ref<Pagination<any[]>>({
-  data: [],
-  loading: false,
-  meta: {
-    total: 0,
-    current_page: 1,
-    last_page: 1,
-    from: 1,
-    to: 1,
-    per_page: 100,
+const metaModal = ref<Pagination<any[]>>(props.metaModal);
+
+watch(
+  () => props.metaModal,
+  (newValue) => {
+    metaModal.value = newValue;
   },
-});
+  { deep: true }
+);
 
 const showMetaModal = ref<Record<string, any>>({
   data: [],
@@ -291,6 +302,18 @@ const itemsCheck = ref<Record<string, any>[]>([]);
 
 const clearFilters = () => {
   filters.value = cloneObject(props.defaultClearFilter);
+};
+
+const addSelectableKey = (
+  items: Record<string, any>[],
+  key: string
+): Record<string, any>[] => {
+  return items.map((item) => {
+    return {
+      ...item,
+      // selectable: false,
+    };
+  });
 };
 
 const filterData = async () => {
@@ -341,6 +364,11 @@ const filterData = async () => {
           metaModal.value.data = resData;
         }
 
+        metaModal.value.data = addSelectableKey(
+          metaModal.value.data,
+          props.itemValue
+        );
+
         // metaModal.value.data = <any[]>property(props.itemsProp)(res.data);
         metaModal.value.total = property(props.totalProp)(res.data) as string;
         metaModal.value.meta = (<any>(
@@ -349,6 +377,7 @@ const filterData = async () => {
       })
       .finally(() => {
         metaModal.value.loading = false;
+        emits("update:afterFetch", metaModal.value);
       });
   } else {
     apiUrl = `${api.value}?${queryString}`;
@@ -459,6 +488,16 @@ const fetchBulk = async (ids: number[]) => {
       showMetaModal.value.loading = false;
     });
 };
+
+watch(
+  () => itemsCheck.value,
+  (newValue: any, oldValue: any) => {
+    if (newValue !== oldValue) {
+      onSelectItems();
+    }
+  },
+  { deep: true }
+);
 
 const onSelectItems = async () => {
   if (itemsCheck.value.length == 0) {
@@ -601,6 +640,15 @@ const onIntersect = (isIntersecting: boolean): void => {
 };
 
 watch(
+  () => props.modelValue,
+  (newValue: any, oldValue: any) => {
+    if (newValue !== oldValue) {
+      itemsCheck.value = props.modelValue;
+    }
+  }
+);
+
+watch(
   () => itemsCheck.value,
   (newValue: any, oldValue: any) => {
     if (newValue !== oldValue && props.isQuickSelect) {
@@ -637,10 +685,10 @@ onMounted(async () => {
     ...props.queryModal,
   };
 
+  generateFiltersObj();
   await Promise.all([filterData(), fetchSingle(props.modelValue)]);
 
   generateHeadersObj();
-  generateFiltersObj();
 
   if (!!props.modelValue) {
     itemsCheck.value.push(props.modelValue);
@@ -1008,7 +1056,9 @@ defineExpose({
         :item-value="props.itemValue"
         show-current-page
         :return-object="props.returnObject"
+        :show-select="!!props.multiple"
         :multiple="props.multiple"
+        :select-strategy="props.selectStrategy"
         @update:options="fetchDataServerFetch"
         fixed-header
         :height="props.height"
@@ -1016,6 +1066,7 @@ defineExpose({
         @click:row="onSelectOption"
         @dblclick:row="onDoubleClick"
         :hide-default-footer="props.hideDefaultFooter"
+        item-selectable="selectable"
       >
         <template #body.append>
           <tr
@@ -1040,15 +1091,81 @@ defineExpose({
         <template #no-data> No data available </template>
 
         <template
+          #header.data-table-select="{
+                allSelected,
+                selectAll,
+                someSelected
+              }: {
+                allSelected: any
+                selectAll: any
+                someSelected: any
+              }"
+        >
+          <div class="flex items-center justify-center w-full">
+            <v-checkbox-btn
+              v-if="props.isSelectHidden"
+              :model-value="allSelected"
+              :indeterminate="someSelected && !allSelected"
+              hide-details
+              @update:model-value="selectAll"
+            />
+          </div>
+        </template>
+        <!-- <template
           v-for="(field, index) in headersModal"
           :key="index"
-          v-slot:[`item.${field.value}`]="{ item, index }"
+          v-slot:[`header.${field.value}`]="{
+            allSelected,
+            selectAll,
+            someSelected,
+          }"
+        >
+          <slot
+            :name="`header.${field.key}`"
+            :field="field"
+            :allSelected="allSelected"
+            :selectAll="selectAll"
+            :someSelected="someSelected"
+          >
+            {{ field.title }}
+          </slot>
+        </template> -->
+        <!-- <template
+          v-for="(field, index) in headersModal"
+          :key="index"
+          #[`header.${field.value}`]="{ allSelected, selectAll, someSelected }"
+        >
+          <slot
+            v-if="slots[`header.${field.key}`]"
+            :name="`header.${field.key}`"
+            :field="field"
+            :allSelected="allSelected"
+            :selectAll="selectAll"
+            :someSelected="someSelected"
+          >
+            {{ field.title }}
+          </slot>
+        </template> -->
+
+        <template
+          v-for="(field, index) in headersModal"
+          :key="index"
+          v-slot:[`item.${field.value}`]="{
+            item,
+            index,
+            isSelected,
+            toggleSelect,
+            internalItem,
+          }"
         >
           <slot
             v-if="field.key == 'action'"
             :name="`item.${field.key}`"
             :item="item"
             :index="index"
+            :isSelected="isSelected"
+            :toggleSelect="toggleSelect"
+            :internalItem="internalItem"
             class="abcd"
           >
             <div class="flex items-center justify-center gap-2">
@@ -1109,7 +1226,15 @@ defineExpose({
               >{{ index + 1 }}</span
             >
           </slot>
-          <slot v-else :name="`item.${field.key}`" :item="item" :index="index">
+          <slot
+            v-else
+            :name="`item.${field.key}`"
+            :item="item"
+            :index="index"
+            :isSelected="isSelected"
+            :toggleSelect="toggleSelect"
+            :internalItem="internalItem"
+          >
             <span v-if="metaModal.data[index] && field.value">{{
               metaModal.data[index][field.value]
             }}</span>

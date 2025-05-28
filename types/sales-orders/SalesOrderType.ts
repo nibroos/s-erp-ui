@@ -255,6 +255,7 @@ export type SoDtType = {
   disc_perc?: number
   disc_perc_num?: number
   disc_perc_am: number
+  sub_discount: number
   disc_final: number
   disc_type?: SoDtDiscType | null
   // head_disc_am?: number | null

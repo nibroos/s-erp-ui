@@ -160,6 +160,8 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       due_date: string,
       remark: string
     },
+    selectedBulkMode: null as number | null,
+    approvalMode: false,
   }),
 
   actions: {
@@ -1113,7 +1115,7 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       }
     },
 
-    async approveInvoiceMaintenance(ids: number[] | number | string | string[] | undefined) {
+    async approveInvoiceMaintenance(ids: number[] | number | string | string[] | undefined | null) {
       try {
         const idsArray = Array.isArray(ids) ? ids : [ids];
 
@@ -1132,7 +1134,7 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       }
     },
 
-    async sendEmailInvoicesMaintenance(ids: number[] | number | string | string[] | undefined) {
+    async sendEmailInvoicesMaintenance(ids: number[] | number | string | string[] | undefined | null) {
       try {
         const idsArray = Array.isArray(ids) ? ids : [ids];
 
@@ -1151,7 +1153,7 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       }
     },
 
-    async cancelApprovalInvoiceMaintenance(ids: number[] | number | string | string[] | undefined) {
+    async cancelApprovalInvoiceMaintenance(ids: number[] | number | string | string[] | undefined | null) {
       try {
         const idsArray = Array.isArray(ids) ? ids : [ids];
 
@@ -1426,7 +1428,52 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
       } finally {
         this.metaModal.index.loading = false;
       }
-    }
+    },
+    canChecklist(salesOrder: any) {
+      // const validatorIds = [
+      //   salesOrder.validator_1_id,
+      //   salesOrder.validator_2_id,
+      //   salesOrder.validator_3_id
+      // ]
+
+      // const isOrderType = [useInitials.orderType.order].includes(
+      //   salesOrder.order_type_id
+      // )
+
+      // if (
+      //   this.selectedBulkMode == useInitials.selectedBulkModeType.validation
+      // ) {
+      //   validatorIds.push(salesOrder.created_by_id)
+
+      //   // console.log(useMasterUser().dataUser.id)
+
+      //   return (
+      //     !validatorIds.includes(useMasterUser().dataUser.id) &&
+      //     !salesOrder.validator_3_id
+      //   )
+      // } else if (
+      //   this.selectedBulkMode ==
+      //   useInitials.selectedBulkModeType.cancelValidation
+      // ) {
+      //   return validatorIds.includes(useMasterUser().dataUser.id)
+      // } else if (
+      //   [useInitials.selectedBulkModeType.editShippingDate].includes(
+      //     this.selectedBulkMode as number
+      //   )
+      // ) {
+      //   return true
+      // } else if (
+      //   useInitials.selectedBulkModeType.syncProformas ==
+      //   this.selectedBulkMode &&
+      //   salesOrder.status == 'Order' &&
+      //   !!isOrderType
+      // ) {
+      //   // console.log(validatorIds)
+      //   return true
+      // }
+
+      return false
+    },
     // goToInvoiceMaintenance(id: number) {
     //   navigateTo(`/invoices/invoice-maintenances/edit/${id}`);
     // }     

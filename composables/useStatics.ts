@@ -638,6 +638,19 @@ const formStatusSalesInvoice = [
   { id: 'CANCELLED', name: 'CANCELLED' },
 ]
 
+const maintenanceInvoiceIndexApprovedStatus = [
+  {
+    value: 'PENDING',
+    title: 'Pending',
+    color: 'orange',
+  },
+  {
+    value: 'APPROVED',
+    title: 'Approved',
+    color: 'green',
+  },
+]
+
 const MaintenanceInvoiceIndexStatus = [
   {
     value: 'UNPAID',
@@ -1020,4 +1033,5 @@ export const useStatics = {
   headerSentEmails,
   dashboardInvoiceType,
   crmIndexDateType,
+  maintenanceInvoiceIndexApprovedStatus,
 }

@@ -10,6 +10,7 @@ import type {
 } from './AutocompleteType'
 import type { DatePickerLightType } from './DatePickerLightType'
 import type { MethodAttributeType } from './DatatableClientType'
+import type { Pagination } from '~/interfaces/LaravelPaginationInterface'
 
 // type ReadonlyHeaders = VDataTable['$props']['headers']
 // type ReadonlyHeaders = VDataTable['$props']['headers']
@@ -72,6 +73,7 @@ export type SelectTableType = {
   headerTableClass?: string
   rowTableClass?: string
   fixedHeader?: boolean
+  isSelectHidden?: boolean
   disabled?: boolean
   loading?: boolean | undefined
   disabledTextClass?: string
@@ -113,6 +115,8 @@ export type SelectTableType = {
   pageEndProp?: string
   hideDefaultFooter?: boolean
   isRowNum?: boolean
+  metaModal?: Pagination<any[]>
+  isCustomHeader?: boolean
 
   // Modal
   showModal?: boolean

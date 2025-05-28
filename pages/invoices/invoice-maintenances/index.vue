@@ -10,8 +10,15 @@ import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 import { storeToRefs } from "pinia";
 
 const invoiceMaintenanceStore = useInvoiceMaintenanceStore();
-const { tabFormIndex, form, errors, isOpenModal, queryModal, metaModal } =
-  storeToRefs(invoiceMaintenanceStore);
+const {
+  tabFormIndex,
+  form,
+  errors,
+  isOpenModal,
+  queryModal,
+  metaModal,
+  selectedBulkMode,
+} = storeToRefs(invoiceMaintenanceStore);
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -27,9 +34,18 @@ useHead({
 
 const fieldsConfig = ref<FieldSelectableType[]>([
   {
+    title: "#",
+    key: "row_num",
+    value: "row_num",
+    align: "center",
+    sortable: false,
+    show: true,
+    width: "5%",
+  },
+  {
     title: "",
-    key: "checkbox",
-    value: "checkbox",
+    key: "data-table-select",
+    value: "data-table-select",
     align: "center",
     sortable: false,
     width: "50px",
@@ -166,6 +182,19 @@ const fieldsConfig = ref<FieldSelectableType[]>([
     value: "approved_by_name",
     align: "start",
     sortable: true,
+  },
+  // action
+  {
+    title: "Action",
+    key: "action",
+    value: "action",
+    align: "center",
+    sortable: false,
+    show: true,
+    headerProps: { class: "cursor-pointer action-table sticky-right" },
+    cellProps: {
+      class: "action-table sticky-right",
+    },
   },
 ]);
 
@@ -321,6 +350,14 @@ const filtersConfig = ref<FilterSelectableType[]>([
     },
   },
   {
+    title: "Approved Status",
+    key: "approved_status",
+    type: "autocomplete-client",
+    others: {
+      items: useStatics.maintenanceInvoiceIndexApprovedStatus,
+    },
+  },
+  {
     title: "Invoice No",
     key: "invoice_no",
   },
@@ -347,8 +384,9 @@ function getStatusColor(status: string): string {
   }
 }
 
+const invoiceMaintenanceExposeRef = ref();
 const approvalMode = ref(false);
-const selectedInvoices = ref<number[]>([]);
+const selectedInvoices = ref<number[] | null>([]);
 const currentMode = ref("approve");
 
 const actionOptions = ref([
@@ -414,8 +452,36 @@ function isInvoiceSelectable(item: any): boolean {
   return false;
 }
 
+const addSelectableKey = () => {
+  metaModal.value.index.data?.forEach((item: any, iItem: number) => {
+    if (metaModal.value.index.data) {
+      metaModal.value.index.data[iItem].selectable = isInvoiceSelectable(item);
+    }
+  });
+};
+
+watch(
+  () => selectedAction.value,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal && !!newVal) {
+      // reset all selections when action changes
+      resetSelection();
+    }
+    if (
+      newVal !== oldVal &&
+      !!newVal &&
+      !!metaModal.value.index &&
+      !!metaModal.value.index.data
+    ) {
+      resetSelection();
+      addSelectableKey();
+    }
+  },
+  { immediate: true }
+);
+
 async function proceedApproval() {
-  if (selectedInvoices.value.length === 0) {
+  if (!selectedInvoices.value || selectedInvoices.value.length === 0) {
     useAlert.alertError("Please select at least one invoice");
     return;
   }
@@ -505,7 +571,6 @@ onMounted(() => {
   useInvoiceMaintenanceStore().indexWidget();
 });
 
-const invoiceMaintenanceExposeRef = ref();
 // Trigger the openModal method
 const onClickFilter = async (type: "invoiceMaintenance") => {
   if (invoiceMaintenanceExposeRef.value && type == "invoiceMaintenance") {
@@ -538,8 +603,8 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
         total-prop="meta.total"
         class="col-span-2 lg:col-span-1"
         search-placeholder="Search anything related to Maintenance Invoice..."
-        is-quick-select
         no-title
+        :no-action="false"
         edit-link="/invoices/invoice-maintenances/edit"
         delete-api="/v1/invoice-maintenances/delete-invoice-maintenance"
         pdf-api="/v1/invoice-maintenances/pdf-invoice-maintenance"
@@ -551,9 +616,22 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
           show: true,
           cta: '+ Create',
         }"
+        v-model="selectedInvoices"
+        show-select
+        item-selectable="selectable"
+        item-value="id"
+        multiple
+        select-strategy="all"
         is-csv
+        is-custom-header
+        :is-select-hidden="approvalMode"
         @click:csv="handleExportCsv"
         @click:find="useInvoiceMaintenanceStore().indexWidget()"
+        @update:afterFetch="
+          (data: any) => {
+            metaModal.index = data;
+          }
+        "
         @update:filters="
           (filters: QInvoiceMaintenanceIndexType) => {
             queryModal.qIndex = filters;
@@ -567,6 +645,90 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
             :isLoading="metaModal.indexWidgets.loading"
           />
         </template>
+
+        <!-- <template
+          #header.data-table-select="{
+                allSelected,
+                selectAll,
+                someSelected
+              }: {
+                allSelected: any
+                selectAll: any
+                someSelected: any
+              }"
+        >
+          <div class="flex items-center justify-center w-full">
+            <v-checkbox-btn
+              v-if="approvalMode"
+              :model-value="allSelected"
+              :indeterminate="someSelected && !allSelected"
+              hide-details
+              @update:model-value="selectAll"
+            />
+          </div>
+        </template> -->
+
+        <!-- <template #header.checkbox="{ item }">
+          <div v-if="approvalMode && isInvoiceSelectable(item)">
+            <v-checkbox
+              v-model="selectedInvoices"
+              :value="item.id"
+              hide-details
+              density="compact"
+              color="#000000"
+            ></v-checkbox>
+          </div>
+        </template> -->
+        <template
+          v-slot:item.data-table-select="{ item, isSelected, toggleSelect }"
+        >
+          <div
+            v-if="approvalMode && isInvoiceSelectable(item)"
+            class="flex items-center justify-center w-full"
+          >
+            <!-- v-model="selectedInvoices"
+          :value="item.id" -->
+            <v-checkbox-btn
+              :model-value="
+                isSelected({
+                  value: item.id,
+                  selectable: false,
+                })
+              "
+              @update:model-value="
+                toggleSelect({
+                  value: item.id,
+                  selectable: false,
+                })
+              "
+              class="flex items-center justify-center self-center place-items-center place-self-center w-full"
+              hide-details
+              density="compact"
+              color="#000000"
+              :ripple="false"
+            ></v-checkbox-btn>
+          </div>
+        </template>
+
+        <!-- <template #item.data-table-select="{ item, isSelected, toggleSelect }">
+          <div class="flex w-full flex-row items-center justify-center">
+            <v-checkbox-btn
+              v-if="approvalMode && isInvoiceSelectable(item)"
+              :model-value="
+                isSelected({
+                  value: selectedBulkMode != 4 ? item : item['sales_order_id'],
+                  selectable: false,
+                })
+              "
+              @update:model-value="
+                toggleSelect({
+                  value: selectedBulkMode != 4 ? item : item['sales_order_id'],
+                  selectable: false,
+                })
+              "
+            />
+          </div>
+        </template> -->
         <template #actions>
           <div class="flex items-center gap-2">
             <button
@@ -617,7 +779,7 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
                 >
                   <i class="mdi mdi-check mr-1"></i>
                   {{ currentMode === "approve" ? "Proceed" : "Proceed" }} ({{
-                    selectedInvoices.length
+                    selectedInvoices && selectedInvoices.length
                   }})
                 </button>
                 <button
@@ -634,18 +796,6 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
                 </button>
               </div>
             </div>
-          </div>
-        </template>
-
-        <template #item.checkbox="{ item }">
-          <div v-if="approvalMode && isInvoiceSelectable(item)">
-            <v-checkbox
-              v-model="selectedInvoices"
-              :value="item.id"
-              hide-details
-              density="compact"
-              color="#000000"
-            ></v-checkbox>
           </div>
         </template>
 
