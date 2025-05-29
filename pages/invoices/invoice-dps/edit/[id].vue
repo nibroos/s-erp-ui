@@ -934,12 +934,10 @@ watch(
 
               <template #item.ref_type="{ item }">
                 <span class="uppercase">{{ item.ref_type }}</span>
-                {{ item.product_id }} - {{ item.item_id }}
               </template>
 
               <template #item.product_type="{ item }">
                 <span class="capitalize">{{ item.product_type }}</span>
-                {{ item.product_id }} - {{ item.item_id }}
               </template>
 
               <template #item.price="{ item }">

@@ -134,54 +134,16 @@ const headersInventoryOut = ref([
   { title: "Inventory Out No", key: "inventory_out_no", sortable: true },
   { title: "Out Date", key: "out_date", sortable: true },
   { title: "Due At", key: "due_at", sortable: true },
-  { title: "Price", key: "price", sortable: true },
-  { title: "Qty", key: "qty", sortable: true },
-  { title: "Discount", key: "disc_final", sortable: true },
-  { title: "DP Amount", key: "total_dp", sortable: true },
-  { title: "Balance Amount", key: "total_balance", sortable: true },
+  { title: "Price", key: "price", sortable: true, align: "end" },
+  { title: "Qty", key: "qty", sortable: true, align: "end" },
+  { title: "Discount", key: "disc_final", sortable: true, align: "end" },
+  {
+    title: "Balance Amount",
+    key: "total_balance",
+    sortable: true,
+    align: "end",
+  },
 ] as any);
-
-const filtersCustomer = ref<FilterSelectableType[]>([
-  {
-    title: "Name",
-    key: "name",
-  },
-  {
-    title: "Code",
-    key: "code",
-  },
-  {
-    title: "Phone",
-    key: "phone",
-  },
-  {
-    title: "Email",
-    key: "email",
-  },
-  {
-    title: "Address",
-    key: "address",
-  },
-  {
-    title: "Customer Type",
-    key: "customer_type_ids",
-    type: "autocomplete",
-    display: "name",
-    others: {
-      methodApi: "post",
-      query: {
-        is_active: 1,
-      },
-      api: "/v1/customer-types/index-customer-type",
-      singleApi: "/v1/customer-types/index-customer-type",
-      pageEndProp: "meta.next_page_url",
-      itemTitle: "name",
-      itemValue: "id",
-      label: "Customer Type",
-      innerSearchKey: "global",
-    },
-  },
-]);
 
 const customSummary = ref({
   total_balance: {
@@ -432,7 +394,7 @@ const formLayout = ref({
       loading: false,
       type: "submit",
       text: "Update",
-      disabled: false
+      disabled: false,
     },
     clear: {
       show: true,
@@ -552,7 +514,7 @@ watch(
   () => form.value.status,
   (newStatus, oldStatus) => {
     if (formLayout.value.button?.save) {
-      formLayout.value.button.save.disabled = newStatus === 'PAID';
+      formLayout.value.button.save.disabled = newStatus === "PAID";
     }
   },
   { immediate: true }
@@ -1252,6 +1214,22 @@ watch(
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesInvoiceStore.fetchModalFilter()"
         >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexInventoryOuts.date_type"
+            :items="useStatics.invoiceRefInvIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexInventoryOuts.start_date"
+            label="Start Date"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexInventoryOuts.end_date"
+            label="End Date"
+          />
           <d-autocomplete
             v-model="queryModal.qIndexInventoryOuts.customer_id"
             :query="{

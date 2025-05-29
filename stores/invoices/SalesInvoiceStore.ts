@@ -15,7 +15,8 @@ import type {
   SalesInvoiceDtType,
   SalesInvoiceRefType,
   QIndexSalesOrdersType,
-  QSalesInvoiceIndexType
+  QSalesInvoiceIndexType,
+  QIndexInventoryOutType
 } from '~/types/sales-invoices/SalesInvoiceType'
 
 const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
@@ -727,8 +728,8 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
       if ((this.isOpenModal.salesOrders && this.itemsCheck.checkSalesOrders.length > 0) ||
         (this.isOpenModal.inventoryOuts && this.itemsCheck.checkInventoryOuts.length > 0)) {
 
-        const firstSelectedItem = this.isOpenModal.salesOrders 
-          ? this.itemsCheck.checkSalesOrders[0] 
+        const firstSelectedItem = this.isOpenModal.salesOrders
+          ? this.itemsCheck.checkSalesOrders[0]
           : this.itemsCheck.checkInventoryOuts[0];
 
         if (!this.form.customer_id && firstSelectedItem.customer_id) {
@@ -1308,7 +1309,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         );
 
         const contentType = response.headers.get('content-type');
-        
+
         if (contentType && contentType.includes('application/json')) {
           const jsonData = await response.json();
           useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
@@ -1326,7 +1327,7 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
           document.body.removeChild(a);
           // useAlert.alertSuccess('CSV file downloaded successfully');
         }
-        
+
         return response;
       } catch (error: any) {
         console.log('Failed To Export CSV', error);

@@ -1382,7 +1382,6 @@ watchEffect(() => {
           >
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
-              {{ item.product_id }} - {{ item.item_id }}
             </template>
             <template #item.remark="{ item }">
               <d-text-area-input

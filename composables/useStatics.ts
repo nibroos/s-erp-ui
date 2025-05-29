@@ -550,6 +550,25 @@ const invIndexDateType = [
   },
 ]
 
+const invoiceRefInvIndexDateType = [
+  {
+    value: 'ingoing_at',
+    title: 'IN Date',
+  },
+  {
+    value: 'do_at',
+    title: 'DO Date',
+  },
+  {
+    value: 'invoice_at',
+    title: 'Invoice Date',
+  },
+  {
+    value: 'expired_at',
+    title: 'Expired Date',
+  },
+]
+
 const invOutdexDateType = [
   {
     value: 'ingoing_at',
@@ -1060,4 +1079,5 @@ export const useStatics = {
   maintenanceInvoiceIndexApprovedStatus,
   soRefQuoIndexDateType,
   filtersDateQuotation,
+  invoiceRefInvIndexDateType,
 }
