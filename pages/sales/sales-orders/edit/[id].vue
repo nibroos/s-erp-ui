@@ -105,7 +105,7 @@ const headers = ref<FieldSelectableType[]>([
 const headersBOM = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_unit_name", title: "Unit", sortable: true },
   // { key: "price_buy", title: "Price Buy", sortable: true, align: "end" },
   { key: "qty", title: "Qty", sortable: true, align: "end" },
   // { key: "subtotal_buy", title: "Total Amount", sortable: true, align: "end" },
@@ -124,7 +124,7 @@ const headersBOM = ref<FieldSelectableType[]>([
 const headersBOMModal = ref<FieldSelectableType[]>([
   { key: "item_code", title: "Product Code", sortable: true },
   { key: "item_name", title: "Product Name", sortable: true },
-  { key: "unit_name", title: "Unit", sortable: true },
+  { key: "item_unit_name", title: "Unit", sortable: true },
   { key: "item_sku", title: "SKU", align: "start", sortable: true },
   { key: "item_barcode", title: "Barcode", align: "start", sortable: true },
   {
