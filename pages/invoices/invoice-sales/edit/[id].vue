@@ -1006,7 +1006,6 @@ watch(
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesInvoiceStore.fetchModalFilter()"
         >
-          [
           <d-autocomplete-client
             v-model="queryModal.qIndexSalesOrders.date_type"
             :items="useStatics.SoIndexDateType"
@@ -1022,7 +1021,7 @@ watch(
           <d-date-picker-light
             v-model="queryModal.qIndexSalesOrders.end_date"
             label="End Date"
-          />]
+          />
           <d-autocomplete
             v-model="queryModal.qIndexSalesOrders.customer_id"
             :query="{
