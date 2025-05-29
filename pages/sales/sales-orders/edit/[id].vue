@@ -1266,6 +1266,15 @@ watchEffect(() => {
             ></d-autocomplete>
           </div>
 
+          <div class="lg:col-span-6 col-span-5">
+            <d-text-area-input
+              v-model="form.ship_dest"
+              :label="``"
+              :placeholder="`Shipping Address`"
+              class=""
+              :auto-grow="false"
+            />
+          </div>
           <div class="lg:col-span-6 flex gap-2">
             <d-switch-status
               v-model="form.is_vat"
@@ -1278,15 +1287,6 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="lg:col-span-6 col-span-6">
-            <d-text-area-input
-              v-model="form.ship_dest"
-              :label="``"
-              :placeholder="`Shipping Address`"
-              class=""
-              :auto-grow="false"
-            />
-          </div>
           <div class="sm:col-span-1 hidden">
             <d-autocomplete
               v-model="form.vat_id"
@@ -1382,6 +1382,7 @@ watchEffect(() => {
           >
             <template #item.item_type="{ item }">
               <span class="capitalize">{{ item.item_type }} </span>
+              {{ item.product_id }} - {{ item.item_id }}
             </template>
             <template #item.remark="{ item }">
               <d-text-area-input
@@ -2268,6 +2269,22 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesOrderStore.fetchModalFilter()"
         >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexQuotations.date_type"
+            :items="useStatics.soRefQuoIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexQuotations.start_date"
+            label="Start Date"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexQuotations.end_date"
+            label="End Date"
+          />
           <d-select-table
             api="/v1/customers/index-customer"
             detail-api="/v1/customers/index-customer"

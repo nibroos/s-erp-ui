@@ -32,6 +32,7 @@ import type {
 } from "~/types/quotations/QuotationType";
 import type { ProductBomListType } from "~/types/masters/ProductType";
 import { debounce } from "lodash-es";
+import type { ModalIndexRefFilterDateType } from "~/types/inventories/InventoryType";
 
 const layoutStore = useLayoutsStore();
 const { topTitle } = storeToRefs(layoutStore);
@@ -1191,7 +1192,7 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="lg:col-span-6 col-span-6">
+          <div class="lg:col-span-6 col-span-5">
             <d-text-area-input
               v-model="form.ship_dest"
               :label="``"
@@ -2020,6 +2021,22 @@ watchEffect(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="salesOrderStore.fetchModalFilter()"
         >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexQuotations.date_type"
+            :items="useStatics.soRefQuoIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexQuotations.start_date"
+            label="Start Date"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexQuotations.end_date"
+            label="End Date"
+          />
           <d-select-table
             api="/v1/customers/index-customer"
             detail-api="/v1/customers/index-customer"

@@ -272,7 +272,7 @@ const onDiscountAmountChange = (value: number) => {
 };
 
 const calculateTotalAmountLocal = () => {
-  const result = invoiceDpStore.calculateTotalAmount();
+  invoiceDpStore.calculateTotalAmount();
 
   customSummary.value.sub_amount.value = form.value.total_amount_products;
   customSummary.value.total_amount.value = form.value.total_dp_products;

@@ -51,6 +51,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         name: '',
         sku: '',
         factory_code: '',
+        date_type: 'due_at',
+        start_date: '',
+        end_date: '',
         order_column: 'due_at',
         order_direction: 'desc'
       } as QIndexQuotationsType,

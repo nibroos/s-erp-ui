@@ -450,6 +450,17 @@ const POIndexDateType = [
   },
 ]
 
+const soRefQuoIndexDateType = [
+  {
+    value: 'due_at',
+    title: 'Due Date',
+  },
+  {
+    value: 'expired_at',
+    title: 'Expired Date',
+  },
+]
+
 const formTabPurchaseOrder = {
   // payments: 0,
   items: 0,
@@ -964,6 +975,19 @@ const RequestOrderIndexStatus = [
   },
 ]
 
+const filtersDateQuotation = ref([
+  {
+    title: "Start Date",
+    key: "start_date",
+    type: "date",
+  },
+  {
+    title: "End Date",
+    key: "end_date",
+    type: "date",
+  },
+]);
+
 const formStatusRequestOrder = [
   { id: 'PENDING', name: 'PENDING' },
   // { id: 'APPROVED', name: 'APPROVED' },
@@ -1034,4 +1058,6 @@ export const useStatics = {
   dashboardInvoiceType,
   crmIndexDateType,
   maintenanceInvoiceIndexApprovedStatus,
+  soRefQuoIndexDateType,
+  filtersDateQuotation,
 }

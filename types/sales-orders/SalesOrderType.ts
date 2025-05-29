@@ -377,6 +377,9 @@ export type QIndexQuotationsType = {
   product_ids?: number[] | null
   customer_id?: number | null
   product_id?: number[] | null
+  date_type?: 'due_at' | 'expired_at' | null
+  start_date?: string | null
+  end_date?: string | null
   code?: string
   name?: string
   sku?: string

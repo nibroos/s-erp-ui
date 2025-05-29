@@ -1,5 +1,6 @@
 import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductListType } from "../masters/ProductType"
+import type { SoDtBomType } from "../sales-orders/SalesOrderType"
 
 export type IndexInvoiceMaintenanceType = {
   id: number
@@ -195,7 +196,8 @@ export type InvoiceMaintenanceDtType = {
   deleted_at?: string | null
 
   invoice_maintenance_dt_boms?: InvoiceMaintenanceDtBomType[] | null
-  so_dts_boms?: SalesOrderDtBomType[] | null;
+  so_dts_boms?: SoDtBomType[] | null;
+  item_type?: string | null
 }
 
 export type InvoiceMaintenanceDiscType = 'amount' | 'percentage' | null

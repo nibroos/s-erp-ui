@@ -1152,7 +1152,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         );
 
         const contentType = response.headers.get('content-type');
-        
+
         if (contentType && contentType.includes('application/json')) {
           const jsonData = await response.json();
           useAlert.alertError(jsonData.message || 'Failed to generate CSV file');
@@ -1170,7 +1170,7 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
           document.body.removeChild(a);
           // useAlert.alertSuccess('CSV file downloaded successfully');
         }
-        
+
         return response;
       } catch (error: any) {
         console.log('Failed To Export CSV', error);

@@ -97,6 +97,8 @@ export type ProductListType = {
 
   ref_id?: number
   product_item_id?: number
+  item_id: number
+  item_type?: string
 }
 
 export type ProductBomListType = {

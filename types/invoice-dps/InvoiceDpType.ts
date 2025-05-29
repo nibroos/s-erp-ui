@@ -1,5 +1,6 @@
 import type { SummaryPartType } from "~/components/d/SummaryLayout.vue"
 import type { ProductListType } from "../masters/ProductType"
+import type { SoDtBomType } from "../sales-orders/SalesOrderType"
 
 export type IndexInvoiceDpType = {
   id: number
@@ -150,6 +151,7 @@ export type InvoiceDpDtType = {
   ref_id: number
   ref_dt_id: number
   product_id: number
+  item_id: number
   item_sub_group_id?: number | null
   item_group_id?: number | null
   item_sub_group_name?: string | null
@@ -187,8 +189,10 @@ export type InvoiceDpDtType = {
   updated_at?: string | null
   deleted_at?: string | null
 
+  item_type?: string | null
+
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
-  so_dts_boms?: SalesOrderDtBomType[] | null;
+  so_dts_boms?: SoDtBomType[] | null;
 }
 
 export type InvoiceDpDiscType = 'amount' | 'percentage' | null
@@ -265,7 +269,8 @@ export type FormInvoiceDpDtProductListType = ProductListType & {
 
   invoice_dp_dt_boms?: InvoiceDpDtBomType[] | null
 
-  sales_order_id?: number | null
+  item_id?: number | null
+  item_type?: string
   sales_order_no?: string
   currency_id?: number | null
   exchange_rate?: number | null

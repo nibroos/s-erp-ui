@@ -13,9 +13,9 @@ export const convertInvoiceDpItemRefProduct = (
   const subtotal = price * qty;
 
   const discount = item.disc_am || item.disc_perc_am || 0;
-  
+
   let totalAmount = subtotal - discount;
-  
+
   const dpPercentage = item.dp_percentage || 0;
   const totalDp = totalAmount * (dpPercentage / 100);
 
@@ -62,7 +62,7 @@ export const convertInvoiceDpItemRefProduct = (
     pph23_id: item.pph23_id,
     ref_id: item.sales_order_id as number,
     ref_dt_id: item.id as number,
-    product_id: productId as number,
+    product_id: item.item_id as number,
     product_uuid: productUuid,
     ref_type: refType,
     product_type: productType,
@@ -77,17 +77,17 @@ export const convertInvoiceDpItemRefProduct = (
     discount: discount,
     total_amount: totalAmount,
     total_dp: totalDp,
-    
+
     item_name: item.name ?? item.item_name ?? item.product_name,
     item_code: item.code ?? item.item_code ?? item.product_code,
     product_name: item.name ?? item.item_name ?? item.product_name,
     product_code: item.code ?? item.item_code ?? item.product_code,
     unit_name: item.unit_name,
-    
+
     ref_num: item.sales_order_no || '',
-    
+
     invoice_dp_dt_boms: bomItems.length > 0 ? bomItems : (item.invoice_dp_dt_boms || []),
-    
+
     so_dts_boms: item.so_dts_boms
   }
 
@@ -110,13 +110,13 @@ export function generateInvoiceDpDt(
       dt.product_type = 'item';
     }
 
-    const existingItem = checkMain.find(item => 
-      item.ref_type === checkOpened && 
-      ((item.ref_id === (dt.sales_order_id || dt.ref_id) && 
-      item.ref_dt_id === (dt.id || dt.ref_dt_id)) ||
-      (item.ref_id === dt.ref_id && item.ref_dt_id === dt.ref_dt_id))
+    const existingItem = checkMain.find(item =>
+      item.ref_type === checkOpened &&
+      ((item.ref_id === (dt.sales_order_id || dt.ref_id) &&
+        item.ref_dt_id === (dt.id || dt.ref_dt_id)) ||
+        (item.ref_id === dt.ref_id && item.ref_dt_id === dt.ref_dt_id))
     );
-    
+
     if (existingItem) {
       newRefItems.push({
         ...existingItem,
@@ -128,7 +128,7 @@ export function generateInvoiceDpDt(
       newRefItems.push(convertInvoiceDpItemRefProduct(dt, checkOpened));
     }
   });
-  
+
   if (checkOpened === 'so') {
     updatedList = [...newRefItems];
   }
@@ -150,15 +150,15 @@ export function updateInvoiceDpRefsModalFromMain(
   if (checkProducts.length > 0) {
     selectedRefList.forEach((mainItem: InvoiceDpDtType) => {
       let found = false;
-      
+
       checkProducts.forEach((prodItem: FormInvoiceDpDtProductListType) => {
         if (
-          (mainItem.ref_type == 'so' && 
-           ((mainItem.ref_id == prodItem.sales_order_id && mainItem.ref_dt_id == prodItem.id) ||
-           (mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)))
+          (mainItem.ref_type == 'so' &&
+            ((mainItem.ref_id == prodItem.sales_order_id && mainItem.ref_dt_id == prodItem.id) ||
+              (mainItem.ref_id == prodItem.ref_id && mainItem.ref_dt_id == prodItem.ref_dt_id)))
         ) {
           found = true;
-          
+
           let combined: any = {
             ...prodItem,
             ...mainItem,
@@ -172,7 +172,7 @@ export function updateInvoiceDpRefsModalFromMain(
           updatedList.push(combined);
         }
       });
-      
+
       if (!found) {
         updatedList.push(mainItem);
       }
@@ -203,7 +203,7 @@ export function initCheckedInvoiceDpDt(
 }
 
 function randomId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);

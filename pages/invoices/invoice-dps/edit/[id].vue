@@ -544,13 +544,11 @@ watch(
   () => form.value.status,
   (newStatus, oldStatus) => {
     if (formLayout.value.button?.save) {
-      formLayout.value.button.save.disabled = 
-        (newStatus === 'PAID');
+      formLayout.value.button.save.disabled = newStatus === "PAID";
     }
   },
   { immediate: true }
 );
-
 </script>
 
 <template>
@@ -936,10 +934,12 @@ watch(
 
               <template #item.ref_type="{ item }">
                 <span class="uppercase">{{ item.ref_type }}</span>
+                {{ item.product_id }} - {{ item.item_id }}
               </template>
 
               <template #item.product_type="{ item }">
                 <span class="capitalize">{{ item.product_type }}</span>
+                {{ item.product_id }} - {{ item.item_id }}
               </template>
 
               <template #item.price="{ item }">
