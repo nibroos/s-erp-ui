@@ -1180,6 +1180,16 @@ watchEffect(() => {
             ></d-autocomplete>
           </div>
 
+          <div class="lg:col-span-6 col-span-5">
+            <d-text-area-input
+              v-model="form.ship_dest"
+              :label="``"
+              :placeholder="`Shipping Address`"
+              class=""
+              :auto-grow="false"
+            />
+          </div>
+
           <div class="lg:col-span-6 flex gap-2">
             <d-switch-status
               v-model="form.is_vat"
@@ -1192,15 +1202,6 @@ watchEffect(() => {
             />
           </div>
 
-          <div class="lg:col-span-6 col-span-5">
-            <d-text-area-input
-              v-model="form.ship_dest"
-              :label="``"
-              :placeholder="`Shipping Address`"
-              class=""
-              :auto-grow="false"
-            />
-          </div>
           <div class="sm:col-span-1 hidden">
             <d-autocomplete
               v-model="form.vat_id"

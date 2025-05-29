@@ -33,7 +33,7 @@ export const topMenuMasterTab = [
     permissions: ["r_ms"],
   },
   {
-    title: "Products",
+    title: "Items",
     number: 'products',
     icon: "mdi-treasure-chest-outline",
     link: "/masters/products",
