@@ -15,7 +15,8 @@ import type {
   InvoiceMaintenanceDtType,
   InvoiceMaintenanceRefType,
   QIndexSalesOrdersType,
-  QInvoiceMaintenanceIndexType
+  QInvoiceMaintenanceIndexType,
+  QRepeatInvoiceMaintenanceIndexType
 } from '~/types/invoice-maintenances/InvoiceMaintenanceType'
 import type { WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
@@ -40,7 +41,10 @@ const useInvoiceMaintenanceStore = defineStore('InvoiceMaintenanceStore', {
         parent_ids: [],
         global: '',
         order_column: 'invoice_date',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        date_type: 'order_at',
+        start_date: '',
+        end_date: '',
       } as QIndexSalesOrdersType,
 
       qRepeatInvoice: {

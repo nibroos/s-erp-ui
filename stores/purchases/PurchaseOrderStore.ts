@@ -532,6 +532,7 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       this.queryModal.qIndexProducts.prod_type = 'single'
       let params = this.queryModal.qIndexProducts
+      params.except_item_group_names = 'Service,Software'
 
       try {
         const response = await useMyFetch().post(

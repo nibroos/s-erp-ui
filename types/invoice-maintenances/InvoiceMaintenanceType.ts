@@ -260,6 +260,9 @@ export type QIndexSalesOrdersType = {
   product_name?: string
   specific_ids?: string
   invoice_id?: number | null
+  date_type?: string
+  start_date?: string
+  end_date?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null

@@ -42,7 +42,10 @@ const useSalesInvoiceStore = defineStore('SalesInvoiceStore', {
         customer_id: null,
         order_column: '',
         order_direction: 'desc',
-        invoice_id: null
+        invoice_id: null,
+        date_type: 'order_at',
+        start_date: '',
+        end_date: '',
       } as QIndexSalesOrdersType,
 
       qIndexInventoryOuts: {

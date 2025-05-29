@@ -838,6 +838,22 @@ onBeforeMount(() => {
           class="grid grid-cols-5 w-full flex-row items-center gap-2"
           @submit.prevent="invoiceDpStore.fetchModalFilter()"
         >
+          <d-autocomplete-client
+            v-model="queryModal.qIndexSalesOrders.date_type"
+            :items="useStatics.SoIndexDateType"
+            label="Date Type"
+            item-value="value"
+            item-title="title"
+            :clearable="false"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexSalesOrders.start_date"
+            label="Start Date"
+          />
+          <d-date-picker-light
+            v-model="queryModal.qIndexSalesOrders.end_date"
+            label="End Date"
+          />
           <d-autocomplete
             v-model="queryModal.qIndexSalesOrders.customer_id"
             :query="{

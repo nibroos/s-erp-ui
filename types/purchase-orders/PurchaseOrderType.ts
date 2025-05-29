@@ -249,6 +249,8 @@ export type QIndexProductsType = {
   prod_type?: 'product' | 'single'
   order_column?: string
   order_direction?: string
+
+  except_item_group_names?: string
 }
 
 export type VatModeType = 'header' | 'detail' | null

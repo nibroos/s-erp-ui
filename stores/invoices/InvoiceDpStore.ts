@@ -42,7 +42,10 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         order_column: '',
         order_direction: 'desc',
         specific_ids: '',
-        invoice_id: null
+        invoice_id: null,
+        date_type: 'order_at',
+        start_date: '',
+        end_date: '',
       } as QIndexSalesOrdersType
     },
     metaModal: {

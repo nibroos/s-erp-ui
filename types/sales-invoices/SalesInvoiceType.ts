@@ -228,6 +228,9 @@ export type QIndexSalesOrdersType = {
   product_name?: string
   global?: string
   specific_ids?: string
+  date_type?: string
+  start_date?: string
+  end_date?: string
 }
 
 export type QIndexInventoryOutType = {
