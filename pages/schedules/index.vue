@@ -436,6 +436,9 @@ watch(
             backgroundColor: event.color ? event.color + '80' : 'white',
           }"
         >
+          <span v-if="event.customer_name" class="text-sm font-semibold">
+            {{ event.customer_name }} -
+          </span>
           {{ event.title }}
           ({{
             useNumber.formatNumberSeparator(
