@@ -616,6 +616,7 @@ watch(
               v-model="form.customer_id"
               :query="{
                 is_active: 1,
+                customer_type_names: 'buyer',
               }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
@@ -1101,6 +1102,12 @@ watch(
           <d-autocomplete
             v-model="queryModal.qIndexSalesOrders.customer_id"
             api="/v1/customers/index-customer"
+            :query="{
+              is_active: 1,
+              customer_type_names: 'buyer',
+            }"
+            single-api="/v1/customers/show-customer"
+            mapping-detail="data[0]"
             method-api="post"
             page-end-prop="meta.next_page_url"
             item-title="name"

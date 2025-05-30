@@ -664,6 +664,7 @@ watchEffect(() => {
               v-model="form.customer_id"
               :query="{
                 is_active: 1,
+                customer_type_names: 'supplier',
               }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
@@ -1224,6 +1225,7 @@ watchEffect(() => {
             v-model="form.customer_id"
             :query="{
               is_active: 1,
+              customer_type_names: 'supplier',
             }"
             class=""
             is-quick-select

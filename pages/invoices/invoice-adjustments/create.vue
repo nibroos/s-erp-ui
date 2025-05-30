@@ -340,6 +340,7 @@ watchEffect(() => {
                 v-model="form.customer_id"
                 :query="{
                   is_active: 1,
+                  customer_type_names: 'buyer',
                 }"
                 class="col-span-2 lg:col-span-1"
                 is-quick-select
@@ -489,7 +490,7 @@ watchEffect(() => {
                 <p>AUTOMATION ACTION</p>
               </div>
             </div>
-            
+
             <div class="w-full flex gap-2 mb-1">
               <div class="w-4/6 flex gap-2">
                 <div class="w-1/3">
@@ -500,11 +501,14 @@ watchEffect(() => {
                     item-value="value"
                     label="Reference"
                   />
-                  <div v-if="errors.reference" class="text-rose-500 text-sm mt-1">
+                  <div
+                    v-if="errors.reference"
+                    class="text-rose-500 text-sm mt-1"
+                  >
                     {{ errors.reference }}
                   </div>
                 </div>
-    
+
                 <div class="w-2/3 flex gap-2">
                   <div class="w-1/3">
                     <d-date-picker-light
@@ -518,7 +522,7 @@ watchEffect(() => {
                       {{ errors.ref_start_date }}
                     </div>
                   </div>
-      
+
                   <div class="w-1/3">
                     <d-date-picker-light
                       v-model="form.ref_end_date"
@@ -531,7 +535,7 @@ watchEffect(() => {
                       {{ errors.ref_end_date }}
                     </div>
                   </div>
-  
+
                   <div class="w-1/3 flex gap-1">
                     <v-btn
                       color="#ffffff"
@@ -541,12 +545,14 @@ watchEffect(() => {
                     >
                       <v-icon icon="mdi-magnify" size="18" />
                     </v-btn>
-      
+
                     <v-btn
                       color="#ffffff"
                       class="!bg-[#6C757D] hover:!bg-[#4e545a] rounded-md !min-w-0 !h-10 !px-3 !py-2"
                       variant="text"
-                      @click="invoiceAdjustmentStore.handleClearReferenceQuery()"
+                      @click="
+                        invoiceAdjustmentStore.handleClearReferenceQuery()
+                      "
                     >
                       <v-icon icon="mdi-refresh" size="18" />
                     </v-btn>
@@ -560,13 +566,15 @@ watchEffect(() => {
                     color="#695149"
                     class="text-white rounded-md !h-10 !px-4"
                     density="compact"
-                    @click="invoiceAdjustmentStore.autoAdjustedAmountCalculate()"
+                    @click="
+                      invoiceAdjustmentStore.autoAdjustedAmountCalculate()
+                    "
                   >
                     <span style="font-size: 12.5px"
                       >Adjusted Amount Auto Calculate</span
                     >
                   </v-btn>
-    
+
                   <v-btn
                     color="#695149"
                     class="text-white rounded-md !h-10 !px-4"

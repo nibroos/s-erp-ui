@@ -1138,6 +1138,7 @@ onMounted(async () => {
                   v-model="form.customer_id"
                   :query="{
                     is_active: 1,
+                    customer_type_names: 'buyer',
                   }"
                   class="col-span-2 lg:col-span-1"
                   is-quick-select
@@ -2372,6 +2373,7 @@ onMounted(async () => {
                 v-model="form.customer_id"
                 :query="{
                   is_active: 1,
+                  customer_type_names: 'buyer',
                 }"
                 class=""
                 is-quick-select

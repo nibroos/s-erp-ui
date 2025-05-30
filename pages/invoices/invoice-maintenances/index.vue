@@ -901,6 +901,7 @@ const onClickFilter = async (type: "invoiceMaintenance") => {
             v-model="queryModal.qRepeatInvoice.customer_id"
             :query="{
               is_active: 1,
+              customer_type_names: 'buyer',
             }"
             api="/v1/customers/index-customer"
             method-api="post"

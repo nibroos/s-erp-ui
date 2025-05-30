@@ -304,6 +304,7 @@ onBeforeMount(() => {
               v-model="form.customer_id"
               :query="{
                 is_active: 1,
+                customer_type_names: 'buyer',
               }"
               class="col-span-2 lg:col-span-1"
               is-quick-select
@@ -752,6 +753,7 @@ onBeforeMount(() => {
             v-model="queryModal.qIndexSalesOrders.customer_id"
             :query="{
               is_active: 1,
+              customer_type_names: 'buyer',
             }"
             api="/v1/customers/index-customer"
             method-api="post"
