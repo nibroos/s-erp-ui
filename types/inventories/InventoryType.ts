@@ -231,6 +231,7 @@ export type QIndexSalesOrdersType = {
   end_date?: string
   order_column?: string
   order_direction?: string
+  except_item_group_names?: string
 }
 
 export type QIndexPurchaseOrdersType = {
