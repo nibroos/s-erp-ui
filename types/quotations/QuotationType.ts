@@ -67,6 +67,8 @@ export type FormQuotationType = {
   quo_no: string
   title: string
   remark?: string
+  license_desc?: string | null
+  term_desc?: string | null
   status: string
   is_approved: number
   is_vat: number

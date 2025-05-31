@@ -169,13 +169,6 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     align: "start",
     sortable: true,
   },
-  {
-    title: "Specification",
-    key: "specification",
-    value: "specification",
-    align: "start",
-    sortable: true,
-  },
   // {
   //   title: "Stock",
   //   key: "qty_stock",
@@ -183,6 +176,14 @@ const headersModalProducts = ref<FieldSelectableType[]>([
   //   align: "end",
   //   sortable: true,
   // },
+
+  {
+    title: "Unit",
+    key: "unit_name",
+    value: "unit_name",
+    align: "start",
+    sortable: true,
+  },
   {
     title: "Price Buy",
     key: "price_buy",
@@ -355,7 +356,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/sales/quotations",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Remark"],
+  tabs: ["Items", "Remark", "License", "Terms & Conditions"],
   button: {
     clear: {
       show: true,
@@ -1443,6 +1444,26 @@ watchEffect(() => {
               v-model="form.remark"
               :label="`Remark`"
               :placeholder="`Write the Remark...`"
+              class=""
+            />
+          </div>
+        </div>
+        <div v-if="tabFormIndex == useStatics.formTabQuotation.license">
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-rich-text
+              v-model="form.license_desc"
+              :label="`License`"
+              :placeholder="`Write the License...`"
+              class=""
+            />
+          </div>
+        </div>
+        <div v-if="tabFormIndex == useStatics.formTabQuotation.term">
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-rich-text
+              v-model="form.term_desc"
+              :label="`Terms & Conditions`"
+              :placeholder="`Write the Terms & Conditions...`"
               class=""
             />
           </div>

@@ -300,17 +300,10 @@ const headersModalProducts = ref<FieldSelectableType[]>([
     sortable: true,
   },
   {
-    title: "Specification",
-    key: "specification",
-    value: "specification",
+    title: "Unit",
+    key: "unit_name",
+    value: "unit_name",
     align: "start",
-    sortable: true,
-  },
-  {
-    title: "Stock",
-    key: "qty_stock",
-    value: "qty_stock",
-    align: "end",
     sortable: true,
   },
   {
@@ -485,7 +478,7 @@ const formLayout = ref({
   title: "Basic Information",
   parentPath: "/sales/quotations",
   currentTab: tabFormIndex.value,
-  tabs: ["Items", "Remark"],
+  tabs: ["Items", "Remark", "License", "Terms & Conditions"],
   mode: "edit",
   button: {
     create: {
@@ -1597,6 +1590,26 @@ watchEffect(() => {
               v-model="form.remark"
               :label="`Remark`"
               :placeholder="`Write the Remark...`"
+              class=""
+            />
+          </div>
+        </div>
+        <div v-if="tabFormIndex == useStatics.formTabQuotation.license">
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-rich-text
+              v-model="form.license_desc"
+              :label="`License`"
+              :placeholder="`Write the License...`"
+              class=""
+            />
+          </div>
+        </div>
+        <div v-if="tabFormIndex == useStatics.formTabQuotation.term">
+          <div class="lg:col-span-3 sm:col-span-6">
+            <d-rich-text
+              v-model="form.term_desc"
+              :label="`Terms & Conditions`"
+              :placeholder="`Write the Terms & Conditions...`"
               class=""
             />
           </div>

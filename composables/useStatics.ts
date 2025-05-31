@@ -260,6 +260,8 @@ const formApprovedQuotation = [
 const formTabQuotation = {
   items: 0,
   remarks: 1,
+  license: 2,
+  term: 3,
 }
 
 const SoIndexStatus = [
