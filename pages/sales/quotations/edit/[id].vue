@@ -980,7 +980,7 @@ watchEffect(() => {
           <div class="lg:col-span-3 sm:col-span-6">
             <d-date-picker-light
               v-model="form.due_at"
-              label="Due Date"
+              label="Quotation Date"
             ></d-date-picker-light>
           </div>
           <div class="lg:col-span-3 sm:col-span-6">

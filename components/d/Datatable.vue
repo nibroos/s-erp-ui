@@ -152,6 +152,7 @@ const emits = defineEmits([
 
 const loadings = ref({
   pdfLoading: false,
+  csvLoading: false,
   deleteLoading: false,
 });
 
@@ -621,7 +622,61 @@ const onDoubleClick = async (event: any, row: any) => {
 };
 
 const exportToCsv = async () => {
+  if (loadings.value.csvLoading) return;
+  loadings.value.csvLoading = true;
+
   emits("click:csv", filters.value);
+
+  if (!!props.isCsv) {
+    return;
+  }
+
+  let apiUrl = props.csvApi;
+  if (props.methodApi === "post") {
+    apiUrl = `${props.csvApi}`;
+
+    try {
+      const response = await useMyFetch().post(apiUrl, filters.value, {
+        responseType: "blob",
+      });
+
+      const contentType = response.headers?.["content-type"] || "";
+
+      if (contentType && contentType.includes("application/json")) {
+        const jsonData = response.data;
+        useAlert.alertError(jsonData.message || "Failed to generate CSV file");
+      } else {
+        const blob = new Blob([response.data], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const today = new Date();
+        // format Date yyyy-mm-dd hh:mm:ss
+
+        const dateStr = today
+          .toISOString()
+          .replace(/T/, "_")
+          .replace(/:/g, "-")
+          .split(".")[0];
+        a.download = `${props.label.replace(/\s+/g, "_")}_${dateStr}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        useAlert.alertSuccess("CSV file downloaded successfully");
+      }
+
+      return response;
+    } catch (error: any) {
+      console.log("Failed To Export CSV", error);
+      useAlert.alertError("Failed to export CSV!");
+    } finally {
+      loadings.value.csvLoading = false;
+    }
+  } else {
+    apiUrl = `${props.csvApi}?${qs.stringify(filters.value)}`;
+    window.open(apiUrl, "_blank");
+  }
 };
 
 const getDefaultTabSlotNameIndex = (): number => {
@@ -990,6 +1045,28 @@ defineExpose({
                           rounded="xl"
                           size=""
                           cta="select"
+                          icon-size="16"
+                        ></d-button>
+                      </slot>
+
+                      <slot name="actions.pdf" :item="item" :index="index">
+                        <d-button
+                          v-if="props.pdfApi"
+                          @click="onClickPdf($event, { item, index })"
+                          :icon="
+                            loadings.pdfLoading ? 'mdi-loading' : 'mdi-download'
+                          "
+                          class="p-1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                          :icon-class="
+                            classMerge(
+                              'text-cancel dark:text-primary1',
+                              loadings.pdfLoading ? 'animate-spin' : ''
+                            )
+                          "
+                          text-class="text-cancel dark:text-primary1"
+                          rounded="xl"
+                          size=""
+                          cta="PDF"
                           icon-size="16"
                         ></d-button>
                       </slot>

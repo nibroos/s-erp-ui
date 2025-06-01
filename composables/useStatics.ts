@@ -264,6 +264,16 @@ const formTabQuotation = {
   term: 3,
 }
 
+const indexTabQuotation = {
+  all: 0,
+  detail: 1,
+}
+
+const indexTab = {
+  all: 0,
+  detail: 1,
+}
+
 const SoIndexStatus = [
   // WAITING, PROCESS, SHIPPED, PENDING, CANCEL, INVOICE, FINISH
   {
@@ -1082,4 +1092,6 @@ export const useStatics = {
   soRefQuoIndexDateType,
   filtersDateQuotation,
   invoiceRefInvIndexDateType,
+  indexTabQuotation,
+  indexTab,
 }

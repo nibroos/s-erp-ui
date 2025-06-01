@@ -25,7 +25,8 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
         parent_ids: [],
         global: '',
         order_column: 'order_at',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all' // 'all' | 'detail'
       } as QSoIndexType,
 
       qIndexProducts: {
@@ -72,6 +73,11 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     metaModal: {
       index: {
+        data: [] as IndexSalesOrderType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexDetail: {
         data: [] as IndexSalesOrderType[],
         loading: false,
         meta: {} as Meta
@@ -153,6 +159,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     modals: {
       attachment_imgs: [] as SalesOrderAttachmentsType[],
+    },
+    tabIndex: {
+      index: 0,
     },
     headAutocomplete: {
       quo: {
@@ -261,6 +270,29 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexSalesOrderDetails() {
+      if (this.metaModal.indexDetail.loading) return
+      this.metaModal.indexDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/sales-orders/index-detail-sales-order',
+          this.queryModal.qIndex
+        )
+
+        this.metaModal.indexDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexDetail.loading = false
       }
     },
 

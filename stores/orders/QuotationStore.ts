@@ -22,7 +22,9 @@ const useQuotationStore = defineStore('QuotationStore', {
         parent_ids: [],
         global: '',
         order_column: 'quo_no',
-        order_direction: 'desc'
+        order_direction: 'desc',
+
+        export_type: 'all'
       } as QQuoIndexType,
 
       qIndexProducts: {
@@ -52,6 +54,11 @@ const useQuotationStore = defineStore('QuotationStore', {
     },
     metaModal: {
       index: {
+        data: [] as IndexQuotationType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexDetail: {
         data: [] as IndexQuotationType[],
         loading: false,
         meta: {} as Meta
@@ -109,7 +116,10 @@ const useQuotationStore = defineStore('QuotationStore', {
     currencySymbolLabel: '',
     referenceOptions: {
       vats: [] as FormVatType[],
-    }
+    },
+    tabIndex: {
+      indexQuotation: 0,
+    },
   }),
 
   actions: {
@@ -126,6 +136,29 @@ const useQuotationStore = defineStore('QuotationStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexQuotationDetails() {
+      if (this.metaModal.indexDetail.loading) return
+      this.metaModal.indexDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/quotations/index-detail-quotation',
+          this.queryModal.qIndex
+        )
+
+        this.metaModal.indexDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch quotation details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexDetail.loading = false
       }
     },
 
