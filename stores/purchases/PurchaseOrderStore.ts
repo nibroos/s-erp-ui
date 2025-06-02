@@ -25,7 +25,8 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         parent_ids: [],
         global: '',
         order_column: 'po_date',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all'
       } as QIndexType,
 
       qIndexProducts: {
@@ -81,6 +82,11 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexDetail: {
+        data: [] as IndexPurchaseOrderType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexProducts: {
         data: [] as FormPoDtProductListType[],
         loading: false,
@@ -108,6 +114,9 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
       pdfLoading: false,
     },
     tabFormIndex: 0,
+    tabIndex: {
+      index: 0,
+    },
     errors: {} as Record<string, any>,
     itemsCheck: {
       checkMain: [] as PoDtType[],
@@ -239,6 +248,29 @@ const usePurchaseOrderStore = defineStore('PurchaseOrderStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexPurchaseOrderDetails() {
+      if (this.metaModal.indexDetail.loading) return
+      this.metaModal.indexDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/purchase-orders/index-detail-purchase-order',
+          this.queryModal.qIndex
+        )
+
+        this.metaModal.indexDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexDetail.loading = false
       }
     },
 

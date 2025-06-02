@@ -212,6 +212,7 @@ export type QIndexType = {
   global: string
   order_column: string
   order_direction: string
+  export_type?: 'all' | 'detail'
 }
 
 export type QIndexRoType = {

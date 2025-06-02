@@ -9,7 +9,8 @@ import type {
 
 import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 
-const { queryModal, metaModal } = usePurchaseOrderStore();
+const purchaseStore = usePurchaseOrderStore();
+const { queryModal, metaModal, tabIndex } = storeToRefs(purchaseStore);
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -208,6 +209,134 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
+const fieldsDetailConfig = ref<FieldSelectableType[]>([
+  {
+    title: "#",
+    key: "row_num",
+    value: "row_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Purchase No",
+    key: "po_no",
+    value: "po_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Supplier",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "PO Date",
+    key: "po_date",
+    value: "po_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Delivery Date",
+    key: "delivery_date",
+    value: "delivery_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "PO Buyer No",
+    key: "po_buyer_no",
+    value: "po_buyer_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "so_customer_name",
+    value: "so_customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Product/Item Name",
+    key: "item_name",
+    value: "item_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Price",
+    key: "price",
+    value: "price",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Total",
+    key: "total",
+    value: "total",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Created By",
+    key: "created_by_name",
+    value: "created_by_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Updated By",
+    key: "updated_by_name",
+    value: "updated_by_name",
+    align: "start",
+    sortable: false,
+  },
+]);
+
+const fetchFilter = async () => {
+  await usePurchaseOrderStore().indexPurchaseOrderDetails();
+};
+
+const fetchDataServerFetch = async (options: { [key: string]: any }) => {
+  queryModal.value.qIndex.page = options.page;
+  queryModal.value.qIndex.per_page = options.itemsPerPage;
+
+  if (options.sortBy.length > 0) {
+    queryModal.value.qIndex.order_column = options.sortBy[0].key;
+    queryModal.value.qIndex.order_direction = options.sortBy[0].order;
+  } else {
+    queryModal.value.qIndex.order_column = "";
+    queryModal.value.qIndex.order_direction = "";
+  }
+
+  await fetchFilter();
+};
+
+const onClickFind = async (filters: QIndexType) => {
+  if (tabIndex.value.index === useStatics.indexTabQuotation.detail) {
+    queryModal.value.qIndex.export_type = "detail";
+  } else {
+    queryModal.value.qIndex.export_type = "all";
+  }
+
+  if (tabIndex.value.index === 1) {
+    queryModal.value.qIndex = filters;
+    await fetchFilter();
+  }
+
+  await usePurchaseOrderStore().indexWidget();
+};
+
 function getStatusColorFromStatics(status: string): string {
   const statusItem = useStatics.POIndexStatus.find((s) => s.value === status);
   return statusItem ? statusItem.color : "grey";
@@ -242,18 +371,32 @@ onMounted(() => {
         edit-link="/purchases/purchase-orders/edit"
         delete-api="/v1/purchase-orders/delete-purchase-order"
         pdf-api="/v1/purchase-orders/pdf-purchase-order"
+        csv-api="/v1/purchase-orders/csv-purchase-order"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
+        :tabs="['All', 'Detail']"
+        :tab-index="tabIndex.index"
         :create-option="{
           link: '/purchases/purchase-orders/create',
           show: true,
           cta: '+ Create',
         }"
-        @click:find="usePurchaseOrderStore().indexWidget()"
+        @click:find="onClickFind"
         @update:filters="
           (filters: QIndexType) => {
             queryModal.qIndex = filters;
+          }
+        "
+        @update:currentTab="
+          (currentTab: number) => {
+            tabIndex.index = currentTab;
+
+            if (currentTab === useStatics.indexTab.detail) {
+              queryModal.qIndex.export_type = 'detail';
+            } else {
+              queryModal.qIndex.export_type = 'all';
+            }
           }
         "
       >
@@ -290,6 +433,166 @@ onMounted(() => {
           >
             {{ item.status }}
           </v-chip>
+        </template>
+
+        <template #tab.content.detail>
+          <v-data-table-server
+            v-model:page="queryModal.qIndex.page"
+            v-model:items-per-page="queryModal.qIndex.per_page"
+            :items="metaModal.indexDetail.data ?? []"
+            :headers="fieldsDetailConfig"
+            :items-length="metaModal.indexDetail.meta.total ?? 0"
+            :loading="metaModal.indexDetail.loading"
+            item-value="id"
+            density="compact"
+            :header-props="{
+              class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+            }"
+            :row-props="{
+              class: 'whitespace-nowrap',
+            }"
+            hover
+            show-current-page
+            fixed-header
+            height="450"
+            @update:options="fetchDataServerFetch"
+          >
+            <template
+              #item.row_num="{ item, index }: { item: any, index: number }"
+            >
+              {{
+                useNumber.determineRowNumber(
+                  queryModal.qIndex.per_page,
+                  queryModal.qIndex.page,
+                  index
+                )
+              }}
+            </template>
+            <template #item.item_name="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                {{ product.item_name }}
+                <!-- <br /> -->
+
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.po_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.qty="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="2"
+                  :max-precision="2"
+                  :value="product.qty"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.po_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.price="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.price"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.po_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.total="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.subtotal"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.po_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+
+            <template #item.bom_item_name="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <div v-if="product.po_dts_boms.length === 0">-</div>
+                <div v-else class="whitespace-nowrap align-top">
+                  <div
+                    v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                    :key="iSoDtBom"
+                  >
+                    {{ soDtBom.item_name }}
+                    <br />
+                  </div>
+                </div>
+                <d-divider v-if="iProduct != item.po_dts.length - 1" />
+              </div>
+            </template>
+            <template #item.bom_qty="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.po_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <div v-if="product.po_dts_boms.length === 0">-</div>
+                <div v-else class="whitespace-nowrap align-top">
+                  <div
+                    v-for="(soDtBom, iSoDtBom) in product.po_dts_boms"
+                    :key="iSoDtBom"
+                  >
+                    {{ useNumber.formatNumberSeparator(soDtBom.qty, 2, 2) }}
+                    <br />
+                  </div>
+                </div>
+                <d-divider v-if="iProduct != item.po_dts.length - 1" />
+              </div>
+            </template>
+          </v-data-table-server>
         </template>
       </d-datatable>
     </d-index-layout>

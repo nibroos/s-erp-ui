@@ -215,12 +215,14 @@ export type QInvoiceMaintenanceIndexType = {
   global: string
   order_column: string
   order_direction: string
+  export_type?: 'all' | 'detail'
 }
 
 export type QRepeatInvoiceMaintenanceIndexType = {
   page: number
   per_page: number
   customer_ids: number[]
+  customer_id?: number | null
   global: string
   order_column: string
   order_direction: string

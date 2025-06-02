@@ -112,6 +112,9 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
       loadingCsv: false,
     },
     tabFormIndex: 0,
+    tabIndex: {
+      index: 0,
+    },
     errors: {} as Record<string, any>,
     itemsCheck: {
       checkMain: [] as SoDtType[],
@@ -159,9 +162,6 @@ const useSalesOrderStore = defineStore('SalesOrderStore', {
     },
     modals: {
       attachment_imgs: [] as SalesOrderAttachmentsType[],
-    },
-    tabIndex: {
-      index: 0,
     },
     headAutocomplete: {
       quo: {

@@ -17,6 +17,7 @@ import type {
   QIndexSalesOrdersType,
   QInvoiceDpIndexType
 } from '~/types/invoice-dps/InvoiceDpType'
+import type { WidgetSingleType } from '~/types/sales-orders/SalesOrderType'
 
 const useInvoiceDpStore = defineStore('InvoiceDpStore', {
   state: () => ({
@@ -30,7 +31,8 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         parent_ids: [],
         global: '',
         order_column: 'invoice_date',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all',
       } as QInvoiceDpIndexType,
 
       qIndexSalesOrders: {
@@ -54,6 +56,11 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexDetail: {
+        data: [] as IndexInvoiceDpType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexSalesOrders: {
         data: [] as FormInvoiceDpDtProductListType[],
         loading: false,
@@ -72,6 +79,9 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
       pdfLoading: false,
     },
     tabFormIndex: 0,
+    tabIndex: {
+      index: 0,
+    },
     errors: {} as Record<string, any>,
     itemsCheck: {
       checkMain: [] as InvoiceDpDtType[],
@@ -147,6 +157,29 @@ const useInvoiceDpStore = defineStore('InvoiceDpStore', {
         useAlert.alertError(error?.response?.data?.message || 'Failed to fetch invoice DPs!')
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexInvoiceDpDetails() {
+      if (this.metaModal.indexDetail.loading) return
+      this.metaModal.indexDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/invoice-dps/index-detail-invoice-dp',
+          this.queryModal.qIndex
+        )
+
+        this.metaModal.indexDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexDetail.loading = false
       }
     },
 
