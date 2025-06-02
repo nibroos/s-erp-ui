@@ -8,7 +8,8 @@ import type {
 } from "~/types/SelectTableType";
 import type { WidgetSingleType } from "~/types/sales-orders/SalesOrderType";
 
-const { queryModal, metaModal } = useSalesInvoiceStore();
+const invoiceStore = useSalesInvoiceStore();
+const { queryModal, metaModal, tabIndex } = storeToRefs(invoiceStore);
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -186,6 +187,114 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
+const fieldsDetailConfig = ref<FieldSelectableType[]>([
+  {
+    title: "#",
+    key: "row_num",
+    value: "row_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Order Type",
+    key: "order_type_name",
+    value: "order_type_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Title",
+    key: "title",
+    value: "title",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice Date",
+    key: "invoice_date",
+    value: "invoice_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Due Date",
+    key: "due_date",
+    value: "due_date",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Product/Item Name",
+    key: "item_name",
+    value: "item_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Price",
+    key: "price",
+    value: "price",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Total",
+    key: "total",
+    value: "total",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "BOM Item Name",
+    key: "bom_item_name",
+    value: "bom_item_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "BOM Qty",
+    key: "bom_qty",
+    value: "bom_qty",
+    align: "end",
+    sortable: false,
+  },
+  {
+    title: "Created By",
+    key: "created_by_name",
+    value: "created_by_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Updated By",
+    key: "updated_by_name",
+    value: "updated_by_name",
+    align: "start",
+    sortable: false,
+  },
+]);
+
 function getStatusColor(status: string): string {
   switch (status) {
     case "PAID":
@@ -201,6 +310,40 @@ function getStatusColor(status: string): string {
 
 const handleExportCsv = async () => {
   await useSalesInvoiceStore().exportToCsv();
+};
+
+const fetchFilter = async () => {
+  await useSalesInvoiceStore().indexSalesInvoiceDetails();
+};
+
+const fetchDataServerFetch = async (options: { [key: string]: any }) => {
+  queryModal.value.qIndex.page = options.page;
+  queryModal.value.qIndex.per_page = options.itemsPerPage;
+
+  if (options.sortBy.length > 0) {
+    queryModal.value.qIndex.order_column = options.sortBy[0].key;
+    queryModal.value.qIndex.order_direction = options.sortBy[0].order;
+  } else {
+    queryModal.value.qIndex.order_column = "";
+    queryModal.value.qIndex.order_direction = "";
+  }
+
+  await fetchFilter();
+};
+
+const onClickFind = async (filters: QSalesInvoiceIndexType) => {
+  if (tabIndex.value.index === useStatics.indexTabQuotation.detail) {
+    queryModal.value.qIndex.export_type = "detail";
+  } else {
+    queryModal.value.qIndex.export_type = "all";
+  }
+
+  if (tabIndex.value.index === 1) {
+    queryModal.value.qIndex = filters;
+    await fetchFilter();
+  }
+
+  await useSalesInvoiceStore().indexWidget();
 };
 
 onMounted(() => {
@@ -226,26 +369,39 @@ onMounted(() => {
         items-prop="data"
         total-prop="meta.total"
         class="col-span-2 lg:col-span-1"
+        label="Sales Invoice"
         search-placeholder="Search anything related to Sales Invoice..."
         is-quick-select
         no-title
         edit-link="/invoices/invoice-sales/edit"
         delete-api="/v1/sales-invoices/delete-sales-invoice"
         pdf-api="/v1/sales-invoices/pdf-sales-invoice"
+        csv-api="/v1/sales-invoices/csv-sales-invoice"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndex"
+        :tabs="['All', 'Detail']"
+        :tab-index="tabIndex.index"
         :create-option="{
           link: '/invoices/invoice-sales/create',
           show: true,
           cta: '+ Create',
         }"
-        is-csv
-        @click:csv="handleExportCsv"
-        @click:find="useSalesInvoiceStore().indexWidget()"
+        @click:find="onClickFind"
         @update:filters="
           (filters: QSalesInvoiceIndexType) => {
             queryModal.qIndex = filters;
+          }
+        "
+        @update:currentTab="
+          (currentTab: number) => {
+            tabIndex.index = currentTab;
+
+            if (currentTab === useStatics.indexTab.detail) {
+              queryModal.qIndex.export_type = 'detail';
+            } else {
+              queryModal.qIndex.export_type = 'all';
+            }
           }
         "
       >
@@ -315,6 +471,169 @@ onMounted(() => {
               ></d-button>
             </slot>
           </template>
+        </template>
+        <template #tab.content.detail>
+          <v-data-table-server
+            v-model:page="queryModal.qIndex.page"
+            v-model:items-per-page="queryModal.qIndex.per_page"
+            :items="metaModal.indexDetail.data ?? []"
+            :headers="fieldsDetailConfig"
+            :items-length="metaModal.indexDetail.meta.total ?? 0"
+            :loading="metaModal.indexDetail.loading"
+            item-value="id"
+            density="compact"
+            :header-props="{
+              class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+            }"
+            :row-props="{
+              class: 'whitespace-nowrap',
+            }"
+            hover
+            show-current-page
+            fixed-header
+            height="450"
+            @update:options="fetchDataServerFetch"
+          >
+            <template
+              #item.row_num="{ item, index }: { item: any, index: number }"
+            >
+              {{
+                useNumber.determineRowNumber(
+                  queryModal.qIndex.per_page,
+                  queryModal.qIndex.page,
+                  index
+                )
+              }}
+            </template>
+            <template #item.item_name="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                {{ product.item_name }}
+                <!-- <br /> -->
+
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.so_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.qty="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="2"
+                  :max-precision="2"
+                  :value="product.qty"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.so_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.price="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.price"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.so_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+            <template #item.total="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.subtotal"
+                />
+
+                <!-- <br /> -->
+                <div
+                  v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                  :key="iSoDtBom"
+                  class="whitespace-nowrap align-top"
+                >
+                  <br v-if="iSoDtBom < product.so_dts_boms.length - 1" />
+                </div>
+              </div>
+            </template>
+
+            <template #item.bom_item_name="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <div v-if="product.so_dts_boms.length === 0">-</div>
+                <div v-else class="whitespace-nowrap align-top">
+                  <div
+                    v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                    :key="iSoDtBom"
+                  >
+                    {{ soDtBom.item_name }}
+                    <br />
+                  </div>
+                </div>
+                <d-divider
+                  v-if="iProduct != item.sales_invoice_dts.length - 1"
+                />
+              </div>
+            </template>
+            <template #item.bom_qty="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.sales_invoice_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <div v-if="product.so_dts_boms.length === 0">-</div>
+                <div v-else class="whitespace-nowrap align-top">
+                  <div
+                    v-for="(soDtBom, iSoDtBom) in product.so_dts_boms"
+                    :key="iSoDtBom"
+                  >
+                    {{ useNumber.formatNumberSeparator(soDtBom.qty, 2, 2) }}
+                    <br />
+                  </div>
+                </div>
+                <d-divider
+                  v-if="iProduct != item.sales_invoice_dts.length - 1"
+                />
+              </div>
+            </template>
+          </v-data-table-server>
         </template>
       </d-datatable>
     </d-index-layout>

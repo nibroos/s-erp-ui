@@ -210,6 +210,7 @@ export type QSalesInvoiceIndexType = {
   global: string
   order_column: string
   order_direction: string
+  export_type: 'all' | 'detail'
 }
 
 export type QIndexSalesOrdersType = {
