@@ -412,17 +412,29 @@ watch(
     <ScheduleXCalendar :calendar-app="calendarApp">
       <template #headerContentRightPrepend>
         <!-- refresh -->
-        <d-bt
-          icon="mdi-refresh"
-          class="px-2 py-1.5 gap-1 !bg-sc hover:!bg-scDarker3 rounded-lg ease-in-out transition-all"
-          icon-class="text-primary1"
-          text-class="text-primary1"
-          rounded="xl"
-          cta="Refresh"
-          icon-size="16"
-          :loading="metaModal.index.loading"
-          @click="refreshCalendar()"
-        ></d-bt>
+        <div class="flex items-center gap-2">
+          <d-bt
+            icon="mdi-refresh"
+            class="px-2 py-1.5 gap-1 !bg-sc hover:!bg-scDarker3 rounded-lg ease-in-out transition-all"
+            icon-class="text-primary1"
+            text-class="text-primary1"
+            rounded="xl"
+            cta="Refresh"
+            icon-size="16"
+            :loading="metaModal.index.loading"
+            @click="refreshCalendar()"
+          ></d-bt>
+          <d-bt
+            icon="mdi-plus"
+            class="flex items-center !bg-primaryDarker hover:!bg-scLightest grow whitespace-nowrap !border-scDarker dark:hover:!bg-scDarker dark:!bg-scDarker3 dark:!border-scDarker font-bold justify-center gap-1 rounded-lg tracking-normal !border-1.5 !border-solid p-2 transition-all ease-in-out"
+            icon-class="!text-scDarker dark:!text-primary1"
+            text-class="!text-scDarker dark:!text-primary1"
+            rounded="xl"
+            cta="Create Schedule"
+            icon-size="16"
+            @click="scheduleStore.openCreateEventModal()"
+          ></d-bt>
+        </div>
       </template>
       <template #monthGridEvent="{ calendarEvent: event }">
         <div

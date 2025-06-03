@@ -190,7 +190,7 @@ const headersHardware = ref<FieldSelectableType[]>([
 const formLayout = ref({
   title: "Basic Information",
   parentPath: "/crm/customers",
-  tabs: [],
+  tabs: ["Solution", "Hardware", "History"],
   currentTab: tabFormIndex.value,
   // mode: "edit",
   button: {
@@ -628,329 +628,340 @@ onMounted(async () => {
           <d-button type="submit" class="!hidden"></d-button>
         </form>
       </template>
-      <div class="flex flex-col gap-3">
+      <template #content>
         <div
           :class="
             classMerge(
-              'overflow-y-auto p-3 relative !border border-solid border-zinc-400 dark:border-dark1'
+              'lg:col-span-7 col-span-7 flex gap-2',
+              tabFormIndex == useStatics.formTabCustomerMan.solution
+                ? 'flex-col'
+                : 'hidden'
             )
           "
         >
-          <div class="flex flex-col gap-2">
-            <div class="flex justify-between items-center">
-              <div class="flex gap-2 items-center">
-                <d-button
-                  @click="isShowHeaderSoftware = !isShowHeaderSoftware"
-                  icon="mdi-eye-off"
-                  is-no-text
-                  class="p-1 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
-                  text-class="text-zinc-100 dark:text-primary1"
-                  icon-class="text-zinc-100 dark:text-primary1"
-                  rounded="xl"
-                  size=""
-                  cta="show/hide column"
-                  icon-size="18"
-                ></d-button>
-                <h3 class="text-lg font-semibold dark:text-white">
-                  Solution Information
-                </h3>
-              </div>
-              <div class="flex gap-2 items-center">
-                <d-option-ref-btn
-                  :refs="optionRefBtn.software"
-                  class="col-span-2"
-                  @click:ref="
-                    () => {
-                      addNewRow('software');
-                    }
+          <div class="flex flex-col gap-3">
+            <div :class="classMerge('overflow-y-auto relative')">
+              <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                  <div class="flex gap-2 items-center">
+                    <d-button
+                      @click="isShowHeaderSoftware = !isShowHeaderSoftware"
+                      icon="mdi-eye-off"
+                      is-no-text
+                      class="p-1 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
+                      text-class="text-zinc-100 dark:text-primary1"
+                      icon-class="text-zinc-100 dark:text-primary1"
+                      rounded="xl"
+                      size=""
+                      cta="show/hide column"
+                      icon-size="18"
+                    ></d-button>
+                    <h3 class="text-lg font-semibold dark:text-white">
+                      Solution Information
+                    </h3>
+                  </div>
+                  <div class="flex gap-2 items-center">
+                    <d-option-ref-btn
+                      :refs="optionRefBtn.software"
+                      class="col-span-2"
+                      @click:ref="
+                        () => {
+                          addNewRow('software');
+                        }
+                      "
+                    >
+                    </d-option-ref-btn>
+                  </div>
+                </div>
+
+                <v-data-table-virtual
+                  v-if="isShowHeaderSoftware"
+                  :items="itemsCheck.checkMainSoftwareProducts ?? []"
+                  :headers="headersSoftware"
+                  item-value="uid"
+                  density="compact"
+                  height="350"
+                  fixed-header
+                  :class="
+                    classMerge(
+                      'col-span-3 sm:col-span-1 table-hover'
+                      // isShowHeaderSoftware ? '' : 'hidden'
+                    )
                   "
+                  :header-props="{
+                    class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
+                  }"
+                  :row-props="{
+                    class: 'whitespace-nowrap',
+                  }"
                 >
-                </d-option-ref-btn>
+                  <template #item.product_id="{ item }">
+                    <d-select-table
+                      api="/v1/products/index-product"
+                      detail-api="/v1/products/index-product"
+                      is-quick-select
+                      method-api="post"
+                      detail-method-api="post"
+                      mapping-detail="data[0]"
+                      total-prop="meta.total"
+                      label="Solution"
+                      v-model="item.product_id"
+                      class=""
+                      :query="{
+                        prod_type: 'product',
+                        group_type: 'Software',
+                      }"
+                      :return-object="false"
+                      is-initial-load
+                      modal-custom-class="!w-4/5"
+                      :fields="useInitials.productFieldsFilterConfig.fields"
+                      :filters="useInitials.productFieldsFilterConfig.filters"
+                    />
+                  </template>
+                  <template #item.price="{ item }">
+                    <d-num-v-format
+                      v-model="item.price"
+                      :precision="{
+                        min: 3,
+                        max: 3,
+                      }"
+                      hide-currency-display
+                      label=""
+                      class="w-full"
+                    />
+                  </template>
+                  <template #item.payment_type_id="{ item }">
+                    <d-autocomplete
+                      v-model="item.payment_type_id"
+                      :query="{
+                        is_active: 1,
+                      }"
+                      api="/v1/payment-types/index-payment-type"
+                      single-api="/v1/payment-types/show-payment-type"
+                      page-end-prop="meta.next_page_url"
+                      item-title="name"
+                      item-value="id"
+                      method-api="post"
+                      inner-search-key="global"
+                      label=""
+                      :errors="errors.payment_type_id"
+                    ></d-autocomplete>
+                  </template>
+                  <template #item.agree_at="{ item }">
+                    <div class="!w-full">
+                      <d-date-picker-light
+                        v-model="item.agree_at"
+                        label=""
+                        placeholder="Agreement Date"
+                        dp-class="!w-full"
+                      ></d-date-picker-light>
+                    </div>
+                  </template>
+                  <template #item.due_at="{ item }">
+                    <div class="!w-full">
+                      <d-date-picker-light
+                        v-model="item.due_at"
+                        label=""
+                        placeholder="Due Date"
+                        dp-class="!w-full"
+                      ></d-date-picker-light>
+                    </div>
+                  </template>
+                  <template #item.remark="{ item }">
+                    <d-text-area-input
+                      v-model="item.remark"
+                      :label="``"
+                      :placeholder="`Remark`"
+                      class="w-full"
+                    />
+                  </template>
+                  <template #item.action="{ item, index }">
+                    <div class="action-button flex gap-2">
+                      <d-bt
+                        @click="
+                          () => {
+                            customerStore.onClickDeleteSelected(
+                              item,
+                              index,
+                              'software'
+                            );
+                          }
+                        "
+                        icon="mdi-delete"
+                        is-no-text
+                        class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                        icon-class="text-cancel dark:text-primary1"
+                        rounded="xl"
+                        size=""
+                        cta="delete"
+                        icon-size="16"
+                        :is-notif="true"
+                        :notif-text="`${item.name ?? item.item_name} deleted`"
+                      ></d-bt>
+                    </div>
+                  </template>
+                </v-data-table-virtual>
               </div>
             </div>
-
-            <v-data-table-virtual
-              v-if="isShowHeaderSoftware"
-              :items="itemsCheck.checkMainSoftwareProducts ?? []"
-              :headers="headersSoftware"
-              item-value="uid"
-              density="compact"
-              height="200"
-              fixed-header
-              :class="
-                classMerge(
-                  'col-span-3 sm:col-span-1 table-hover'
-                  // isShowHeaderSoftware ? '' : 'hidden'
-                )
-              "
-              :header-props="{
-                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
-              }"
-              :row-props="{
-                class: 'whitespace-nowrap',
-              }"
-            >
-              <template #item.product_id="{ item }">
-                <d-select-table
-                  api="/v1/products/index-product"
-                  detail-api="/v1/products/index-product"
-                  is-quick-select
-                  method-api="post"
-                  detail-method-api="post"
-                  mapping-detail="data[0]"
-                  total-prop="meta.total"
-                  label="Solution"
-                  v-model="item.product_id"
-                  class=""
-                  :query="{
-                    prod_type: 'product',
-                    group_type: 'Software',
-                  }"
-                  :return-object="false"
-                  is-initial-load
-                  modal-custom-class="!w-4/5"
-                  :fields="useInitials.productFieldsFilterConfig.fields"
-                  :filters="useInitials.productFieldsFilterConfig.filters"
-                />
-              </template>
-              <template #item.price="{ item }">
-                <d-num-v-format
-                  v-model="item.price"
-                  :precision="{
-                    min: 3,
-                    max: 3,
-                  }"
-                  hide-currency-display
-                  label=""
-                  class="w-full"
-                />
-              </template>
-              <template #item.payment_type_id="{ item }">
-                <d-autocomplete
-                  v-model="item.payment_type_id"
-                  :query="{
-                    is_active: 1,
-                  }"
-                  api="/v1/payment-types/index-payment-type"
-                  single-api="/v1/payment-types/show-payment-type"
-                  page-end-prop="meta.next_page_url"
-                  item-title="name"
-                  item-value="id"
-                  method-api="post"
-                  inner-search-key="global"
-                  label=""
-                  :errors="errors.payment_type_id"
-                ></d-autocomplete>
-              </template>
-              <template #item.agree_at="{ item }">
-                <div class="!w-full">
-                  <d-date-picker-light
-                    v-model="item.agree_at"
-                    label=""
-                    placeholder="Agreement Date"
-                    dp-class="!w-full"
-                  ></d-date-picker-light>
-                </div>
-              </template>
-              <template #item.due_at="{ item }">
-                <div class="!w-full">
-                  <d-date-picker-light
-                    v-model="item.due_at"
-                    label=""
-                    placeholder="Due Date"
-                    dp-class="!w-full"
-                  ></d-date-picker-light>
-                </div>
-              </template>
-              <template #item.remark="{ item }">
-                <d-text-area-input
-                  v-model="item.remark"
-                  :label="``"
-                  :placeholder="`Remark`"
-                  class="w-full"
-                />
-              </template>
-              <template #item.action="{ item, index }">
-                <div class="action-button flex gap-2">
-                  <d-bt
-                    @click="
-                      () => {
-                        customerStore.onClickDeleteSelected(
-                          item,
-                          index,
-                          'software'
-                        );
-                      }
-                    "
-                    icon="mdi-delete"
-                    is-no-text
-                    class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                    icon-class="text-cancel dark:text-primary1"
-                    rounded="xl"
-                    size=""
-                    cta="delete"
-                    icon-size="16"
-                    :is-notif="true"
-                    :notif-text="`${item.name ?? item.item_name} deleted`"
-                  ></d-bt>
-                </div>
-              </template>
-            </v-data-table-virtual>
           </div>
         </div>
-
         <div
           :class="
             classMerge(
-              'overflow-y-auto p-3 relative !border border-solid border-zinc-400 dark:border-dark1'
+              'lg:col-span-7 col-span-7 flex gap-2',
+              tabFormIndex == useStatics.formTabCustomerMan.hardware
+                ? 'flex-col'
+                : 'hidden'
             )
           "
         >
-          <div class="flex flex-col gap-2">
-            <div class="flex justify-between items-center">
-              <div class="flex gap-2 items-center">
-                <d-button
-                  @click="isShowHeaderHardware = !isShowHeaderHardware"
-                  icon="mdi-eye-off"
-                  is-no-text
-                  class="p-1 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
-                  text-class="text-zinc-100 dark:text-primary1"
-                  icon-class="text-zinc-100 dark:text-primary1"
-                  rounded="xl"
-                  size=""
-                  cta="show/hide column"
-                  icon-size="18"
-                ></d-button>
-                <h3 class="text-lg font-semibold dark:text-white">
-                  Hardware Information
-                </h3>
-              </div>
-              <div class="flex gap-2 items-center">
-                <d-option-ref-btn
-                  :refs="optionRefBtn.hardware"
-                  class="col-span-2"
-                  @click:ref="
-                    () => {
-                      addNewRow('hardware');
-                    }
-                  "
-                >
-                </d-option-ref-btn>
-              </div>
-            </div>
-            <v-data-table-virtual
-              v-if="isShowHeaderHardware"
-              :items="itemsCheck.checkMainHardwareProducts ?? []"
-              :headers="headersHardware"
-              item-value="uid"
-              density="compact"
-              height="200"
-              fixed-header
-              :class="
-                classMerge(
-                  'col-span-3 sm:col-span-1 table-hover'
-                  // isShowHeaderHardware ? '' : 'hidden'
-                )
-              "
-              :header-props="{
-                class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
-              }"
-              :row-props="{
-                class: 'whitespace-nowrap',
-              }"
-            >
-              <template #item.product_id="{ item }">
-                <d-select-table
-                  api="/v1/products/index-product"
-                  detail-api="/v1/products/index-product"
-                  is-quick-select
-                  method-api="post"
-                  detail-method-api="post"
-                  mapping-detail="data[0]"
-                  total-prop="meta.total"
-                  label="Hardware"
-                  v-model="item.product_id"
-                  class=""
-                  :query="{
-                    prod_type: 'product',
-                    group_type: 'Hardware',
-                  }"
-                  :return-object="false"
-                  is-initial-load
-                  modal-custom-class="!w-4/5"
-                  :fields="useInitials.productFieldsFilterConfig.fields"
-                  :filters="useInitials.productFieldsFilterConfig.filters"
-                />
-              </template>
-              <template #item.qty="{ item }">
-                <d-num-v-format
-                  v-model="item.qty"
-                  :precision="{
-                    min: 3,
-                    max: 3,
-                  }"
-                  hide-currency-display
-                  label=""
-                  class="w-full"
-                />
-              </template>
-              <template #item.installation_at="{ item }">
-                <div class="!w-full">
-                  <d-date-picker-light
-                    v-model="item.installation_at"
-                    label=""
-                    placeholder="Installation Date"
-                    dp-class="!w-full"
-                  ></d-date-picker-light>
-                </div>
-              </template>
-              <template #item.warranty_at="{ item }">
-                <div class="!w-full">
-                  <d-date-picker-light
-                    v-model="item.warranty_at"
-                    label=""
-                    placeholder="Warranty Date"
-                    dp-class="!w-full"
-                  ></d-date-picker-light>
-                </div>
-              </template>
-              <template #item.remark="{ item }">
-                <d-text-area-input
-                  v-model="item.remark"
-                  :label="``"
-                  :placeholder="`Remark`"
-                  class="w-full"
-                />
-              </template>
-              <template #item.action="{ item, index }">
-                <div class="action-button flex gap-2">
-                  <d-bt
-                    @click="
-                      () => {
-                        customerStore.onClickDeleteSelected(
-                          item,
-                          index,
-                          'hardware'
-                        );
-                      }
-                    "
-                    icon="mdi-delete"
+          <div :class="classMerge('overflow-y-auto relative')">
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <div class="flex gap-2 items-center">
+                  <d-button
+                    @click="isShowHeaderHardware = !isShowHeaderHardware"
+                    icon="mdi-eye-off"
                     is-no-text
-                    class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
-                    icon-class="text-cancel dark:text-primary1"
+                    class="p-1 dark:bg-transparent rounded-full ease-in-out transition-all hover:bg-scDarker3 dark:hover:bg-zinc-600 !bg-sc"
+                    text-class="text-zinc-100 dark:text-primary1"
+                    icon-class="text-zinc-100 dark:text-primary1"
                     rounded="xl"
                     size=""
-                    cta="delete"
-                    icon-size="16"
-                    :is-notif="true"
-                    :notif-text="`${item.name ?? item.item_name} deleted`"
-                  ></d-bt>
+                    cta="show/hide column"
+                    icon-size="18"
+                  ></d-button>
+                  <h3 class="text-lg font-semibold dark:text-white">
+                    Hardware Information
+                  </h3>
                 </div>
-              </template>
-            </v-data-table-virtual>
+                <div class="flex gap-2 items-center">
+                  <d-option-ref-btn
+                    :refs="optionRefBtn.hardware"
+                    class="col-span-2"
+                    @click:ref="
+                      () => {
+                        addNewRow('hardware');
+                      }
+                    "
+                  >
+                  </d-option-ref-btn>
+                </div>
+              </div>
+              <v-data-table-virtual
+                v-if="isShowHeaderHardware"
+                :items="itemsCheck.checkMainHardwareProducts ?? []"
+                :headers="headersHardware"
+                item-value="uid"
+                density="compact"
+                height="350"
+                fixed-header
+                :class="
+                  classMerge(
+                    'col-span-3 sm:col-span-1 table-hover'
+                    // isShowHeaderHardware ? '' : 'hidden'
+                  )
+                "
+                :header-props="{
+                  class: '!bg-scLightest dark:!bg-scDarker whitespace-nowrap',
+                }"
+                :row-props="{
+                  class: 'whitespace-nowrap',
+                }"
+              >
+                <template #item.product_id="{ item }">
+                  <d-select-table
+                    api="/v1/products/index-product"
+                    detail-api="/v1/products/index-product"
+                    is-quick-select
+                    method-api="post"
+                    detail-method-api="post"
+                    mapping-detail="data[0]"
+                    total-prop="meta.total"
+                    label="Hardware"
+                    v-model="item.product_id"
+                    class=""
+                    :query="{
+                      prod_type: 'product',
+                      group_type: 'Hardware',
+                    }"
+                    :return-object="false"
+                    is-initial-load
+                    modal-custom-class="!w-4/5"
+                    :fields="useInitials.productFieldsFilterConfig.fields"
+                    :filters="useInitials.productFieldsFilterConfig.filters"
+                  />
+                </template>
+                <template #item.qty="{ item }">
+                  <d-num-v-format
+                    v-model="item.qty"
+                    :precision="{
+                      min: 3,
+                      max: 3,
+                    }"
+                    hide-currency-display
+                    label=""
+                    class="w-full"
+                  />
+                </template>
+                <template #item.installation_at="{ item }">
+                  <div class="!w-full">
+                    <d-date-picker-light
+                      v-model="item.installation_at"
+                      label=""
+                      placeholder="Installation Date"
+                      dp-class="!w-full"
+                    ></d-date-picker-light>
+                  </div>
+                </template>
+                <template #item.warranty_at="{ item }">
+                  <div class="!w-full">
+                    <d-date-picker-light
+                      v-model="item.warranty_at"
+                      label=""
+                      placeholder="Warranty Date"
+                      dp-class="!w-full"
+                    ></d-date-picker-light>
+                  </div>
+                </template>
+                <template #item.remark="{ item }">
+                  <d-text-area-input
+                    v-model="item.remark"
+                    :label="``"
+                    :placeholder="`Remark`"
+                    class="w-full"
+                  />
+                </template>
+                <template #item.action="{ item, index }">
+                  <div class="action-button flex gap-2">
+                    <d-bt
+                      @click="
+                        () => {
+                          customerStore.onClickDeleteSelected(
+                            item,
+                            index,
+                            'hardware'
+                          );
+                        }
+                      "
+                      icon="mdi-delete"
+                      is-no-text
+                      class="p-1 bg-primary1 hover:text-zinc-100 hover:bg-lightCancel2 rounded-full ease-in-out transition-all hover:dark:!bg-cancel1 dark:!bg-cancel"
+                      icon-class="text-cancel dark:text-primary1"
+                      rounded="xl"
+                      size=""
+                      cta="delete"
+                      icon-size="16"
+                      :is-notif="true"
+                      :notif-text="`${item.name ?? item.item_name} deleted`"
+                    ></d-bt>
+                  </div>
+                </template>
+              </v-data-table-virtual>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </d-form-layout>
   </div>
 </template>

@@ -21,7 +21,8 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
         per_page: 100,
         global: '',
         order_column: '',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all'
       } as QIndexType,
       qIndexProducts: {
         page: 1,
@@ -50,6 +51,11 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexDetail: {
+        data: [] as IndexRequestOrderType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexProducts: {
         data: [] as FormRoDtProductListType[],
         loading: false,
@@ -72,6 +78,9 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
       pdfLoading: false,
     },
     tabFormIndex: 0,
+    tabIndex: {
+      index: 0,
+    },
     errors: {} as Record<string, any>,
     itemsCheck: {
       checkMain: [] as RoDtType[],
@@ -151,7 +160,7 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
           '/v1/request-orders/index-request-order',
           this.queryModal.qIndex
         )
-        
+
         this.metaModal.index = response.data
         return response
 
@@ -160,6 +169,29 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
 
       } finally {
         this.metaModal.index.loading = false
+      }
+    },
+
+    async indexRequestOrderDetails() {
+      if (this.metaModal.indexDetail.loading) return
+      this.metaModal.indexDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/request-orders/index-detail-request-order',
+          this.queryModal.qIndex
+        )
+
+        this.metaModal.indexDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexDetail.loading = false
       }
     },
 
@@ -467,9 +499,9 @@ const useRequestOrderStore = defineStore('RequestOrderStore', {
           if (this.itemsCheck.checkProducts.length > 0) {
             this.itemsCheck.checkProducts.forEach((checkProduct: FormRoDtProductListType, iCheckProduct: number) => {
               checkProduct.uid = randomId() as string
-                            (this.metaModal.indexProducts.data as FormRoDtProductListType[]).forEach((resProduct: FormRoDtProductListType, iResProduct: number) => {
-                if (checkProduct.ref_type === 'products' && 
-                    (!!resProduct.product_id && !!checkProduct.product_id && resProduct.product_id === checkProduct.product_id)) {
+              (this.metaModal.indexProducts.data as FormRoDtProductListType[]).forEach((resProduct: FormRoDtProductListType, iResProduct: number) => {
+                if (checkProduct.ref_type === 'products' &&
+                  (!!resProduct.product_id && !!checkProduct.product_id && resProduct.product_id === checkProduct.product_id)) {
                   const combined = {
                     ...resProduct,
                     ...checkProduct

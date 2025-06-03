@@ -133,6 +133,7 @@ export type QIndexType = {
   remark?: string
   requested?: string
   rev_no?: number
+  export_type?: 'all' | 'detail'
 }
 
 export type QIndexRefSoType = {

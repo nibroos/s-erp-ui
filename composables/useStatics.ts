@@ -421,6 +421,13 @@ const formTabTicket = {
   sent_emails: 3,
 }
 
+const formTabCustomerMan = {
+  // payments: 0,
+  solution: 0,
+  hardware: 1,
+  history: 2,
+}
+
 const POIndexStatus = [
   {
     value: 'PROCESS',
@@ -1094,4 +1101,5 @@ export const useStatics = {
   invoiceRefInvIndexDateType,
   indexTabQuotation,
   indexTab,
+  formTabCustomerMan,
 }
