@@ -67,7 +67,7 @@ export type FormInventoryType = {
   surat_jalan_no?: string
   invoice_no?: string
   ship_dest?: string
-  remark?: string
+  remark?: string | null
   status: string
   exchange_rate?: number | null
   is_vat?: number | null
@@ -173,6 +173,7 @@ export type QInvIndexType = {
   global: string
   order_column: string
   order_direction: string
+  export_type?: 'all' | 'detail'
 }
 
 export type QInvStockIndexType = {

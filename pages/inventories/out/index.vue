@@ -7,7 +7,8 @@ import type {
   FilterSelectableType,
 } from "~/types/SelectTableType";
 
-const { queryModal } = useInventoryStore();
+const inventoryStore = useInventoryStore();
+const { queryModal, metaModal, tabIndex } = storeToRefs(inventoryStore);
 const layoutStore = useLayoutsStore();
 const { titlePath, subTitlePath, lastPathSegment, parentTitle, topTitle } =
   storeToRefs(layoutStore);
@@ -253,6 +254,159 @@ const filtersConfig = ref<FilterSelectableType[]>([
   },
 ]);
 
+const fieldsDetailConfig = ref<FieldSelectableType[]>([
+  {
+    title: "#",
+    key: "row_num",
+    value: "row_num",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Inventory No",
+    key: "inventory_no",
+    value: "inventory_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "DO No",
+    key: "do_no",
+    value: "do_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice No",
+    key: "invoice_no",
+    value: "invoice_no",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "OUT Type",
+    key: "io_type_name",
+    value: "io_type_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Customer",
+    key: "customer_name",
+    value: "customer_name",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "OUT Date",
+    key: "ingoing_at",
+    value: "ingoing_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "DO Date",
+    key: "do_at",
+    value: "do_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Invoice Date",
+    key: "invoice_at",
+    value: "invoice_at",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Product/Item Name",
+    key: "item_name",
+    value: "item_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Qty",
+    key: "qty",
+    value: "qty",
+    align: "end",
+    sortable: false,
+  },
+  // {
+  //   title: "Price",
+  //   key: "price",
+  //   value: "price",
+  //   align: "end",
+  //   sortable: false,
+  // },
+  // {
+  //   title: "Total",
+  //   key: "total",
+  //   value: "total",
+  //   align: "end",
+  //   sortable: false,
+  // },
+  {
+    title: "Created By",
+    key: "created_by_name",
+    value: "created_by_name",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "Updated By",
+    key: "updated_by_name",
+    value: "updated_by_name",
+    align: "start",
+    sortable: false,
+  },
+]);
+
+// const changeTitle = () => {
+//   let config = {
+//     topTitle: "Inventory",
+//     parentTitle: "Orders",
+//     subTitlePath: "Inventory",
+//     lastPathSegment: "",
+//   };
+
+//   layoutStore.defineTitlePath(config);
+// };
+
+const fetchFilter = async () => {
+  await useInventoryStore().indexInventoryOutDetails();
+};
+
+const fetchDataServerFetch = async (options: { [key: string]: any }) => {
+  queryModal.value.qIndexOut.page = options.page;
+  queryModal.value.qIndexOut.per_page = options.itemsPerPage;
+
+  if (options.sortBy.length > 0) {
+    queryModal.value.qIndexOut.order_column = options.sortBy[0].key;
+    queryModal.value.qIndexOut.order_direction = options.sortBy[0].order;
+  } else {
+    queryModal.value.qIndexOut.order_column = "";
+    queryModal.value.qIndexOut.order_direction = "";
+  }
+
+  await fetchFilter();
+};
+
+const onClickFind = async (filters: QInvIndexType) => {
+  if (tabIndex.value.index === useStatics.indexTabQuotation.detail) {
+    queryModal.value.qIndexOut.export_type = "detail";
+  } else {
+    queryModal.value.qIndexOut.export_type = "all";
+  }
+
+  if (tabIndex.value.index === 1) {
+    queryModal.value.qIndexOut = filters;
+    await fetchFilter();
+  }
+
+  // await useInventoryStore().indexWidget();
+};
+
 // const changeTitle = () => {
 //   let config = {
 //     topTitle: "Inventory",
@@ -265,7 +419,7 @@ const filtersConfig = ref<FilterSelectableType[]>([
 // };
 
 onMounted(() => {
-  queryModal.qIndexOut.io_type = "INVENTORY_OUT";
+  queryModal.value.qIndexOut.io_type = "INVENTORY_OUT";
 });
 
 // watchEffect(() => {
@@ -291,15 +445,19 @@ onMounted(() => {
         items-prop="data"
         total-prop="meta.total"
         class="col-span-2 lg:col-span-1"
+        label="Inventory OUT"
         search-placeholder="Search anything related to inventory.."
         is-quick-select
         no-title
         edit-link="/inventories/out/edit"
         delete-api="/v1/inventories/delete-inventory"
         pdf-api="/v1/inventories/pdf-inventory"
+        csv-api="/v1/inventories/csv-inventory"
         :fields="fieldsConfig"
         :filters="filtersConfig"
         :query-modal="queryModal.qIndexOut"
+        :tabs="['All', 'Detail']"
+        :tab-index="tabIndex.index"
         :create-option="{
           link: '/inventories/out/create',
           show: true,
@@ -308,6 +466,18 @@ onMounted(() => {
         @update:filters="
           (filters: QInvIndexType) => {
             queryModal.qIndexOut = filters;
+          }
+        "
+        @click:find="onClickFind"
+        @update:currentTab="
+          (currentTab: number) => {
+            tabIndex.index = currentTab;
+
+            if (currentTab === useStatics.indexTab.detail) {
+              queryModal.qIndexOut.export_type = 'detail';
+            } else {
+              queryModal.qIndexOut.export_type = 'all';
+            }
           }
         "
       >
@@ -325,6 +495,90 @@ onMounted(() => {
         </template>
         <template #item.status="{ item }">
           {{ item.status }}
+        </template>
+        <template #tab.content.detail>
+          <v-data-table-server
+            v-model:page="queryModal.qIndexOut.page"
+            v-model:items-per-page="queryModal.qIndexOut.per_page"
+            :items="metaModal.indexOutDetail.data ?? []"
+            :headers="fieldsDetailConfig"
+            :items-length="metaModal.indexOutDetail.meta.total ?? 0"
+            :loading="metaModal.indexOutDetail.loading"
+            item-value="id"
+            density="compact"
+            :header-props="{
+              class: '!bg-scLightest dark:!bg-dark2 whitespace-nowrap',
+            }"
+            :row-props="{
+              class: 'whitespace-nowrap',
+            }"
+            hover
+            show-current-page
+            fixed-header
+            height="450"
+            @update:options="fetchDataServerFetch"
+          >
+            <template
+              #item.row_num="{ item, index }: { item: any, index: number }"
+            >
+              {{
+                useNumber.determineRowNumber(
+                  queryModal.qIndexOut.per_page,
+                  queryModal.qIndexOut.page,
+                  index
+                )
+              }}
+            </template>
+            <template #item.item_name="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.inv_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                {{ product.item_name }}
+              </div>
+            </template>
+            <template #item.qty="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.inv_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="2"
+                  :max-precision="2"
+                  :value="product.qty"
+                />
+              </div>
+            </template>
+            <template #item.price="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.inv_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.price"
+                />
+              </div>
+            </template>
+            <template #item.total="{ item }: { item: any }">
+              <div
+                v-for="(product, iProduct) in item.inv_dts"
+                :key="iProduct"
+                class="whitespace-nowrap align-top"
+              >
+                <d-num-layout
+                  symbol=""
+                  :min-precision="0"
+                  :value="product.subtotal"
+                />
+              </div>
+            </template>
+          </v-data-table-server>
         </template>
       </d-datatable>
     </d-index-layout>

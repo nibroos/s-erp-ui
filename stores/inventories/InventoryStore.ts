@@ -23,7 +23,8 @@ const useInventoryStore = defineStore('InventoryStore', {
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all' // 'all' | 'detail'
       } as QInvIndexType,
       qIndexOut: {
         page: 1,
@@ -32,7 +33,8 @@ const useInventoryStore = defineStore('InventoryStore', {
         parent_ids: [],
         global: '',
         order_column: 'ingoing_at',
-        order_direction: 'desc'
+        order_direction: 'desc',
+        export_type: 'all' // 'all' | 'detail'
       } as QInvIndexType,
       qIndexInventoryStatus: {
         page: 1,
@@ -165,6 +167,16 @@ const useInventoryStore = defineStore('InventoryStore', {
         loading: false,
         meta: {} as Meta
       } as PaginationMeta,
+      indexInDetail: {
+        data: [] as IndexInventoryType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
+      indexOutDetail: {
+        data: [] as IndexInventoryType[],
+        loading: false,
+        meta: {} as Meta
+      } as PaginationMeta,
       indexStockClosings: {
         data: [] as IndexInventoryType[],
         loading: false,
@@ -201,6 +213,7 @@ const useInventoryStore = defineStore('InventoryStore', {
         meta: {} as Meta
       } as PaginationMeta,
     },
+    ioType: 'INVENTORY_IN' as 'INVENTORY_IN' | 'INVENTORY_OUT',
     loading: {
       formLoading: false,
       editPageLoading: false,
@@ -210,6 +223,7 @@ const useInventoryStore = defineStore('InventoryStore', {
     },
     tabFormIndex: 0,
     tabIndex: {
+      index: 0,
       indexStock: 0,
     },
     errors: {} as Record<string, any>,
@@ -414,6 +428,53 @@ const useInventoryStore = defineStore('InventoryStore', {
         this.metaModal.indexStockClosings.loading = false
       }
     },
+
+    async indexInventoryInDetails() {
+      if (this.metaModal.indexInDetail.loading) return
+      this.metaModal.indexInDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-detail-inventory',
+          this.queryModal.qIndexIn
+        )
+
+        this.metaModal.indexInDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexInDetail.loading = false
+      }
+    },
+
+    async indexInventoryOutDetails() {
+      if (this.metaModal.indexOutDetail.loading) return
+      this.metaModal.indexOutDetail.loading = true
+
+      try {
+        const response = await useMyFetch().post(
+          '/v1/inventories/index-detail-inventory',
+          this.queryModal.qIndexOut
+        )
+
+        this.metaModal.indexOutDetail = response.data
+
+        // return response
+        return response.data
+      } catch (error: any) {
+        console.log('Failed To Fetch Data', error.response?.data);
+        useAlert.alertError(error.response?.data?.message || 'Failed to fetch sales order details.')
+        return error.response.data
+      } finally {
+        this.metaModal.indexOutDetail.loading = false
+      }
+    },
+
     async createClosing() {
       const isConfirmed = await useAlert.showPopupConfirmation(
         "Are you sure proceed this action?",
