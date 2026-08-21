@@ -1,0 +1,9 @@
+node_modules/
+.nuxt/
+.output/
+dist/
+coverage/
+reports/
+public/
+*.min.js
+bun.lockb

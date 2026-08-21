@@ -4,8 +4,6 @@ import type { AuthUserType } from '~/types/AuthType'
 import { jwtDecode } from 'jwt-decode';
 
 const { getDiff, isAfter } = new DateFnsAdapter()
-const route = useRoute()
-const router = useRouter()
 
 const isTokenExpired = (): boolean => {
   const expirationTime = localStorage.getItem('expired')
@@ -104,6 +102,11 @@ const handlePermission = async (
   permissionName: string | any[],
   action: string = 'warn'
 ) => {
+  // Resolve the route here (inside the caller's component context) rather than
+  // at module scope — a module-level useRoute() runs on first import, which may
+  // happen during middleware and yields a misleading route (Nuxt warns).
+  const route = useRoute()
+
   const isAllowed = ref<boolean>(true)
   isAllowed.value = permit(permissionName)
 

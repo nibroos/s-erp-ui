@@ -39,6 +39,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       API: process.env.API_URL || 'http://test-erp.test',
+      // Dedicated auth microservice (s-erp-auth). Login/refresh/logout are
+      // routed here; everything else keeps hitting API above.
+      AUTH_URL: process.env.AUTH_URL || 'http://localhost:4020',
       BASE_URL_IMAGE:
         process.env.IMG_BASE_URL || 'http://test-erp.test'
     }

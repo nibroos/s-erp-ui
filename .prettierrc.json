@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+
+  "comment_endOfLine": "The repo has mixed CRLF/LF files. 'auto' respects whatever each file already uses, which removes ~7000 phantom warnings without rewriting a single line. Switch to 'lf' after a one-off normalisation via .gitattributes.",
+  "endOfLine": "auto",
+
+  "comment_trailingComma": "Must stay 'none' — .eslintrc.cjs sets comma-dangle: never, and Prettier 3 defaults to 'all'. Left unset, the two tools fight and every file loses.",
+  "trailingComma": "none",
+
+  "semi": true,
+  "singleQuote": false,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "arrowParens": "always",
+  "vueIndentScriptAndStyle": false
+}

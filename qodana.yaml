@@ -1,0 +1,35 @@
+version: "1.0"
+linter: jetbrains/qodana-js:2025.1
+
+profile:
+  name: qodana.starter
+
+exclude:
+  - name: All
+    paths:
+      - node_modules
+      - .nuxt
+      - .output
+      - dist
+      - coverage
+      - reports
+      - public
+      - assets/fonts
+      - bun.lockb
+
+include:
+  - name: JSUnusedGlobalSymbols
+  - name: TypeScriptUnresolvedReference
+  - name: JSUnresolvedVariable
+  - name: VueUnrecognizedDirective
+  - name: JSDeprecatedSymbols
+  - name: VulnerableLibrariesGlobal
+
+# New problems only. This codebase predates the pipeline; gating on the existing
+# backlog would fail every PR and the gate would be turned off within a week.
+failThreshold: 0
+baseline: qodana.sarif.json
+
+bootstrap: |
+  bun install --frozen-lockfile
+  bun run postinstall || true
