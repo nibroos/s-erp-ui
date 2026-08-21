@@ -29,7 +29,12 @@ pipeline {
     ansiColor('xterm')
     // Plan §32: a superseded PR commit should not keep burning an executor.
     // On master this is false — deploys must not be aborted mid-flight.
-    disableConcurrentBuilds(abortPrevious: env.CHANGE_ID as Boolean)
+    //
+    // `env.CHANGE_ID != null`, NOT `env.CHANGE_ID as Boolean`: on a branch build
+    // CHANGE_ID is null, and Groovy's `null as Boolean` yields null rather than
+    // false, which fails the build outright with
+    //   Could not instantiate {abortPrevious=null} for DisableConcurrentBuildsJobProperty
+    disableConcurrentBuilds(abortPrevious: env.CHANGE_ID != null)
     buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
     skipDefaultCheckout(false)
   }
