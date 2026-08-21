@@ -233,18 +233,22 @@ pipeline {
 
   post {
     always {
+      // notFailBuild on both: a post-build housekeeping problem must not be the
+      // reason a green pipeline reports red.
       archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
-      cleanWs(deleteDirs: true, notFailBuild: true,
-              patterns: [[pattern: '.trivycache/**', type: 'EXCLUDE'],
-                         [pattern: '.qodana/**', type: 'EXCLUDE']])
+      cleanWs(deleteDirs: true, notFailBuild: true, disableDeferredWipeout: true,
+              patterns: [[pattern: '.qodana/**', type: 'EXCLUDE']])
     }
     failure {
       script {
         if (env.CHANGE_ID) {
           githubStatus('CI / PR Quality Gate', 'failure', 'Pipeline failed — see the build log')
         } else {
-          echo "master build failed. If a deploy ran, deploy.sh has already rolled back. " +
-               "Verify with: ops/rollback → app=${APP_NAME}"
+          // env.APP_NAME, not APP_NAME: inside a post block the environment is
+          // not in the script binding, and the bare name throws
+          // MissingPropertyException while handling another failure.
+          echo "${env.BRANCH_NAME} build failed. If a deploy ran, deploy.sh has " +
+               "already rolled back. Verify with: ops/rollback → app=${env.APP_NAME}"
         }
       }
     }
