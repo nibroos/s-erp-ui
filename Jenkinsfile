@@ -129,15 +129,15 @@ pipeline {
       parallel {
         stage('Semgrep')      { steps { script { results << semgrepScan(config: 'p/typescript') } } }
         stage('Dependencies') { steps { script { results << depScan(runtime: cfg.runtime.type) } } }
-        // Production branch only. Community Edition has no branch model: every
-        // analysis overwrites the single project, so running this on a feature
-        // branch would replace master's results with the branch's. PRs and
-        // feature branches are gated in-pipeline instead.
+        // Runs on PRs and on the production branch. The community branch
+        // plugin gives Community Edition a branch model, so a PR is analysed as
+        // a pull request and scored on its changed code only. Feature branches
+        // outside a PR are skipped — they would just add noise to the project.
         stage('SonarQube') {
           when {
             allOf {
               expression { cfg.quality?.sonarqube }
-              expression { !env.CHANGE_ID && env.BRANCH_NAME == cfg.deployment.branch }
+              expression { env.CHANGE_ID || env.BRANCH_NAME == cfg.deployment.branch }
             }
           }
           steps { script { results << sonarScan(projectKey: env.APP_NAME) } }
