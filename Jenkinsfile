@@ -129,10 +129,17 @@ pipeline {
       parallel {
         stage('Semgrep')      { steps { script { results << semgrepScan(config: 'p/typescript') } } }
         stage('Dependencies') { steps { script { results << depScan(runtime: cfg.runtime.type) } } }
-        // SonarQube Community analyses the main branch only, so this is a
-        // no-op on PRs; the PR gate is coverage + Semgrep + lint/tests.
+        // Production branch only. Community Edition has no branch model: every
+        // analysis overwrites the single project, so running this on a feature
+        // branch would replace master's results with the branch's. PRs and
+        // feature branches are gated in-pipeline instead.
         stage('SonarQube') {
-          when { expression { cfg.quality?.sonarqube } }
+          when {
+            allOf {
+              expression { cfg.quality?.sonarqube }
+              expression { !env.CHANGE_ID && env.BRANCH_NAME == cfg.deployment.branch }
+            }
+          }
           steps { script { results << sonarScan(projectKey: env.APP_NAME) } }
         }
       }
