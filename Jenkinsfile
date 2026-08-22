@@ -115,7 +115,11 @@ pipeline {
                              command: cfg.commands.coverage ?: cfg.commands.test,
                              junit: 'reports/junit/*.xml',
                              timeout: 20)
-          results << coverageReport(cobertura: 'coverage/cobertura-coverage.xml')
+          // New-code coverage: judged against the branch this change targets,
+          // so a PR is measured on the lines it touched.
+          results << coverageReport(cobertura: 'coverage/cobertura-coverage.xml',
+                                    baseBranch: env.CHANGE_TARGET ?: cfg.deployment.branch,
+                                    minimum: cfg.coverage.minimum)
         }
       }
     }
@@ -123,9 +127,14 @@ pipeline {
     // Independent of one another and all slow — run them together.
     stage('Analysis') {
       parallel {
-        stage('Qodana')       { steps { script { results << qodanaScan() } } }
         stage('Semgrep')      { steps { script { results << semgrepScan(config: 'p/typescript') } } }
         stage('Dependencies') { steps { script { results << depScan(runtime: cfg.runtime.type) } } }
+        // SonarQube Community analyses the main branch only, so this is a
+        // no-op on PRs; the PR gate is coverage + Semgrep + lint/tests.
+        stage('SonarQube') {
+          when { expression { cfg.quality?.sonarqube } }
+          steps { script { results << sonarScan(projectKey: env.APP_NAME) } }
+        }
       }
     }
 

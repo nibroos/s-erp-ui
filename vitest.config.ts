@@ -20,7 +20,9 @@ export default defineConfig({
       provider: 'v8',
       reportsDirectory: 'coverage',
       // cobertura is what the Jenkins coverage parser reads.
-      reporter: ['text-summary', 'cobertura'],
+      // cobertura → the in-pipeline new-code gate (diff-cover)
+      // lcov       → SonarQube's JS analyser
+      reporter: ['text-summary', 'cobertura', 'lcov'],
       include: ['composables/**', 'stores/**', 'utils/**', 'middleware/**'],
       exclude: ['**/*.d.ts', '**/types/**'],
     },

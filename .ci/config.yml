@@ -26,18 +26,22 @@ commands:
   build:     "bun run generate"
 
 quality:
-  qodana:    true
+  sonarqube: true
+  qodana:    false   # requires a paid Qodana Cloud token; SonarQube replaces it
   semgrep:   true
   ai_review: true
   dependency_scan: true
 
 coverage:
-  # The repository currently has no test suite, so a 70% gate would fail every
-  # PR from day one and be switched off within a week — exactly what the plan
-  # warns against (§11). Reported now, enforced once there is something to
-  # measure. Ramp: 0 → 30 once the auth and store modules are covered → 50 → 70.
-  minimum: 0
-  enforce: false
+  # 80% of NEW CODE — the lines this change adds or edits — not of the whole
+  # project. That distinction is what makes the number reachable: the repo has
+  # ~21,000 untested lines, so a project-wide 80% gate could never pass, but a
+  # PR covering its own changes can.
+  #
+  # Measured by diff-cover against origin/<base>. SonarQube's quality gate
+  # applies the same 80% on new code for the master-branch analysis.
+  minimum: 80
+  enforce: true
 
 gates:
   # Measured 2026-08-21 on 311 files: 4,825 errors + 10,481 warnings before any
@@ -49,7 +53,7 @@ gates:
   # reason: a gate that fails every PR gets deleted, not fixed.
   typecheck:       false
   test:            true
-  coverage:        false   # follows coverage.enforce above
+  coverage:        true    # 80% on new code — see the coverage block above
   qodana_critical: true
   semgrep_high:    true
   dependency_high: false   # report first; enable after the backlog is triaged
