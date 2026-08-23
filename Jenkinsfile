@@ -71,7 +71,18 @@ pipeline {
           // environment so the `docker buildx build` step below picks them up
           // through its existing ${API_URL:-} style references. Public values
           // only — they end up in a bundle every user can read.
-          (cfg.deployment.build_args ?: [:]).each { k, v -> env[k as String] = v as String }
+          //
+          // Assigned one key at a time, on purpose. Looping with
+          // `env[k] = v` is both rejected by the Groovy sandbox (putAt on
+          // env is not whitelisted) and wrong on a PR build: .ci/config.yml is
+          // untrusted content there (see the security note in
+          // ciConfig.groovy), so a config that can name its own environment
+          // variables could set PATH or DOCKER_HOST. This allowlist cannot.
+          def buildArgs    = cfg.deployment.build_args ?: [:]
+          env.API_URL      = buildArgs.API_URL      ?: ''
+          env.AUTH_URL     = buildArgs.AUTH_URL     ?: ''
+          env.IMG_BASE_URL = buildArgs.IMG_BASE_URL ?: ''
+          env.TITLE        = buildArgs.TITLE        ?: 'NIBROS'
 
           currentBuild.displayName = "#${BUILD_NUMBER} ${env.GIT_COMMIT?.take(7)}"
           currentBuild.description = env.CHANGE_ID

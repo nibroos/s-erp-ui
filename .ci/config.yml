@@ -111,6 +111,12 @@ deployment:
   #
   # Everything here ships to the browser and is readable by any user. NEVER put
   # a secret in this block — see the same warning in Dockerfile.
+  #
+  # Only these four keys are read. The Jenkinsfile assigns them by name rather
+  # than looping over whatever this map contains, so adding a key here does
+  # nothing until the pipeline is taught about it — deliberate, because on a PR
+  # build this file is untrusted content and must not be able to name its own
+  # environment variables.
   build_args:
     API_URL: "https://s-erp-api.nibros.space/api"
     AUTH_URL: "https://s-erp-auth.nibros.space"
