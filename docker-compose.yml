@@ -1,0 +1,39 @@
+# Deploy definition for s-erp-ui. jenkins-nb/deploy/deploy.sh sets IMAGE_REF to
+# the immutable tag being deployed and gates on the container healthcheck.
+name: ${APP_NAME:-s-erp-ui}
+
+services:
+  ui:
+    # No default: deploy.sh must supply an explicit tag. `:latest` is refused
+    # upstream, so a deploy always names the exact build it is shipping.
+    image: ${IMAGE_REF:?IMAGE_REF must be set by the deploy script}
+    restart: unless-stopped
+    # APP_PORT is exported by the Jenkinsfile from .ci/config.yml
+    # (deployment.port). The fallback is 3012, NOT 3002: 3002 is the Nuxt dev
+    # server's port, and a deploy that grabbed it would kill `bun dev` on this
+    # host. Keep the two in step if you change either.
+    ports:
+      - "${APP_PORT:-3012}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    read_only: true
+    # uid/gid 101 is the `nginx` user in nginx:alpine. Without these, the tmpfs
+    # mounts come up owned by root and nginx cannot create its temp dirs —
+    # the container then exits with "mkdir /var/cache/nginx/client_temp failed".
+    tmpfs:
+      - /tmp:uid=101,gid=101
+      - /var/cache/nginx:uid=101,gid=101
+      - /var/run:uid=101,gid=101
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "SETGID", "SETUID"]
+    deploy:
+      resources:
+        limits: { memory: 256m }
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

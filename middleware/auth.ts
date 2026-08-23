@@ -1,42 +1,56 @@
 import { useAuth } from "~/composables/useAuth";
+import useAuthStore from "~/stores/AuthStore";
 import type { AuthUserType } from "~/types/AuthType";
 
-export default defineNuxtRouteMiddleware((to, from) => {
-  if (process.server) return; // Avoid execution on the server-side
+// Silent-refresh auth guard.
+//
+// Access token = 15 min, refresh token = 30 days (httpOnly cookie held by the
+// auth service). When the SHORT access token has expired we do NOT log the user
+// out — we first try to exchange the refresh cookie for a new access token. The
+// user is only sent back to /login when that refresh also fails (refresh token
+// expired/revoked). This is what turns "expired in 15 min → must log in again"
+// into "log in once, keep working for 30 days".
+export default defineNuxtRouteMiddleware(async (to) => {
+  if (process.server) return; // client-only: refresh cookie + localStorage live in the browser
 
   const { isTokenExpired, jwtVerify } = useAuth;
+  const authStore = useAuthStore();
 
-  // Retrieve the auth store from localStorage
-  const authStore = JSON.parse(localStorage.getItem("AuthStore") || "{}") as { authUser: AuthUserType };
-  if (!authStore || !authStore.authUser) {
-    if (to.path !== "/login") {
-      return navigateTo("/login"); // Redirect to login if no auth data exists
-    }
+  // Snapshot the persisted session.
+  const persisted = JSON.parse(localStorage.getItem("AuthStore") || "{}") as {
+    authUser?: AuthUserType;
+  };
+  let token = persisted?.authUser?.optional?.token || null;
+
+  // Never logged in → login page.
+  if (!persisted?.authUser || !token) {
+    if (to.path !== "/login") return navigateTo("/login");
     return;
   }
 
-  const token = authStore.authUser.optional?.token || null;
-  const lastVisited = localStorage.getItem("_lastVisited");
+  const accessUsable = jwtVerify(token) && !isTokenExpired();
 
-  // If the user is already on the login page and has a valid token, redirect to the home page
+  // Already on /login with a still-valid access token → go home.
   if (to.path === "/login") {
-    if (token && jwtVerify(token)) {
-      return navigateTo("/");
-    }
-    return;
+    if (accessUsable) return navigateTo("/");
+    return; // let them sit on the login form
   }
 
-  // Verify the token and check if it's expired
-  if (!token || !jwtVerify(token) || isTokenExpired()) {
-    if (to.path !== "/login") {
+  // Protected route, but the short access token is dead → try a silent refresh
+  // using the 30-day refresh cookie before giving up.
+  if (!accessUsable) {
+    const newToken = await authStore.refreshAuth();
+    if (!newToken) {
+      // Refresh token also invalid/expired/revoked → real logout.
       localStorage.removeItem("_token");
       localStorage.removeItem("expired");
-      return navigateTo("/login"); // Redirect to login if the token is invalid or expired
+      return navigateTo("/login");
     }
-    return;
+    token = newToken; // refreshed transparently; continue as normal
   }
 
-  // Redirect to the last visited page if it exists
+  // Restore the last visited route if one was stashed.
+  const lastVisited = localStorage.getItem("_lastVisited");
   if (lastVisited && to.path !== lastVisited) {
     return navigateTo(lastVisited);
   }

@@ -1,5 +1,3 @@
-const route = useRoute()
-
 const useLayoutsStore = defineStore({
   id: 'layoutsStore',
   state: () => ({
@@ -17,6 +15,10 @@ const useLayoutsStore = defineStore({
   }),
   actions: {
     defineTitlePath(config?: any) {
+      // Resolve the route here (in-action, valid context) instead of at module
+      // top level — a top-level useRoute() runs on first import, which can be
+      // during app bootstrap (plugins) where there is no Nuxt instance yet.
+      const route = useRoute()
       let routePath = route.path
       let pathArray = routePath.split('/')
 

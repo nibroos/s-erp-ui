@@ -1,0 +1,134 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CI contract for s-erp-ui.
+#
+# Jenkins reads this instead of hard-coding commands, so the pipeline is shared
+# across repositories and this file is the only thing that changes per project.
+# See jenkins-nb/shared-library/vars/ciConfig.groovy for the schema.
+# ─────────────────────────────────────────────────────────────────────────────
+
+runtime:
+  type: node
+  version: "22"
+  manager: bun          # this repo uses bun.lockb, not package-lock.json
+
+commands:
+  # --frozen-lockfile is required: a resolver that is free to pick new versions
+  # means the PR and the production build can test different code.
+  install:   "bun install --frozen-lockfile"
+  # New-code policy: lints only files the PR changed. Full-repo lint is
+  # `bun run lint` and currently reports ~1,900 pre-existing problems.
+  lint:      "bun run lint:ci"
+  typecheck: "bun run typecheck"
+  test:      "bun run test"
+  coverage:  "bun run test:coverage"
+  # generate, not build: ssr is false, and only `generate` emits the index.html
+  # that the nginx image serves. See the note in Dockerfile.
+  build:     "bun run generate"
+
+quality:
+  sonarqube: true
+  qodana:    false   # requires a paid Qodana Cloud token; SonarQube replaces it
+  semgrep:   true
+  ai_review: true
+  dependency_scan: true
+
+coverage:
+  # 80% of NEW CODE — the lines this change adds or edits — not of the whole
+  # project. That distinction is what makes the number reachable: the repo has
+  # ~21,000 untested lines, so a project-wide 80% gate could never pass, but a
+  # PR covering its own changes can.
+  #
+  # Measured by diff-cover against origin/<base>. SonarQube's quality gate
+  # applies the same 80% on new code for the master-branch analysis.
+  minimum: 80
+  # Measured, reported in every build, but NOT blocking yet — see gates.coverage.
+  enforce: false
+
+gates:
+  # Measured 2026-08-21 on 311 files: 4,825 errors + 10,481 warnings before any
+  # formatting pass; `eslint --fix` clears ~88% of it, leaving ~109 errors and
+  # ~1,780 warnings. Enable this gate after the one-off normalisation commit
+  # lands — see docs/ci-cd.md "Turning the gates on".
+  lint:            false
+  # nuxt typecheck has never run on this repo. Measure before gating, same
+  # reason: a gate that fails every PR gets deleted, not fixed.
+  typecheck:       false
+  test:            true    # a real suite now exists — 54 tests, see below
+  # New-code coverage is measured against `master`, and `master` does not yet
+  # carry this branch — so the whole feature lands as "new code" and the honest
+  # number today is 4.5% (stores/supports/ChatStore.ts alone contributes 1,110
+  # uncovered new lines). An 80% gate on that would fail every PR, and per this
+  # file's own rule further up, a gate that fails every PR gets deleted rather
+  # than fixed.
+  #
+  # So: reported every build, not blocking. Turn this back on once ChatStore and
+  # the fetch composables have tests — same ramp lint and typecheck are on.
+  coverage:        false
+  qodana_critical: true
+  semgrep_high:    true
+  dependency_high: false   # report first; enable after the backlog is triaged
+  ai_critical:     false   # advisory — plan §20, do not make AI the only gate
+
+deployment:
+  enabled: true
+  # NOTE: this repository's default branch is `master`, not `main`.
+  branch: master
+  image: s-erp-ui
+  app: s-erp-ui
+  # nginx serves this unconditionally and with Cache-Control: no-store, so a
+  # rollback check can never pass against a stale response. See docker/nginx.conf.
+  health_path: "/healthz"
+
+  # Host port the production container publishes.
+  #
+  # Deliberately NOT 3002. Port 3002 belongs to the Nuxt dev server (`PORT` in
+  # .env, `bun dev`), and the whole point of pinning this is that shipping to
+  # production never evicts the dev server — both run at once, on one box.
+  # Leaving it unset was not harmless: docker-compose.yml defaulted to 3002 and
+  # the first deploy would have taken the port out from under whatever held it.
+  port: 3012
+
+  # Host the deploy health probe dials, from INSIDE the Jenkins agent container.
+  #
+  # Not `localhost`: agents run on the `jenkins-nb_jenkins` bridge network, so
+  # localhost there is the agent's own loopback, not this machine. The app
+  # container publishes on the HOST's `port` above, so a localhost probe can
+  # never see it — it would fail, deploy.sh would roll back, and every deploy
+  # would go red while the container underneath was actually fine.
+  #
+  # `host.docker.internal` resolves via the agent template's
+  # `extraHosts: host.docker.internal:host-gateway` (jenkins-nb casc). The
+  # bridge gateway IP works too but is not stable across network recreation.
+  health_host: host.docker.internal
+
+  # Production for this app IS this host: the container published on `port`
+  # above is what the s-erp-ui.nibros.space Cloudflare tunnel points at. There
+  # is no separate production box in play, so the remote deploy stages (and the
+  # manual approval that guards them) stay switched off. Add `remote` here to
+  # turn them back on — the pipeline reads this list, nothing is hard-coded.
+  targets:
+    - local
+
+  # Build-time PUBLIC config, compiled into the SPA bundle by the Dockerfile's
+  # ARG/ENV pair. Nuxt reads these in nuxt.config.ts `runtimeConfig.public`, and
+  # with ssr:false they are baked at build time — the running container cannot
+  # be re-pointed by setting an env var on it.
+  #
+  # These were previously unset, so `--build-arg API_URL="${API_URL:-}"` passed
+  # an empty string and the bundle fell back to nuxt.config's placeholder
+  # `http://test-erp.test`. A deploy would have come up healthy (nginx serves
+  # /healthz regardless) while every API call from the browser went nowhere.
+  #
+  # Everything here ships to the browser and is readable by any user. NEVER put
+  # a secret in this block — see the same warning in Dockerfile.
+  #
+  # Only these four keys are read. The Jenkinsfile assigns them by name rather
+  # than looping over whatever this map contains, so adding a key here does
+  # nothing until the pipeline is taught about it — deliberate, because on a PR
+  # build this file is untrusted content and must not be able to name its own
+  # environment variables.
+  build_args:
+    API_URL: "https://s-erp-api.nibros.space/api"
+    AUTH_URL: "https://s-erp-auth.nibros.space"
+    IMG_BASE_URL: "https://s-erp-storage.nibros.space/files"
+    TITLE: "NIBROS"

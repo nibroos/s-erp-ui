@@ -1,9 +1,17 @@
 import { useAlert } from '~/composables/useAlert'
 import { useMyFetch } from '~/composables/useMyFetch'
+import { useAuthFetch } from '~/composables/useAuthFetch'
 import DateFnsAdapter from '@date-io/date-fns'
 import type { AuthDataType, AuthUserType } from '~/types/AuthType'
 import useLayoutsStore from './configs/LayoutsStore'
 import type { Meta, PaginationMeta } from '~/interfaces/LaravelPaginationInterface'
+
+// Module-level guard so ALL callers of refreshAuth (route middleware, the API
+// 401 interceptor, and the proactive scheduler) share ONE in-flight refresh.
+// This is essential: the auth server rotates the refresh token and revokes the
+// previous one, so two concurrent refreshes would replay an already-rotated
+// token, trip reuse-detection, and revoke the whole session.
+let refreshPromise: Promise<string | null> | null = null
 
 const useAuthStore = defineStore('AuthStore', {
   state: () => ({
@@ -50,7 +58,10 @@ const useAuthStore = defineStore('AuthStore', {
       this.formState.loading = true
 
       try {
-        const response = await useMyFetch().post(`/v1/auth/login`, this.form)
+        // Routed to the dedicated auth service (s-erp-auth). withCredentials
+        // captures the httpOnly refresh cookie; only the access token is
+        // returned in the body.
+        const response = await useAuthFetch().post(`/v1/auth/login`, this.form)
         const data = response.data?.data
         this.data.token = data.token
         this.authUser = response.data
@@ -104,7 +115,43 @@ const useAuthStore = defineStore('AuthStore', {
       }
     },
 
+    // Exchange the httpOnly refresh cookie for a new access token. Returns the
+    // new token string, or null if the session is no longer valid. Used both
+    // on-demand and by the API 401 interceptor.
+    async refreshAuth(): Promise<string | null> {
+      // Coalesce concurrent refreshes into a single request (see refreshPromise).
+      if (refreshPromise) return refreshPromise
+
+      refreshPromise = (async () => {
+        try {
+          const response = await useAuthFetch().post('/v1/auth/refresh')
+          this.authUser = response.data
+          this.permission = response.data.data.permissions
+          this.roles = response.data.data.roles
+          this.expired = this.authUser.optional?.expired_at || ''
+          this._token = this.authUser.optional?.token || ''
+          localStorage.setItem('_token', this._token)
+          localStorage.setItem('expired', this.expired)
+          return this._token
+        } catch (error) {
+          return null
+        }
+      })()
+
+      try {
+        return await refreshPromise
+      } finally {
+        refreshPromise = null
+      }
+    },
+
     async logoutUser() {
+      // Revoke the refresh token server-side before clearing local state.
+      try {
+        await useAuthFetch().post('/v1/auth/logout')
+      } catch (error) {
+        // Best-effort: proceed with local cleanup even if the call fails.
+      }
       this.authUser.data = null
       if (this.authUser.optional) {
         this.authUser.optional.token = null

@@ -478,6 +478,19 @@ onMounted(async () => {
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item>
 
+          <v-list-item
+            color="#898F99"
+            class="!text-primary1"
+            to="/chat"
+            rounded="lg"
+          >
+            <template #prepend>
+              <v-icon>mdi-chat-outline</v-icon>
+            </template>
+
+            <v-list-item-title>Chat</v-list-item-title>
+          </v-list-item>
+
           <v-list-group v-if="isPermissionOnChildExists('sos')" value="CRM">
             <template #activator="{ props }">
               <v-list-item
