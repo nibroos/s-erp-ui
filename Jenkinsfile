@@ -331,11 +331,30 @@ pipeline {
 
   post {
     always {
-      // notFailBuild on both: a post-build housekeeping problem must not be the
-      // reason a green pipeline reports red.
+      // notFailBuild: a post-build housekeeping problem must not be the reason
+      // a green pipeline reports red.
       archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
-      cleanWs(deleteDirs: true, notFailBuild: true, disableDeferredWipeout: true,
-              patterns: [[pattern: '.qodana/**', type: 'EXCLUDE']])
+
+      // An ABORTED build must NOT clean the workspace.
+      //
+      // disableConcurrentBuilds(abortPrevious) kills the previous PR build when
+      // a new commit lands, and every build of this job shares ONE bind-mounted
+      // workspace path (AGENT_WORKSPACE in jenkins-nb) — so the dying build's
+      // cleanup deletes files out from under the build that superseded it.
+      //
+      // Seen on PR-6: #5 was aborted at 08:40:56 and wiped the workspace while
+      // #6 was mid-flight. #6 ran `bun run lint:ci` fine at 08:40:52 and then
+      // `bun run test:coverage` at 08:41:00 failed with Script not found —
+      // package.json had been deleted between the two stages.
+      script {
+        if (currentBuild.result in ['ABORTED', 'NOT_BUILT']) {
+          echo 'Superseded build — leaving the workspace alone so the build ' +
+               'that replaced it keeps its files. The next build cleans up.'
+        } else {
+          cleanWs(deleteDirs: true, notFailBuild: true, disableDeferredWipeout: true,
+                  patterns: [[pattern: '.qodana/**', type: 'EXCLUDE']])
+        }
+      }
     }
     failure {
       script {
