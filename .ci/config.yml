@@ -65,7 +65,54 @@ deployment:
   branch: master
   image: s-erp-ui
   app: s-erp-ui
-  health_path: "/"
+  # nginx serves this unconditionally and with Cache-Control: no-store, so a
+  # rollback check can never pass against a stale response. See docker/nginx.conf.
+  health_path: "/healthz"
+
+  # Host port the production container publishes.
+  #
+  # Deliberately NOT 3002. Port 3002 belongs to the Nuxt dev server (`PORT` in
+  # .env, `bun dev`), and the whole point of pinning this is that shipping to
+  # production never evicts the dev server — both run at once, on one box.
+  # Leaving it unset was not harmless: docker-compose.yml defaulted to 3002 and
+  # the first deploy would have taken the port out from under whatever held it.
+  port: 3012
+
+  # Host the deploy health probe dials, from INSIDE the Jenkins agent container.
+  #
+  # Not `localhost`: agents run on the `jenkins-nb_jenkins` bridge network, so
+  # localhost there is the agent's own loopback, not this machine. The app
+  # container publishes on the HOST's `port` above, so a localhost probe can
+  # never see it — it would fail, deploy.sh would roll back, and every deploy
+  # would go red while the container underneath was actually fine.
+  #
+  # `host.docker.internal` resolves via the agent template's
+  # `extraHosts: host.docker.internal:host-gateway` (jenkins-nb casc). The
+  # bridge gateway IP works too but is not stable across network recreation.
+  health_host: host.docker.internal
+
+  # Production for this app IS this host: the container published on `port`
+  # above is what the s-erp-ui.nibros.space Cloudflare tunnel points at. There
+  # is no separate production box in play, so the remote deploy stages (and the
+  # manual approval that guards them) stay switched off. Add `remote` here to
+  # turn them back on — the pipeline reads this list, nothing is hard-coded.
   targets:
     - local
-    - remote
+
+  # Build-time PUBLIC config, compiled into the SPA bundle by the Dockerfile's
+  # ARG/ENV pair. Nuxt reads these in nuxt.config.ts `runtimeConfig.public`, and
+  # with ssr:false they are baked at build time — the running container cannot
+  # be re-pointed by setting an env var on it.
+  #
+  # These were previously unset, so `--build-arg API_URL="${API_URL:-}"` passed
+  # an empty string and the bundle fell back to nuxt.config's placeholder
+  # `http://test-erp.test`. A deploy would have come up healthy (nginx serves
+  # /healthz regardless) while every API call from the browser went nowhere.
+  #
+  # Everything here ships to the browser and is readable by any user. NEVER put
+  # a secret in this block — see the same warning in Dockerfile.
+  build_args:
+    API_URL: "https://s-erp-api.nibros.space/api"
+    AUTH_URL: "https://s-erp-auth.nibros.space"
+    IMG_BASE_URL: "https://s-erp-storage.nibros.space/files"
+    TITLE: "NIBROS"

@@ -123,6 +123,51 @@ off`) so nothing leaks the internal port behind Cloudflare.
 
 ---
 
+## Deployment
+
+Production for s-erp-ui **is this host**. A merge to `master` runs Pipeline B,
+which builds the image, scans it, pushes it to `ghcr.io/nibroos/s-erp-ui`, and
+hands it to `deploy.sh`, which brings the container up behind a health gate and
+rolls back automatically if it never answers.
+
+### Ports
+
+| What | Port | Owned by |
+|------|------|----------|
+| Nuxt dev server (`bun dev`) | 3002 | `PORT` in `.env` |
+| **Production container** | **3012** | `deployment.port` in `.ci/config.yml` |
+
+The split is the point: deploying to production must never evict the dev
+server. Both run on this box at the same time.
+
+`deployment.port` is the single source of truth. The Jenkinsfile exports it as
+`APP_PORT`, which `docker-compose.yml` reads when `deploy.sh` brings the stack
+up. `docker-compose.yml` carries a matching `3012` fallback so a by-hand
+`docker compose up` outside Jenkins lands on the same port rather than on the
+dev server. Change one, change the other.
+
+The `s-erp-ui.nibros.space` Cloudflare tunnel points at the production port.
+
+### Targets
+
+`deployment.targets` drives which deploy stages run. With `[local]` the
+`Approve production` and `Deploy — production host` stages are skipped
+entirely — there is no second box today. Adding `remote` to that list turns
+both back on, along with the manual approval gate; nothing in the pipeline is
+hard-coded to one topology.
+
+### Build-time config
+
+`deployment.build_args` supplies the public URLs compiled into the SPA bundle
+(`API_URL`, `AUTH_URL`, `IMG_BASE_URL`, `TITLE`). With `ssr: false` these are
+baked at **build** time — a running container cannot be re-pointed with an env
+var, so changing one means a rebuild.
+
+Everything in that block is readable by any user who loads the app. It is not a
+place for secrets.
+
+---
+
 ## Files
 
 | File | Purpose |
@@ -145,5 +190,5 @@ off`) so nothing leaks the internal port behind Cloudflare.
 - [ ] Write the first tests; `composables/useAuth.ts` and `stores/AuthStore.ts` carry the most risk
 - [ ] Fix the 10 real defects listed above
 - [ ] Normalisation commit, then enable `lint`
-- [ ] Set `PROD_HOST` and `APP_PORT` for the production deploy stage
+- [x] Set the production deploy port — `deployment.port: 3012` in `.ci/config.yml`, kept clear of the dev server's 3002. `PROD_HOST` is not needed while production is this host (`deployment.targets: [local]`).
 - [ ] Baseline Qodana on `master` once, so the gate sees only new issues

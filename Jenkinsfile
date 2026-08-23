@@ -19,6 +19,7 @@
 def cfg = null
 def results = []
 def IMAGE_REF = ''
+def HEALTH_URL = ''
 
 pipeline {
   agent { label 'docker' }
@@ -55,6 +56,23 @@ pipeline {
           cfg = ciConfig()
           IMAGE_REF = "${REGISTRY}/${NAMESPACE}/${cfg.deployment.image}:${IMAGE_TAG}"
 
+          // The deploy port comes from .ci/config.yml, and is exported into the
+          // environment because docker-compose.yml reads ${APP_PORT} when
+          // deploy.sh brings the stack up. Setting it here rather than in the
+          // `environment {}` block is deliberate: that block is evaluated
+          // before any stage runs, when `cfg` is still null.
+          //
+          // The fallback matches docker-compose.yml's own default. Both are
+          // 3012 and neither is 3002 — see the note in .ci/config.yml.
+          env.APP_PORT = "${cfg.deployment.port ?: 3012}"
+          HEALTH_URL   = "http://${cfg.deployment.health_host ?: 'host.docker.internal'}:${env.APP_PORT}${cfg.deployment.health_path ?: '/healthz'}"
+
+          // Build-time public config for the SPA bundle. Exported into the
+          // environment so the `docker buildx build` step below picks them up
+          // through its existing ${API_URL:-} style references. Public values
+          // only — they end up in a bundle every user can read.
+          (cfg.deployment.build_args ?: [:]).each { k, v -> env[k as String] = v as String }
+
           currentBuild.displayName = "#${BUILD_NUMBER} ${env.GIT_COMMIT?.take(7)}"
           currentBuild.description = env.CHANGE_ID
               ? "PR #${env.CHANGE_ID} → ${env.CHANGE_TARGET}"
@@ -69,6 +87,7 @@ pipeline {
             |PR         : ${env.CHANGE_ID ?: '(none)'} ${env.CHANGE_ID ? "by ${env.CHANGE_AUTHOR}" : ''}
             |Target     : ${env.CHANGE_TARGET ?: '(n/a)'}
             |Image      : ${IMAGE_REF}
+            |Deploy port: ${env.APP_PORT} (dev server keeps 3002)
           """.stripMargin()
 
           if (env.CHANGE_ID) {
@@ -210,19 +229,41 @@ pipeline {
       }
     }
 
+    // This host IS production for s-erp-ui: the container published on
+    // APP_PORT is what the s-erp-ui.nibros.space Cloudflare tunnel serves.
+    // deploy.sh health-gates the rollout and rolls back automatically if the
+    // new container never answers on HEALTH_URL.
     stage('Deploy — this host') {
-      when { allOf { branch "${cfg?.deployment?.branch ?: 'master'}"; expression { cfg.deployment.enabled } } }
+      when {
+        allOf {
+          branch "${cfg?.deployment?.branch ?: 'master'}"
+          expression { cfg.deployment.enabled }
+          expression { (cfg.deployment.targets ?: ['local']).contains('local') }
+        }
+      }
       options { lock(resource: 's-erp-ui-local') }   // plan §32: never concurrent
       steps {
         script {
           dockerDeploy(target: 'local', app: cfg.deployment.app, image: IMAGE_REF,
-                       health: "http://localhost:${env.APP_PORT ?: '3002'}/healthz")
+                       health: HEALTH_URL)
+          echo "Deployed ${IMAGE_REF} on :${env.APP_PORT} · commit ${env.GIT_COMMIT}"
         }
       }
     }
 
+    // ── Remote production host ───────────────────────────────────────────────
+    // Off unless `remote` is listed in .ci/config.yml deployment.targets. There
+    // is currently no second box: production is this host, above. The stages are
+    // kept (rather than deleted) because turning them back on should be a
+    // one-line config change, not a pipeline rewrite.
     stage('Approve production') {
-      when { allOf { branch "${cfg?.deployment?.branch ?: 'master'}"; expression { cfg.deployment.enabled } } }
+      when {
+        allOf {
+          branch "${cfg?.deployment?.branch ?: 'master'}"
+          expression { cfg.deployment.enabled }
+          expression { (cfg.deployment.targets ?: []).contains('remote') }
+        }
+      }
       options { timeout(time: 2, unit: 'HOURS') }
       steps {
         script {
@@ -234,13 +275,19 @@ pipeline {
     }
 
     stage('Deploy — production host') {
-      when { allOf { branch "${cfg?.deployment?.branch ?: 'master'}"; expression { cfg.deployment.enabled } } }
+      when {
+        allOf {
+          branch "${cfg?.deployment?.branch ?: 'master'}"
+          expression { cfg.deployment.enabled }
+          expression { (cfg.deployment.targets ?: []).contains('remote') }
+        }
+      }
       options { lock(resource: 's-erp-ui-production') }
       steps {
         script {
           // deploy.sh health-gates and rolls back automatically on failure.
           dockerDeploy(target: 'remote', app: cfg.deployment.app, image: IMAGE_REF,
-                       health: "http://${env.PROD_HOST ?: 'localhost'}:${env.APP_PORT ?: '3002'}/healthz")
+                       health: "http://${env.PROD_HOST ?: 'localhost'}:${env.APP_PORT}${cfg.deployment.health_path ?: '/healthz'}")
           echo "Deployed ${IMAGE_REF} · commit ${env.GIT_COMMIT} · approved by ${env.APPROVER ?: 'n/a'}"
         }
       }
