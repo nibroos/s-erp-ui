@@ -211,6 +211,7 @@ pipeline {
             --build-arg AUTH_URL="${AUTH_URL:-}" \
             --build-arg IMG_BASE_URL="${IMG_BASE_URL:-}" \
             --build-arg TITLE="${TITLE:-NIBROS}" \
+            --build-arg APP_BUILD="${BUILD_NUMBER}" \
             --label "org.opencontainers.image.revision=${GIT_COMMIT}" \
             --label "org.opencontainers.image.source=${GIT_URL}" \
             --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \

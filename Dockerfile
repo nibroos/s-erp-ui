@@ -26,10 +26,16 @@ ARG API_URL
 ARG AUTH_URL
 ARG IMG_BASE_URL
 ARG TITLE
+# CI build identifier, shown next to the version on the login page. Not secret:
+# it is a pipeline build number, and being able to read it off a screenshot is
+# the entire point. The app version itself comes from package.json, which is
+# already in the build context — it needs no ARG.
+ARG APP_BUILD
 ENV API_URL=${API_URL} \
     AUTH_URL=${AUTH_URL} \
     IMG_BASE_URL=${IMG_BASE_URL} \
-    TITLE=${TITLE}
+    TITLE=${TITLE} \
+    APP_BUILD=${APP_BUILD}
 # `nuxt generate`, not `nuxt build`. With ssr: false, `build` emits only
 # _nuxt/ assets and leaves the HTML shell to the nitro server at runtime, so
 # nginx would have no index.html to serve (verified: 403 on /). `generate`

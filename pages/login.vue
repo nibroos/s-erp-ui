@@ -59,6 +59,16 @@
               no-icon
             />
           </div>
+          <!-- Build identity. Helps answer "which version am I looking at?"
+               before anyone has logged in — the one screen always reachable. -->
+          <p
+            v-if="appVersion"
+            class="mt-6 text-xs text-center text-gray-400 dark:text-zinc-500 select-text"
+            data-test="app-version"
+          >
+            {{ appVersion }}
+          </p>
+
           <!-- <p class="text-sm mx-auto text-gray-500 text-center">
             Belum punya akun?
             <span
@@ -75,6 +85,7 @@
 
 <script setup lang="ts">
 import useAuthStore from "@/stores/AuthStore";
+import { formatVersion } from "~/utils/version";
 
 definePageMeta({
   layout: "guest" as any,
@@ -83,6 +94,14 @@ definePageMeta({
 
 const authStore = useAuthStore();
 const { form, formState, registerView } = storeToRefs(authStore);
+
+const runtimeConfig = useRuntimeConfig();
+const appVersion = computed(() =>
+  formatVersion(
+    runtimeConfig.public.APP_VERSION,
+    runtimeConfig.public.APP_BUILD
+  )
+);
 // const token = localStorage.getItem("_token");
 
 // onMounted(() => {
