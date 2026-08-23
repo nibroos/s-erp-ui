@@ -77,8 +77,8 @@ off within a week, and then you have no gate at all.
 |------|-----|--------------|
 | `lint` | ❌ off | After the `eslint --fix` normalisation commit lands |
 | `typecheck` | ❌ off | After `bun run typecheck` is run once and the count is known |
-| `test` | ✅ on | Already passing — `passWithNoTests` means zero tests reports as zero, not as a pass |
-| `coverage` | ❌ off | Ramp 0 → 30 → 50 → 70 as tests are written |
+| `test` | ✅ on | On, and now enforcing a real suite — 54 tests, see [Tests](#tests) |
+| `coverage` | ❌ off | Measured every build. Ramp 0 → 30 → 50 → 70 as ChatStore and the fetch composables get tests |
 | `qodana_critical` | ✅ on | Baselined, so only new critical issues block |
 | `semgrep_high` | ✅ on | Security findings block from day one — this is the one gate worth the friction |
 | `dependency_high` | ❌ off | After the existing CVE backlog is triaged |
@@ -120,6 +120,47 @@ Verified running: health `healthy`, `/` → 200, `/healthz` → 200, deep client
 routes → 200 via SPA fallback, missing assets → 404, hashed assets
 `immutable`, `index.html` `no-store`, redirects relative (`absolute_redirect
 off`) so nothing leaks the internal port behind Cloudflare.
+
+---
+
+## Tests
+
+The first suite: **54 tests** over the code carrying the most risk, plus the
+security properties the PR #6 AI review questioned.
+
+| File | Covers |
+|------|--------|
+| `utils/security.test.ts` | URL scheme allowlist — `javascript:`, `data:`, `vbscript:`, control-character and whitespace obfuscation, casing |
+| `utils/messageTokens.test.ts` | Chat tokenizer — links, @mentions, regex `lastIndex` reuse, and that no dangerous scheme can ever become a `url` token |
+| `composables/useMarkdown.test.ts` | That `v-html` on AI output is safe: raw HTML escaped, `javascript:`/`vbscript:` hrefs dropped, `rel="noopener noreferrer"` applied |
+| `composables/useAuth.test.ts` | `jwtVerify`, `isTokenExpired`, `permit` (incl. superadmin and array forms) |
+| `stores/AuthStore.test.ts` | `refreshAuth`: returns null rather than throwing, and coalesces concurrent callers into one request |
+
+Two of these exist specifically as **regression tests for false positives**. The
+AI review flagged the chat page's `v-html` and `:href` as XSS. Neither was
+exploitable — markdown-it runs with `html: false`, and the tokenizer only
+matches `https?://` — but nothing tested either property, so a later change
+could have made the finding true. Now it would go red.
+
+Three real issues were fixed alongside:
+
+- **`jwtVerify` accepted a token with no `exp` claim.** The check was
+  `decoded.exp < currentTime`, which is `false` when `exp` is `undefined`, so
+  such a token was treated as valid indefinitely. It is now rejected.
+- **URL safety was implicit.** `utils/security.ts` makes the scheme allowlist a
+  named, tested function, and strips control characters first — `java\tscript:`
+  and `&nbsp;javascript:` are stripped by browsers before resolution and would
+  defeat a naive `startsWith` check.
+- **The tokenizer was untestable**, living inline in a 1,900-line `.vue` file
+  several hundred lines from the template that trusted it. It is now
+  `utils/messageTokens.ts`.
+
+### Running them
+
+```bash
+bun run test              # 54 tests
+bun run test:coverage     # + cobertura/lcov for the pipeline
+```
 
 ---
 
@@ -187,7 +228,8 @@ place for secrets.
 
 - [ ] Regenerate `bun.lockb` (**blocker**)
 - [ ] Branch protection on `master`: require `CI / PR Quality Gate` (plan §21) — Jenkins reporting a failure does not prevent a merge on its own
-- [ ] Write the first tests; `composables/useAuth.ts` and `stores/AuthStore.ts` carry the most risk
+- [x] Write the first tests — 54 of them, over `useAuth`, `AuthStore.refreshAuth`, the markdown renderer and the chat tokenizer
+- [ ] Test `stores/supports/ChatStore.ts` (1,290 lines, currently 0% covered) and the fetch composables, then ramp `gates.coverage` back on
 - [ ] Fix the 10 real defects listed above
 - [ ] Normalisation commit, then enable `lint`
 - [x] Set the production deploy port — `deployment.port: 3012` in `.ci/config.yml`, kept clear of the dev server's 3002. `PROD_HOST` is not needed while production is this host (`deployment.targets: [local]`).

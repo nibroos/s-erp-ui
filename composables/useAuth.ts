@@ -18,7 +18,7 @@ const getExpired = () => {
 }
 
 const jwtVerify = (token: string): boolean => {
-  let isValid = false
+  const isValid = false
   if (!token) {
     return isValid
   }
@@ -27,6 +27,14 @@ const jwtVerify = (token: string): boolean => {
     const decoded: any = jwtDecode(token); // Decode JWT token
     const currentTime = Math.floor(Date.now() / 1000)
 
+    // A token with no numeric `exp` is treated as INVALID, not as valid
+    // forever. The previous check was `decoded.exp < currentTime`, and with
+    // `exp` undefined that comparison is false — so a token that never expires
+    // (or one whose exp was tampered into a non-number) fell through to
+    // `return true` and was accepted indefinitely.
+    if (typeof decoded?.exp !== 'number' || !Number.isFinite(decoded.exp)) {
+      return isValid
+    }
 
     if (decoded.exp < currentTime) {
       // localStorage.removeItem('auth_token')
@@ -71,11 +79,11 @@ const checkAuth = () => {
 }
 
 const permit = (permissions: string | any[]): boolean => {
-  let authStore = JSON.parse(localStorage.getItem('AuthStore') || '{}') as { authUser: AuthUserType }
+  const authStore = JSON.parse(localStorage.getItem('AuthStore') || '{}') as { authUser: AuthUserType }
   if (!authStore) return false
 
-  let abilities: string[] = authStore?.authUser?.data?.permissions || []
-  let isSuperAdmin = authStore?.authUser?.data?.roles?.find((role) => role === 'superadmin')
+  const abilities: string[] = authStore?.authUser?.data?.permissions || []
+  const isSuperAdmin = authStore?.authUser?.data?.roles?.find((role) => role === 'superadmin')
   if (isSuperAdmin === 'superadmin') {
     return true
   }
@@ -86,7 +94,7 @@ const permit = (permissions: string | any[]): boolean => {
 
   if (Array.isArray(permissions)) {
     function containsAny(source: string[], target: string[]) {
-      var result = source.filter(function (item) {
+      const result = source.filter(function (item) {
         return target.indexOf(item) > -1
       })
       return result.length > 0
@@ -118,7 +126,7 @@ const handlePermission = async (
   //   }
   // };
 
-  let previousRoute = route.query.back?.toString() || '/dashboard/overview'
+  const previousRoute = route.query.back?.toString() || '/dashboard/overview'
 
   const hasHistory = () => {
     return window.history.length > 2

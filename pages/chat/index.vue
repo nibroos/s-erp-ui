@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import useLayoutsStore from "~/stores/configs/LayoutsStore";
 import useChatStore from "~/stores/supports/ChatStore";
+import { tokenizeMessage, type MessageToken } from "~/utils/messageTokens";
 import type {
   AttachmentType,
   ConversationType,
@@ -212,32 +213,11 @@ const onComposerKeydown = (e: KeyboardEvent) => {
 };
 
 // Tokenize content into text / clickable url / clickable @mention parts.
-type Token = { kind: "text" | "url" | "mention"; text: string; href?: string; userId?: number };
-const renderTokens = (msg: MessageType): Token[] => {
-  const content = msg.content || "";
-  const mentions = msg.mentions || [];
-  const tokens: Token[] = [];
-  const re = /(https?:\/\/[^\s]+)|(@[\p{L}][\p{L}\d._-]*)/gu;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(content)) !== null) {
-    if (m.index > last) tokens.push({ kind: "text", text: content.slice(last, m.index) });
-    if (m[1]) {
-      tokens.push({ kind: "url", text: m[1], href: m[1] });
-    } else {
-      const q = m[2].slice(1).toLowerCase();
-      const hit = mentions.find(
-        (x) =>
-          x.name.toLowerCase().startsWith(q) ||
-          x.name.split(/\s+/)[0].toLowerCase() === q
-      );
-      tokens.push({ kind: "mention", text: m[2], userId: hit?.user_id });
-    }
-    last = m.index + m[0].length;
-  }
-  if (last < content.length) tokens.push({ kind: "text", text: content.slice(last) });
-  return tokens.length ? tokens : [{ kind: "text", text: content }];
-};
+// Tokenizer lives in utils/messageTokens.ts so the logic that decides what
+// reaches an <a :href> is unit-tested. See utils/security.ts for the scheme
+// allowlist it applies.
+const renderTokens = (msg: MessageType): MessageToken[] =>
+  tokenizeMessage(msg.content, msg.mentions || []);
 
 // Id of my most recent (real) message — where the read receipt is shown.
 const lastMineId = computed(() => {
