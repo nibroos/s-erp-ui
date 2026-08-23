@@ -191,9 +191,19 @@ pipeline {
     //    stages, so it never binds registry or deploy credentials. Plan §31.
     stage('Build image') {
       when { allOf { branch "${cfg?.deployment?.branch ?: 'master'}"; expression { cfg.deployment.enabled } } }
+      // Registry credentials are bound here, not just in Push: --cache-to
+      // type=registry writes to ghcr.io/nibroos/s-erp-ui:buildcache, which is
+      // private. Without a login the cache export gets a 401 and buildx fails
+      // the build — the image never gets as far as the Push stage that used to
+      // hold the only docker login. Safe to bind: this stage is master-only, so
+      // no PR build can reach it (plan §31).
       steps {
+        withCredentials([usernamePassword(credentialsId: 'registry-credentials',
+                                          usernameVariable: 'REG_USER',
+                                          passwordVariable: 'REG_TOKEN')]) {
         sh '''
           set -eu
+          echo "$REG_TOKEN" | docker login "$REGISTRY" -u "$REG_USER" --password-stdin
           docker buildx build \
             --file Dockerfile \
             --tag "${REGISTRY}/${NAMESPACE}/${APP_NAME}:${IMAGE_TAG}" \
@@ -208,7 +218,9 @@ pipeline {
             --cache-to   "type=registry,ref=${REGISTRY}/${NAMESPACE}/${APP_NAME}:buildcache,mode=max" \
             --load \
             .
+          docker logout "$REGISTRY"
         '''
+        }
       }
     }
 
@@ -296,9 +308,21 @@ pipeline {
       options { lock(resource: 's-erp-ui-production') }
       steps {
         script {
+          // No 'localhost' fallback. The probe runs inside the agent, so
+          // localhost there is the agent's own loopback — against a REMOTE
+          // deploy that probes the wrong machine entirely, and would either
+          // fail every deploy or, worse, pass by hitting something unrelated
+          // that happens to listen on the same port. If the remote target is
+          // on, its host must be named.
+          String remoteHost = cfg.deployment.remote_host ?: env.PROD_HOST
+          if (!remoteHost) {
+            error('deployment.targets includes "remote" but neither ' +
+                  'deployment.remote_host nor PROD_HOST is set — refusing to ' +
+                  'health-check a remote deploy against the build agent')
+          }
           // deploy.sh health-gates and rolls back automatically on failure.
           dockerDeploy(target: 'remote', app: cfg.deployment.app, image: IMAGE_REF,
-                       health: "http://${env.PROD_HOST ?: 'localhost'}:${env.APP_PORT}${cfg.deployment.health_path ?: '/healthz'}")
+                       health: "http://${remoteHost}:${env.APP_PORT}${cfg.deployment.health_path ?: '/healthz'}")
           echo "Deployed ${IMAGE_REF} · commit ${env.GIT_COMMIT} · approved by ${env.APPROVER ?: 'n/a'}"
         }
       }
